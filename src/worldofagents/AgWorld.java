@@ -16,6 +16,8 @@ import jade.domain.FIPAException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import java.util.HashSet;
+import java.util.Set;
 import worldofagents.ontology.GameOntology;
 
 // TODO: change docs
@@ -65,7 +67,8 @@ public class AgWorld extends Agent {
         // if it is accepted...)
         addBehaviour(new CyclicBehaviour(this) {
             private static final long serialVersionUID = 1L;
-
+            private Set<Tribe> tribeSet = new HashSet<>();
+            
             public void action() {
                 // Waits for requests
                 ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
