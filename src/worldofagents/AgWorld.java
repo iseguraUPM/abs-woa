@@ -7,6 +7,7 @@ package worldofagents;
  *
  ****************************************************************
  */
+import jade.content.onto.Ontology;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.*;
@@ -15,6 +16,7 @@ import jade.domain.FIPAException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import worldofagents.ontology.GameOntology;
 
 // TODO: change docs
 /**
@@ -34,6 +36,7 @@ public class AgWorld extends Agent {
 
     private static final String WORLD = "WORLD";
     private static final long serialVersionUID = 1L;
+    private Ontology ontology = GameOntology.getInstance();
 
     protected void setup() {
         System.out.println(getLocalName() + ": has entered into the system");
