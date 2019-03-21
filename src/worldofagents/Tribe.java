@@ -2,13 +2,17 @@ package worldofagents;
  
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  *
  * @author Martin Zumarraga Uribe
  */
+@Getter
+@Setter
 public class Tribe {
-    //Maby, in the future we will have only a unique class. This will happen if both classes needs the same info.
+    //Maybe, in the future we will have only a unique class. This will happen if both classes needs the same variables.
     private String id;
     private Set<TownHall> townHallSet = new HashSet<>();
     private Set<Unit> unitSet = new HashSet<>();
@@ -43,7 +47,7 @@ public class Tribe {
         }
         
         if(gold >=150 && food >=50 && posible){
-            //TODO: Maby we have to update them once the agent is created and not before in case we have any problem
+            //TODO:should we have to update these values once the agent is created? In case we have any problem during the creation...
             gold -= 150;
             food -= 50;
             return true;
