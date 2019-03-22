@@ -1,5 +1,6 @@
 package worldofagents;
  
+import jade.core.AID;
 import java.util.Collection;
 import java.util.HashSet;
 import lombok.Getter;
@@ -31,7 +32,7 @@ public class Tribe {
         currentFood = 1000;
         
         //TODO: remove in the future. just for testing
-        townHallCollection.add(new TownHall("000", 0, 0));
+        townHallCollection.add(new TownHall(new AID(), 0, 0));
     }
     
     

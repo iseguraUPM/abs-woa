@@ -176,7 +176,7 @@ public class AgWorld extends Agent {
                 return false;
             }
             else {
-                Unit newUnit = new Unit(newUnitAgent.getName().toString(), 0, 0);
+                Unit newUnit = new Unit(newUnitAgent.getName(), 0, 0);
                 if (!ownerTribe.createUnit(newUnit)) {
                     ac.kill();
                     return false;
