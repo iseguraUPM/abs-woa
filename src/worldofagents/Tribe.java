@@ -31,7 +31,7 @@ public class Tribe {
         currentFood = 1000;
         
         //TODO: remove in the future. just for testing
-        townHallCollection.add(new TownHall("000", 1, 1));
+        townHallCollection.add(new TownHall("000", 0, 0));
     }
     
     
@@ -68,7 +68,7 @@ public class Tribe {
      * @param newUnit to be added
      * @return if the unit was not previously added
      */
-    public boolean createUnit(Unit newUnit){
+    public boolean createUnit(Unit newUnit) {
         return unitCollection.add(newUnit);
     }
     

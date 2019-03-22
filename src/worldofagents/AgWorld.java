@@ -8,20 +8,13 @@ package worldofagents;
  ****************************************************************
  */
 import jade.content.onto.Ontology;
-import jade.core.AID;
 import jade.core.Agent;
-import jade.core.Profile;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
-import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
-import jade.wrapper.State;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
@@ -51,7 +44,7 @@ public class AgWorld extends Agent {
     private static final int WAIT_NEW_AGENT_REGISTRATION_MILLIS = 500;
     
     private static final long serialVersionUID = 1L;
-    private Ontology ontology; 
+    private Ontology ontology;
     private Collection<Tribe> tribes;
 
     @Override
@@ -163,11 +156,11 @@ public class AgWorld extends Agent {
     }
     
     private void handInitialTribeResources() {
-        for (Tribe tribe : tribes) {
+        tribes.stream().forEach((tribe) -> {
             for (int i = 0; i < 3; i++) {
                 launchAgentUnit(tribe, "TestUnit" + i);
             }
-        }
+        });
     }
     
     private boolean launchAgentUnit(Tribe ownerTribe, String newUnitName) {
