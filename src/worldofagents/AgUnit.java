@@ -28,6 +28,14 @@ public class AgUnit extends Agent {
         } catch (FIPAException ex) {
             Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        //Behaviours
+        addBehaviour(new AgUnitRequestUnitCreationHandlerBehaviour(this));
+        addBehaviour(new AgUnitReceiveRefuseHandlerBehaviour(this));
+        addBehaviour(new AgUnitReceiveNotUnderstoodHandlerBehaviour(this));
+        addBehaviour(new AgUnitReceiveAgreeHandlerBehaviour(this));
+        addBehaviour(new AgUnitReceiveInformHandlerBehaviour(this));
+        addBehaviour(new AgUnitReceiveFailureHandlerBehaviour(this));
     }
     
     private void initializeAgent() throws FIPAException {

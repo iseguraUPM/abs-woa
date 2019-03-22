@@ -61,6 +61,7 @@ public class AgWorld extends Agent {
 
 //		BEHAVIOURS ****************************************************************
         addBehaviour(new AgWorldRequestHandlerBehaviour(this));
+        
 
     }
     
@@ -143,7 +144,7 @@ public class AgWorld extends Agent {
         DFAgentDescription targetTribe = foundTribes[i];
         while (i < foundTribes.length && !targetTribe.getName().getLocalName().equals(agentName)) {
             if (++i < foundTribes.length) {
-                targetTribe = foundTribes[++i];
+                targetTribe = foundTribes[i];
             }
         }
 
