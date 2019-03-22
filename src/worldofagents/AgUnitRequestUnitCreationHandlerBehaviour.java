@@ -17,7 +17,7 @@ import java.util.Date;
 
 /**
  *
- * @author ISU
+ * @author Juan Pablo
  */
 public class AgUnitRequestUnitCreationHandlerBehaviour extends CyclicBehaviour {
     
@@ -36,7 +36,7 @@ public class AgUnitRequestUnitCreationHandlerBehaviour extends CyclicBehaviour {
     @Override
     public void action(){
         //TODO: Cuando crea un agente (condiciones)
-        myAgent.doWait(5000);
+        myAgent.doWait(500000000);
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType(WORLD);

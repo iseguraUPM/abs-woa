@@ -17,7 +17,7 @@ import java.util.Date;
 
 /**
  *
- * @author ISU
+ * @author Juan Pablo
  */
 public class AgUnitReceiveNotUnderstoodHandlerBehaviour extends CyclicBehaviour {
     //ESTE REFUSE SE PUEDE USAR PARA TODOS LOS REFUSES, CON DIFERENTES CAMPOS EN EL CONTENIDO DEL MENSAJE.
