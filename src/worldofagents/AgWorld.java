@@ -10,14 +10,24 @@ package worldofagents;
 import jade.content.onto.Ontology;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.Profile;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
+import jade.wrapper.ControllerException;
+import jade.wrapper.StaleProxyException;
+import jade.wrapper.State;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static worldofagents.AgTribe.TRIBE;
+import static worldofagents.AgUnit.UNIT;
 import worldofagents.ontology.GameOntology;
 
 // TODO: change docs
@@ -36,73 +46,157 @@ import worldofagents.ontology.GameOntology;
  */
 public class AgWorld extends Agent {
 
-    private static final String WORLD = "WORLD";
+    public static final String WORLD = "WORLD";
+    
+    private static final int WAIT_NEW_AGENT_REGISTRATION_MILLIS = 500;
+    
     private static final long serialVersionUID = 1L;
-    private Ontology ontology = GameOntology.getInstance();
+    private Ontology ontology; 
+    private Collection<Tribe> tribes;
 
+    @Override
     protected void setup() {
         System.out.println(getLocalName() + ": has entered into the system");
 
         try {
-            // Creates its own description
-            DFAgentDescription dfd = new DFAgentDescription();
-            ServiceDescription sd = new ServiceDescription();
-            sd.setName(this.getName());
-            sd.setType(WORLD);
-            dfd.addServices(sd);
-            // Registers its description in the DF
-            DFService.register(this, dfd);
-            System.out.println(getLocalName() + ": registered in the DF");
-            dfd = null;
-            sd = null;
+            initializeAgent();
+            initializeWorld();
+            
         } catch (FIPAException e) {
             e.printStackTrace();
         }
 
 //		BEHAVIOURS ****************************************************************
-        // Adds a behavior to answer the estimation requests
-        // Waits for a request and, when it arrives, answers with			  
-        // the ESTIMATION and waits again.
-        // If arrives a DECISION, it takes it (at this point, the painter would begin painting
-        // if it is accepted...)
-        addBehaviour(new CyclicBehaviour(this) {
-            private static final long serialVersionUID = 1L;
-            private Set<Tribe> tribeSet = new HashSet<>();
+        addBehaviour(new AgWorldRequestHandlerBehaviour(this));
+
+    }
+    
+    private void initializeAgent() throws FIPAException {
+        // Creates its own description
+        DFAgentDescription dfd = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setName(this.getName());
+        sd.setType(WORLD);
+        dfd.addServices(sd);
+        // Registers its description in the DF
+        DFService.register(this, dfd);
+        System.out.println(getLocalName() + ": registered in the DF");
+        dfd = null;
+        sd = null;
+    }
+    
+    private void initializeWorld() {
+        ontology = GameOntology.getInstance();
             
-            public void action() {
-                // Waits for requests
-                ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
-                if (msg != null) {
-                    // TODO: check msg content
-                    // TODO: create unit request logic
-
-                    System.out.println(myAgent.getLocalName() + ": received create unit request from " + (msg.getSender()).getLocalName());
-                    ACLMessage reply = msg.createReply();
-			
-                    reply.setContent("");
-                    reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-                    myAgent.send(reply);
-                    System.out.println(myAgent.getLocalName() + ": answer sent -> " + reply.getContent());
-                    
-                    AID unitRequester = msg.getSender();
-                    
-                    new Thread(() -> {
-                        // TODO: send to requesters tribe
-                        // TODO: wait 150 hours
-                        // TODO: how to launch agents in code
-                        
-                        //ACLMessage informNewUnit = ;
-                    }).run();
-                    
-                } else {
-                    // If no message arrives
-                    block();
-                }
-
+        tribes = new HashSet<>();
+        
+        if (launchAgentTribe()) {
+            handInitialTribeResources();
+        }
+    }
+    
+    private boolean launchAgentTribe() {
+        try {
+            ContainerController cc = getContainerController();
+            AgentController ac = cc.createNewAgent("TestTribe", "worldofagents.AgTribe", null);
+            ac.start();
+            
+            doWait(WAIT_NEW_AGENT_REGISTRATION_MILLIS);
+            DFAgentDescription newTribeAgent = findAgent(TRIBE, "TestTribe");
+            if (newTribeAgent == null) {
+                ac.kill();
+                return false;
             }
+            else {
+                Tribe newTribe = new Tribe(newTribeAgent.getName().toString());
+                if (!tribes.add(newTribe)) {
+                    ac.kill();
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            
+        } catch (StaleProxyException ex) {
+            Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+    
+    private DFAgentDescription findAgent(String type, String agentName) {
+        DFAgentDescription dfd = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(type);
+        dfd.addServices(sd);
+            
+        try {
+            return searchAgentDescription(dfd, agentName);
+        } catch (FIPAException ex) {
+            Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+    
+    private DFAgentDescription searchAgentDescription(DFAgentDescription searchDescription, String agentName) throws FIPAException {
+        DFAgentDescription[] foundTribes;
+        foundTribes = DFService.search(this, searchDescription);
 
-        });
+        if (foundTribes.length == 0) {
+            return null;
+        }
 
+        int i = 0;
+        DFAgentDescription targetTribe = foundTribes[i];
+        while (i < foundTribes.length && !targetTribe.getName().getLocalName().equals(agentName)) {
+            if (++i < foundTribes.length) {
+                targetTribe = foundTribes[++i];
+            }
+        }
+
+        if (foundTribes.length == 0 || !targetTribe.getName().getLocalName().equals(agentName)) {
+            return null;
+        }
+        else {
+            return targetTribe;
+        }
+    }
+    
+    private void handInitialTribeResources() {
+        for (Tribe tribe : tribes) {
+            for (int i = 0; i < 3; i++) {
+                launchAgentUnit(tribe, "TestUnit" + i);
+            }
+        }
+    }
+    
+    private boolean launchAgentUnit(Tribe ownerTribe, String newUnitName) {
+        try {
+            ContainerController cc = getContainerController();
+            AgentController ac = cc.createNewAgent(newUnitName, "worldofagents.AgUnit", null);
+            ac.start();
+            
+            doWait(WAIT_NEW_AGENT_REGISTRATION_MILLIS);
+            DFAgentDescription newUnitAgent = findAgent(UNIT, newUnitName);
+            if (newUnitAgent == null) {
+                ac.kill();
+                return false;
+            }
+            else {
+                Unit newUnit = new Unit(newUnitAgent.getName().toString(), 0, 0);
+                if (!ownerTribe.createUnit(newUnit)) {
+                    ac.kill();
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            
+        } catch (StaleProxyException ex) {
+            Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
     }
 
 }
