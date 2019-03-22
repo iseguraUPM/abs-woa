@@ -5,9 +5,9 @@
  */
 package worldofagents;
 
+import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.basic.Action;
-import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -29,18 +29,28 @@ public class AgTribeInformHandlerBehaviour extends CyclicBehaviour{
     @Override
     public void action() {
         ACLMessage msg = agTribe.receive(MessageTemplate.and(
-                MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchOntology(agTribe.getOntology().getName())));
+                MessageTemplate.MatchLanguage(agTribe.getCodec().getName()),
+                MessageTemplate.MatchOntology(agTribe.getOntology().getName())
+            ));
         
         if (msg != null) {
             try {
-                ContentElement ce = agTribe.getContentManager().extractContent(msg);
-                
-                if (ce instanceof NotifyNewUnit){
-                    NotifyNewUnit newUnitInfo = (NotifyNewUnit) ce;
-                    System.out.println(agTribe.getLocalName()+": received inform request from "+(msg.getSender()).getLocalName());    
-                    //agTribe.addUnit(newUnitInfo);
+                if(msg.getPerformative() == ACLMessage.INFORM){
+                    ContentElement ce = agTribe.getContentManager().extractContent(msg);
+                    if (ce instanceof Action){
+
+                        Action agAction = (Action) ce;
+			Concept conc = agAction.getAction();
+                        
+                        if (conc instanceof NotifyNewUnit){
+                            System.out.println(agTribe.getLocalName()+": received inform request from "+(msg.getSender()).getLocalName());
+                            NotifyNewUnit newUnitInfo = (NotifyNewUnit) conc;
+                            agTribe.addUnit(newUnitInfo);
+                        }
+                    }
                 }
             } catch (Exception e) {
+                e.printStackTrace();
             }         
             
         }else {

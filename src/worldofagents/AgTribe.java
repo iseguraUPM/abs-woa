@@ -5,6 +5,8 @@
  */
 package worldofagents;
 
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.core.Agent;
 import jade.domain.DFService;
@@ -26,6 +28,7 @@ public class AgTribe extends Agent {
     
     public static final String TRIBE = "TRIBE";
     private Ontology ontology;
+    private Codec codec;
     private Collection<Unit> units;
 
     @Override
@@ -36,7 +39,12 @@ public class AgTribe extends Agent {
         } catch (FIPAException ex) {
             Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+//	BEHAVIOURS ****************************************************************
+        addBehaviour(new AgTribeInformHandlerBehaviour(this));
+
     }
+ 
     
     private void initializeAgent() throws FIPAException {
         // Creates its own description
@@ -54,16 +62,24 @@ public class AgTribe extends Agent {
     
     private void initializeTribe() {
         ontology = GameOntology.getInstance();
+        codec = new SLCodec();
+        getContentManager().registerLanguage(codec);
+        getContentManager().registerOntology(ontology);
             
         units = new HashSet<>();
+        
     }
     
     public Ontology getOntology() {
         return ontology;
     }
     
-    public void addUnit(NotifyNewUnit newUnitInfo){
-        units.add(new Unit(newUnitInfo.getNewUnit(), 0, 0));
+    public Codec getCodec() {
+        return codec;
     }
     
+    public void addUnit(NotifyNewUnit newUnitInfo){
+        units.add(new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(),  newUnitInfo.getLocation().getY()));
+    }
+
 }

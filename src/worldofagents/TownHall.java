@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 public class TownHall extends WorldEntity{
         
-    public TownHall(AID pAID, int pCoordX, int pCoordY){
-        super(pAID, pCoordX, pCoordY);
+    public TownHall(AID pId, int pCoordX, int pCoordY){
+        super(pId, pCoordX, pCoordY);
     }
 }

@@ -18,13 +18,13 @@ public class Tribe {
     private final static int UNIT_GOLD_COST = 150;
     
     // TODO: unique ID generation
-    private String id;
+    private AID id;
     private final Collection<TownHall> townHallCollection = new HashSet<>();
     private final Collection<Unit> unitCollection = new HashSet<>();
     private int currentGold;
     private int currentFood;
     
-    public Tribe(String pId) {
+    public Tribe(AID pId) {
         id = pId;
         
         //TODO: define how many units of currentGold/food. By default 1000

@@ -19,12 +19,12 @@ import lombok.Setter;
 @Setter
 public abstract class WorldEntity {
     
-    private AID entityAID;
+    private AID id;
     private int coordX;
     private int coordY;
     
-    public WorldEntity(AID pAID, int pCoordX, int pCoordY){
-        entityAID = pAID;
+    public WorldEntity(AID pId, int pCoordX, int pCoordY){
+        id = pId;
         coordX = pCoordX;
         coordY = pCoordY;
     }

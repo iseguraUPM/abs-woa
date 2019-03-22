@@ -7,11 +7,16 @@ package worldofagents;
  *
  ****************************************************************
  */
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -21,7 +26,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static worldofagents.AgTribe.TRIBE;
 import static worldofagents.AgUnit.UNIT;
+import worldofagents.ontology.Cell;
 import worldofagents.ontology.GameOntology;
+import worldofagents.ontology.NotifyNewUnit;
 
 // TODO: change docs
 /**
@@ -45,6 +52,8 @@ public class AgWorld extends Agent {
     
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
+    private Codec codec;
+
     private Collection<Tribe> tribes;
 
     @Override
@@ -80,7 +89,10 @@ public class AgWorld extends Agent {
     
     private void initializeWorld() {
         ontology = GameOntology.getInstance();
-            
+        codec = new SLCodec();
+        getContentManager().registerLanguage(codec);
+        getContentManager().registerOntology(ontology);
+
         tribes = new HashSet<>();
         
         if (launchAgentTribe()) {
@@ -101,7 +113,7 @@ public class AgWorld extends Agent {
                 return false;
             }
             else {
-                Tribe newTribe = new Tribe(newTribeAgent.getName().toString());
+                Tribe newTribe = new Tribe(newTribeAgent.getName());
                 if (!tribes.add(newTribe)) {
                     ac.kill();
                     return false;
@@ -143,7 +155,7 @@ public class AgWorld extends Agent {
         DFAgentDescription targetTribe = foundTribes[i];
         while (i < foundTribes.length && !targetTribe.getName().getLocalName().equals(agentName)) {
             if (++i < foundTribes.length) {
-                targetTribe = foundTribes[++i];
+                targetTribe = foundTribes[i];
             }
         }
 
@@ -182,6 +194,7 @@ public class AgWorld extends Agent {
                     return false;
                 }
                 else {
+                    informTribeAboutNewUnit(ownerTribe, newUnit);
                     return true;
                 }
             }
@@ -189,6 +202,38 @@ public class AgWorld extends Agent {
         } catch (StaleProxyException ex) {
             Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
             return false;
+        }
+    }
+    
+    private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit){
+  
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.addReceiver(ownerTribe.getId());
+        msg.setOntology(ontology.getName());
+        msg.setLanguage(codec.getName());
+
+        NotifyNewUnit notifyNewUnit = new NotifyNewUnit();
+        Cell cell = new Cell();
+        cell.setX(newUnit.getCoordX());
+        cell.setY(newUnit.getCoordY());
+        notifyNewUnit.setLocation(cell);
+        notifyNewUnit.setNewUnit(newUnit.getId());
+        
+        Action agAction = new Action(ownerTribe.getId(),notifyNewUnit);
+        try
+        {
+                // The ContentManager transforms the java objects into strings
+                getContentManager().fillContent(msg, agAction);
+                send(msg);
+                System.out.println(getLocalName()+": INFORMS A TRIBE " + ownerTribe.getId().getName());
+        }
+        catch (Codec.CodecException ce)
+        {
+                ce.printStackTrace();
+        }
+        catch (OntologyException oe)
+        {
+                oe.printStackTrace();
         }
     }
 
