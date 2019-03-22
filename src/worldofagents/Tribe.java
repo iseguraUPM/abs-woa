@@ -1,5 +1,6 @@
 package worldofagents;
  
+import jade.core.AID;
 import java.util.Collection;
 import java.util.HashSet;
 import lombok.Getter;
@@ -17,13 +18,13 @@ public class Tribe {
     private final static int UNIT_GOLD_COST = 150;
     
     // TODO: unique ID generation
-    private String id;
+    private AID id;
     private final Collection<TownHall> townHallCollection = new HashSet<>();
     private final Collection<Unit> unitCollection = new HashSet<>();
     private int currentGold;
     private int currentFood;
     
-    public Tribe(String pId) {
+    public Tribe(AID pId) {
         id = pId;
         
         //TODO: define how many units of currentGold/food. By default 1000
@@ -31,7 +32,7 @@ public class Tribe {
         currentFood = 1000;
         
         //TODO: remove in the future. just for testing
-        townHallCollection.add(new TownHall("000", 0, 0));
+        townHallCollection.add(new TownHall(new AID(), 0, 0));
     }
     
     

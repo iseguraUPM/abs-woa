@@ -5,13 +5,15 @@
  */
 package worldofagents;
 
+import jade.core.AID;
+
 /**
  *
  * @author Martin
  */
 public class Unit extends WorldEntity{
     
-    public Unit(String pId, int pCoordX, int pCoordY){
+    public Unit(AID pId, int pCoordX, int pCoordY){
         super(pId, pCoordX, pCoordY);
     }
 }

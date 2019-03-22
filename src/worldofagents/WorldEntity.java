@@ -5,6 +5,7 @@
  */
 package worldofagents;
 
+import jade.core.AID;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,11 +19,11 @@ import lombok.Setter;
 @Setter
 public abstract class WorldEntity {
     
-    private String id;
+    private AID id;
     private int coordX;
     private int coordY;
     
-    public WorldEntity(String pId, int pCoordX, int pCoordY){
+    public WorldEntity(AID pId, int pCoordX, int pCoordY){
         id = pId;
         coordX = pCoordX;
         coordY = pCoordY;

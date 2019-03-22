@@ -5,6 +5,7 @@
  */
 package worldofagents;
 
+import jade.core.AID;
 import java.util.UUID;
 
 /**
@@ -12,11 +13,8 @@ import java.util.UUID;
  * @author Martin
  */
 public class TownHall extends WorldEntity{
-    
-    private String id;
-    
-    public TownHall(String pId, int pCoordX, int pCoordY){
+        
+    public TownHall(AID pId, int pCoordX, int pCoordY){
         super(pId, pCoordX, pCoordY);
-        id = pId;
     }
 }
