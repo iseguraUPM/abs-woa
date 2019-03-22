@@ -26,4 +26,8 @@ public abstract class WorldEntity {
         coordX = pCoordX;
         coordY = pCoordY;
     }
+    
+    public boolean sameCoords(WorldEntity otherEntity) {
+        return coordX == otherEntity.coordX && coordY == otherEntity.coordY;
+    }
 }
