@@ -17,6 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public abstract class WorldEntity {
+    
     private String id;
     private int coordX;
     private int coordY;
