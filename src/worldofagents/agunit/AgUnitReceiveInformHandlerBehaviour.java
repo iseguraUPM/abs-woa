@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package worldofagents;
+package worldofagents.agunit;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -19,12 +19,12 @@ import java.util.Date;
  *
  * @author Juan Pablo
  */
-public class AgUnitReceiveRefuseHandlerBehaviour extends CyclicBehaviour {
+public class AgUnitReceiveInformHandlerBehaviour extends CyclicBehaviour {
     //ESTE REFUSE SE PUEDE USAR PARA TODOS LOS REFUSES, CON DIFERENTES CAMPOS EN EL CONTENIDO DEL MENSAJE.
     private final Agent agUnit;
     private final String messageCreateUnit = "CreateNewUnit";
     
-    public AgUnitReceiveRefuseHandlerBehaviour(final Agent parent) {
+    public AgUnitReceiveInformHandlerBehaviour(final Agent parent) {
         this.agUnit = parent;
     }
  
@@ -33,10 +33,10 @@ public class AgUnitReceiveRefuseHandlerBehaviour extends CyclicBehaviour {
     
     @Override    
     public void action() {
-        ACLMessage msg = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REFUSE));
+        ACLMessage msg = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
         if (msg != null) {
             if(msg.getContent().equals(messageCreateUnit)){
-                System.out.println(myAgent.getLocalName()+": received unit creation refuse from "+(msg.getSender()).getLocalName());
+                System.out.println(myAgent.getLocalName()+": received unit creation inform from "+(msg.getSender()).getLocalName());
             }
         }else {
             // If no message arrives

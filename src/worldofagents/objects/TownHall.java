@@ -3,17 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package worldofagents;
+package worldofagents.objects;
 
 import jade.core.AID;
+import java.util.UUID;
 
 /**
  *
  * @author Martin
  */
-public class Unit extends WorldEntity{
-    
-    public Unit(AID pId, int pCoordX, int pCoordY){
+public class TownHall extends WorldEntity{
+        
+    public TownHall(AID pId, int pCoordX, int pCoordY){
         super(pId, pCoordX, pCoordY);
     }
 }

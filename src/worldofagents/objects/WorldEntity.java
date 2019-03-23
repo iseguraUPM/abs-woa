@@ -3,11 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package worldofagents;
+package worldofagents.objects;
 
 import jade.core.AID;
-import lombok.Getter;
-import lombok.Setter;
 
 
 /**
@@ -15,8 +13,6 @@ import lombok.Setter;
  * @author Martin
  * An Entity is any class which corresponds to an agent which will be part of the world
  */
-@Getter
-@Setter
 public abstract class WorldEntity {
     
     private AID id;
@@ -27,6 +23,18 @@ public abstract class WorldEntity {
         id = pId;
         coordX = pCoordX;
         coordY = pCoordY;
+    }
+    
+    public AID getId(){
+        return id;
+    }
+    
+    public int getCoordX(){
+        return coordX;
+    }
+    
+    public int getCoordY(){
+        return coordY;
     }
     
     public boolean sameCoords(WorldEntity otherEntity) {

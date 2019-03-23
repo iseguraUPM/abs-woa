@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package worldofagents;
+package worldofagents.agtribe;
 
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import worldofagents.objects.Unit;
 import worldofagents.ontology.GameOntology;
 import worldofagents.ontology.NotifyNewUnit;
 

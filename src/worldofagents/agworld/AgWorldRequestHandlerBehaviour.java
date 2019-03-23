@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package worldofagents;
+package worldofagents.agworld;
 
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import static worldofagents.AgUnitRequestUnitCreationHandlerBehaviour.MESSAGE;
+import static worldofagents.agunit.AgUnitRequestUnitCreationHandlerBehaviour.MESSAGE;
 
 /**
  *

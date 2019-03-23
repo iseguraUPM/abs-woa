@@ -1,17 +1,13 @@
-package worldofagents;
+package worldofagents.objects;
  
 import jade.core.AID;
 import java.util.Collection;
 import java.util.HashSet;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  *
  * @author Martin Zumarraga Uribe
  */
-@Getter
-@Setter
 public class Tribe {
     
     private final static int UNIT_FOOD_COST = 50;
@@ -33,6 +29,10 @@ public class Tribe {
         
         //TODO: remove in the future. just for testing
         townHallCollection.add(new TownHall(new AID(), 0, 0));
+    }
+    
+    public AID getId(){
+        return this.id;
     }
     
     
