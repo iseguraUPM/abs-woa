@@ -63,21 +63,30 @@ public class AgWorldRequestHandlerBehaviour extends CyclicBehaviour {
                     reply.setContent(messageCreateUnit);
                     agWorld.send(reply);
                     System.out.println(agWorld.getLocalName()+": Agrees to create a new unit for " + (msg.getSender()).getLocalName());
-                    //TODO: Elegiropcion2 dependiendo de si se ha creado correctamente o ha habido algún problema al crear.
-                    int ELEGIROPCION2 = 0;
-                    if(ELEGIROPCION2 == 0){
-                        ACLMessage newmsg = new ACLMessage(ACLMessage.FAILURE);
-                        newmsg.setContent(messageCreateUnit);
-                        newmsg.addReceiver(msg.getSender());
-                        agWorld.send(newmsg);
-                        System.out.println(agWorld.getLocalName()+": Sends failure to create a new unit to " + (msg.getSender()).getLocalName());
-                    }else if(ELEGIROPCION2 == 1){
-                        ACLMessage newmsg = new ACLMessage(ACLMessage.INFORM);
-                        newmsg.setContent(messageCreateUnit);
-                        newmsg.addReceiver(msg.getSender());
-                        agWorld.send(newmsg);
-                        System.out.println(agWorld.getLocalName()+": Sends inform to create a new unit to " + (msg.getSender()).getLocalName());
-                    }
+                    AID unitRequester = msg.getSender();
+                
+                    new Timer().schedule(new TimerTask() {
+
+                            @Override
+                            public void run() {
+                                
+                                boolean success = agWorld.launchAgentUnitFromRequest(unitRequester);
+                                if(!success){
+                                    ACLMessage newmsg = new ACLMessage(ACLMessage.FAILURE);
+                                    newmsg.setContent(messageCreateUnit);
+                                    newmsg.addReceiver(msg.getSender());
+                                    agWorld.send(newmsg);
+                                    System.out.println(agWorld.getLocalName()+": Sends failure to create a new unit to " + (msg.getSender()).getLocalName());
+                                }else{
+                                    ACLMessage newmsg = new ACLMessage(ACLMessage.INFORM);
+                                    newmsg.setContent(messageCreateUnit);
+                                    newmsg.addReceiver(msg.getSender());
+                                    agWorld.send(newmsg);
+                                    System.out.println(agWorld.getLocalName()+": Sends inform to create a new unit to " + (msg.getSender()).getLocalName());
+                                }
+                            }
+                        //TODO: wait 150 seconds, in the future 150hours
+                        }, 150000);
                 }
                 
             }else{
@@ -86,19 +95,8 @@ public class AgWorldRequestHandlerBehaviour extends CyclicBehaviour {
 
                 reply.setContent("");
                 reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-                myAgent.send(reply);
+                agWorld.send(reply);
                 System.out.println(agWorld.getLocalName() + ": answer sent -> " + reply.getContent());
-
-                AID unitRequester = msg.getSender();
-                
-                new Timer().schedule(new TimerTask() {
-
-                            @Override
-                            public void run() {
-                                agWorld.launchAgentUnitFromRequest(unitRequester);
-                            }
-                        //TODO: wait 150 seconds, in the future 150hours
-                        }, 150000);
             }
           
         } else {
