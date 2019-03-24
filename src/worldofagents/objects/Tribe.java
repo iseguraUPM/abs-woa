@@ -73,6 +73,15 @@ public class Tribe {
         return unitCollection.add(newUnit);
     }
     
+    /**
+     * Check if a tribe contains a given unit
+     * @param unitAID to be found
+     * @return if the unit was found or not
+     */
+    public boolean containsUnit(AID unitAID) {
+        return unitCollection.stream().filter(unit -> unit.getId().equals(unitAID)).findAny().isPresent();
+    }
+    
     private boolean canAffordUnit() {
         return currentGold >= UNIT_GOLD_COST && currentFood >= UNIT_FOOD_COST;
     }

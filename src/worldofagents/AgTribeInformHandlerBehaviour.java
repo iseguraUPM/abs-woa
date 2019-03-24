@@ -7,13 +7,14 @@ package worldofagents;
  */
 
 
-import worldofagents.AgTribe;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.basic.Action;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import java.util.Timer;
+import java.util.TimerTask;
 import worldofagents.ontology.NotifyNewUnit;
 
 /**
@@ -44,7 +45,7 @@ public class AgTribeInformHandlerBehaviour extends CyclicBehaviour{
 
                         Action agAction = (Action) ce;
 			Concept conc = agAction.getAction();
-                        
+              
                         if (conc instanceof NotifyNewUnit){
                             System.out.println(agTribe.getLocalName()+": received inform request from "+(msg.getSender()).getLocalName());
                             NotifyNewUnit newUnitInfo = (NotifyNewUnit) conc;

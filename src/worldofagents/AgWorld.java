@@ -14,6 +14,7 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
@@ -24,6 +25,7 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import worldofagents.objects.Tribe;
@@ -58,7 +60,7 @@ public class AgWorld extends Agent {
     private Ontology ontology;
     private Codec codec;
 
-    private Collection<Tribe> tribes;
+    private Collection<Tribe> tribeCollection;
 
     @Override
     protected void setup() {
@@ -98,14 +100,14 @@ public class AgWorld extends Agent {
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
 
-        tribes = new HashSet<>();
+        tribeCollection = new HashSet<>();
         
         if (launchAgentTribe()) {
             handInitialTribeResources();
         }
     }
     
-    private boolean launchAgentTribe() {
+    public boolean launchAgentTribe() {
         try {
             ContainerController cc = getContainerController();
             AgentController ac = cc.createNewAgent("TestTribe", "worldofagents.AgTribe", null);
@@ -119,7 +121,7 @@ public class AgWorld extends Agent {
             }
             else {
                 Tribe newTribe = new Tribe(newTribeAgent.getName());
-                if (!tribes.add(newTribe)) {
+                if (!tribeCollection.add(newTribe)) {
                     ac.kill();
                     return false;
                 }
@@ -173,11 +175,32 @@ public class AgWorld extends Agent {
     }
     
     private void handInitialTribeResources() {
-        tribes.stream().forEach((tribe) -> {
+        tribeCollection.stream().forEach((tribe) -> {
             for (int i = 0; i < 3; i++) {
                 launchAgentUnit(tribe, "TestUnit" + i);
             }
         });
+    }
+    
+    public boolean launchAgentUnitFromRequest(AID requesterUnitId){
+        String newUnitName = UNIT;
+        Tribe ownerTribe = findOwnerTribe(requesterUnitId);
+        
+        if(ownerTribe == null){
+            return false;
+        }else{
+            return launchAgentUnit(ownerTribe, newUnitName);
+        }
+    }
+    
+    private Tribe findOwnerTribe(AID requesterUnAid){
+        Optional<Tribe> tribe;
+        tribe = tribeCollection.stream().filter(currentTribe -> currentTribe.containsUnit(requesterUnAid)).findAny();
+        if(!tribe.isPresent()){
+            return null;
+        }else{
+            return tribe.get();
+        }
     }
     
     private boolean launchAgentUnit(Tribe ownerTribe, String newUnitName) {
@@ -241,5 +264,4 @@ public class AgWorld extends Agent {
                 oe.printStackTrace();
         }
     }
-
 }
