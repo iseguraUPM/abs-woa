@@ -9,6 +9,8 @@ package worldofagents;
  *
  ****************************************************************
  */
+import jade.content.Concept;
+import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
@@ -16,10 +18,13 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -33,6 +38,7 @@ import worldofagents.objects.Unit;
 import static worldofagents.AgTribe.TRIBE;
 import static worldofagents.AgUnit.UNIT;
 import worldofagents.ontology.Cell;
+import worldofagents.ontology.CreateUnit;
 import worldofagents.ontology.GameOntology;
 import worldofagents.ontology.NotifyNewUnit;
 
@@ -53,6 +59,7 @@ import worldofagents.ontology.NotifyNewUnit;
 public class AgWorld extends Agent {
 
     public static final String WORLD = "WORLD";
+    private static final String messageCreateUnit = "CreateNewUnit";
     
     private static final int WAIT_NEW_AGENT_REGISTRATION_MILLIS = 500;
     
@@ -75,7 +82,37 @@ public class AgWorld extends Agent {
         }
 
 //		BEHAVIOURS ****************************************************************
-        addBehaviour(new AgWorldRequestHandlerBehaviour(this));
+        addBehaviour(new CyclicBehaviour() {
+                @Override
+                public void action() {
+                    // Waits for requests
+                    ACLMessage msg = receive(MessageTemplate.and(
+                    MessageTemplate.MatchLanguage(codec.getName()),
+                    MessageTemplate.MatchOntology(ontology.getName())
+                ));
+
+                if (msg != null) {
+                    try {
+                        if(msg.getPerformative() == ACLMessage.INFORM) {
+                            ContentElement ce = getContentManager().extractContent(msg);
+                            if (ce instanceof Action) {
+
+                                Action agAction = (Action) ce;
+                                Concept conc = agAction.getAction();
+
+                                if (conc instanceof CreateUnit) {
+                                    System.out.println(getLocalName()+": received inform request from "+(msg.getSender()).getLocalName());
+                                    
+                                }
+                            }
+                        }
+                    } catch (Codec.CodecException | OntologyException e) {
+                        e.printStackTrace();
+                    }         
+
+                }
+            }
+        });
         
 
     }
@@ -233,7 +270,7 @@ public class AgWorld extends Agent {
         }
     }
     
-    private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit){
+    private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit) {
   
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.addReceiver(ownerTribe.getId());
@@ -263,5 +300,66 @@ public class AgWorld extends Agent {
         {
                 oe.printStackTrace();
         }
+    }
+    
+    class CreateUnitBehaviour extends OneShotBehaviour {
+        
+        ACLMessage msg, reply ;
+        
+        public CreateUnitBehaviour(Agent agent, ACLMessage msg) {
+            super(agent);
+            this.msg = msg;
+        }
+
+
+        @Override
+        public void action() {
+            //TODO: CAMBIAR ELEGIROPCION POR LA MANERA REAL DE ELEGIR LA OPCION. Falta la logica
+            int ELEGIROPCION = 2;
+
+            ACLMessage reply = msg.createReply();
+            reply.setOntology(ontology.getName());
+            reply.setContent(messageCreateUnit);
+            
+            if(ELEGIROPCION == 0) {
+                reply.setPerformative(ACLMessage.REFUSE);
+                myAgent.send(reply);
+                System.out.println(myAgent.getLocalName()+": Refuses to create a new unit for " + (msg.getSender()).getLocalName());
+            } else if(ELEGIROPCION == 1) {
+                reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+                myAgent.send(reply);
+                System.out.println(myAgent.getLocalName()+": Doesn't understand how to create a new unit for " + (msg.getSender()).getLocalName());
+            } else if(ELEGIROPCION == 2) {
+                reply.setPerformative(ACLMessage.AGREE);
+                myAgent.send(reply);
+                System.out.println(myAgent.getLocalName()+": Agrees to create a new unit for " + (msg.getSender()).getLocalName());
+                AID unitRequester = msg.getSender();
+               
+                addBehaviour(new DelayBehaviour(myAgent, 15000) {
+                    
+                    @Override
+                    public void handleElapsedTimeout() {
+                        
+                        AgWorld agWorld = (AgWorld) myAgent;
+                            
+                            boolean success = agWorld.launchAgentUnitFromRequest(unitRequester);
+                            if(!success) {
+                                ACLMessage newmsg = new ACLMessage(ACLMessage.FAILURE);
+                                newmsg.setContent(messageCreateUnit);
+                                newmsg.addReceiver(msg.getSender());
+                                agWorld.send(newmsg);
+                                System.out.println(agWorld.getLocalName()+": Sends failure to create a new unit to " + (msg.getSender()).getLocalName());
+                             } else {
+                                ACLMessage newmsg = new ACLMessage(ACLMessage.INFORM);
+                                newmsg.setContent(messageCreateUnit);
+                                newmsg.addReceiver(msg.getSender());
+                                agWorld.send(newmsg);
+                                System.out.println(agWorld.getLocalName()+": Sends inform to create a new unit to " + (msg.getSender()).getLocalName());
+                            }
+                        }
+                });
+            }
+        }
+    
     }
 }
