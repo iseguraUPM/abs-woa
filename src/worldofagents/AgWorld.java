@@ -1,4 +1,6 @@
-package worldofagents.agworld;
+package worldofagents;
+
+
 
 // TODO: change header
 /**
@@ -26,8 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import worldofagents.objects.Tribe;
 import worldofagents.objects.Unit;
-import static worldofagents.agtribe.AgTribe.TRIBE;
-import static worldofagents.agunit.AgUnit.UNIT;
+import static worldofagents.AgTribe.TRIBE;
+import static worldofagents.AgUnit.UNIT;
 import worldofagents.ontology.Cell;
 import worldofagents.ontology.GameOntology;
 import worldofagents.ontology.NotifyNewUnit;

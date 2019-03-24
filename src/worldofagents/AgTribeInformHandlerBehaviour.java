@@ -1,11 +1,13 @@
+package worldofagents;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package worldofagents.agtribe;
 
-import worldofagents.agtribe.AgTribe;
+
+import worldofagents.AgTribe;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.basic.Action;
