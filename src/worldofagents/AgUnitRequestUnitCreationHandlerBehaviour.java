@@ -44,9 +44,9 @@ public class AgUnitRequestUnitCreationHandlerBehaviour extends CyclicBehaviour {
         sd.setType(WORLD);
         dfd.addServices(sd);
 
-        try{
+        try {
                 // It finds agents of the required type
-                DFAgentDescription[] worldAgent = new DFAgentDescription[1];
+                DFAgentDescription[] worldAgent;
                 worldAgent = DFService.search(myAgent, dfd);
 
                 if (worldAgent.length > 0){
@@ -67,7 +67,7 @@ public class AgUnitRequestUnitCreationHandlerBehaviour extends CyclicBehaviour {
                         
                 }
                 
-        }catch (Exception e){
+        } catch (Exception e) {
                 e.printStackTrace();
         }
     }
