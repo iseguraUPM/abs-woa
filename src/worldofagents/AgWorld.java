@@ -59,15 +59,17 @@ import worldofagents.ontology.NotifyNewUnit;
 public class AgWorld extends Agent {
 
     public static final String WORLD = "WORLD";
-    private static final String messageCreateUnit = "CreateNewUnit";
+    public static final String MESSAGE_CREATE_UNIT = "CreateNewUnit";
     
     private static final int WAIT_NEW_AGENT_REGISTRATION_MILLIS = 500;
+    private static final int STARTING_UNIT_NUMBER = 1;
     
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
     private Codec codec;
 
     private Collection<Tribe> tribeCollection;
+    
 
     @Override
     protected void setup() {
@@ -89,11 +91,11 @@ public class AgWorld extends Agent {
                     ACLMessage msg = receive(MessageTemplate.and(
                     MessageTemplate.MatchLanguage(codec.getName()),
                     MessageTemplate.MatchOntology(ontology.getName())
-                ));
+                    ));
 
-                if (msg != null) {
+                if (msg != null) {                
                     try {
-                        if(msg.getPerformative() == ACLMessage.INFORM) {
+                        if(msg.getPerformative() == ACLMessage.REQUEST) {
                             ContentElement ce = getContentManager().extractContent(msg);
                             if (ce instanceof Action) {
 
@@ -101,15 +103,23 @@ public class AgWorld extends Agent {
                                 Concept conc = agAction.getAction();
 
                                 if (conc instanceof CreateUnit) {
-                                    System.out.println(getLocalName()+": received inform request from "+(msg.getSender()).getLocalName());
-                                    
+                                    System.out.println(getLocalName()+": received request from " +(msg.getSender()).getLocalName());
+                                    addBehaviour(new CreateUnitBehaviour(myAgent, msg));
                                 }
                             }
                         }
                     } catch (Codec.CodecException | OntologyException e) {
                         e.printStackTrace();
-                    }         
+                        ACLMessage reply = msg.createReply();
+                        reply.setOntology(ontology.getName());
+                        reply.setLanguage(codec.getName());
+                        reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+                        send(reply);
+                    }   
 
+                }
+                else {
+                    block();
                 }
             }
         });
@@ -213,31 +223,24 @@ public class AgWorld extends Agent {
     
     private void handInitialTribeResources() {
         tribeCollection.stream().forEach((tribe) -> {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < STARTING_UNIT_NUMBER; i++) {
                 launchAgentUnit(tribe, "TestUnit" + i);
             }
         });
     }
     
-    public boolean launchAgentUnitFromRequest(AID requesterUnitId){
-        String newUnitName = UNIT;
-        Tribe ownerTribe = findOwnerTribe(requesterUnitId);
-        
-        if(ownerTribe == null){
-            return false;
-        }else{
-            return launchAgentUnit(ownerTribe, newUnitName);
-        }
-    }
-    
     private Tribe findOwnerTribe(AID requesterUnAid){
         Optional<Tribe> tribe;
-        tribe = tribeCollection.stream().filter(currentTribe -> currentTribe.containsUnit(requesterUnAid)).findAny();
+        tribe = tribeCollection.stream().filter(currentTribe -> currentTribe.getUnit(requesterUnAid) != null).findAny();
         if(!tribe.isPresent()){
             return null;
         }else{
             return tribe.get();
         }
+    }
+    
+    private Unit findUnit(Tribe ownerTribe, AID unitAID) {
+        return ownerTribe.getUnit(unitAID);
     }
     
     private boolean launchAgentUnit(Tribe ownerTribe, String newUnitName) {
@@ -314,27 +317,27 @@ public class AgWorld extends Agent {
 
         @Override
         public void action() {
-            //TODO: CAMBIAR ELEGIROPCION POR LA MANERA REAL DE ELEGIR LA OPCION. Falta la logica
-            int ELEGIROPCION = 2;
 
             ACLMessage reply = msg.createReply();
             reply.setOntology(ontology.getName());
-            reply.setContent(messageCreateUnit);
+            reply.setLanguage(codec.getName());
             
-            if(ELEGIROPCION == 0) {
+            AID unitRequester = msg.getSender();
+            final Tribe ownerTribe = findOwnerTribe(unitRequester);
+            Unit requesterUnit = findUnit(ownerTribe, unitRequester);
+
+            // TODO: townhall location logic
+            if(ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
                 reply.setPerformative(ACLMessage.REFUSE);
+                System.out.println(myAgent.getLocalName() + ": Refuses to create a new unit for " + (msg.getSender()).getLocalName());
                 myAgent.send(reply);
-                System.out.println(myAgent.getLocalName()+": Refuses to create a new unit for " + (msg.getSender()).getLocalName());
-            } else if(ELEGIROPCION == 1) {
-                reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-                myAgent.send(reply);
-                System.out.println(myAgent.getLocalName()+": Doesn't understand how to create a new unit for " + (msg.getSender()).getLocalName());
-            } else if(ELEGIROPCION == 2) {
+            } else {
+                ownerTribe.purchaseUnit();
                 reply.setPerformative(ACLMessage.AGREE);
                 myAgent.send(reply);
-                System.out.println(myAgent.getLocalName()+": Agrees to create a new unit for " + (msg.getSender()).getLocalName());
-                AID unitRequester = msg.getSender();
-               
+                
+                System.out.println(myAgent.getLocalName() + ": Agrees to create a new unit for " + (msg.getSender()).getLocalName());
+                
                 addBehaviour(new DelayBehaviour(myAgent, 15000) {
                     
                     @Override
@@ -342,22 +345,25 @@ public class AgWorld extends Agent {
                         
                         AgWorld agWorld = (AgWorld) myAgent;
                             
-                            boolean success = agWorld.launchAgentUnitFromRequest(unitRequester);
+                            boolean success = agWorld.launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
+                            
                             if(!success) {
+                                ownerTribe.refundUnit();
                                 ACLMessage newmsg = new ACLMessage(ACLMessage.FAILURE);
-                                newmsg.setContent(messageCreateUnit);
+                                newmsg.setContent(MESSAGE_CREATE_UNIT);
                                 newmsg.addReceiver(msg.getSender());
                                 agWorld.send(newmsg);
                                 System.out.println(agWorld.getLocalName()+": Sends failure to create a new unit to " + (msg.getSender()).getLocalName());
                              } else {
                                 ACLMessage newmsg = new ACLMessage(ACLMessage.INFORM);
-                                newmsg.setContent(messageCreateUnit);
+                                newmsg.setContent(MESSAGE_CREATE_UNIT);
                                 newmsg.addReceiver(msg.getSender());
                                 agWorld.send(newmsg);
                                 System.out.println(agWorld.getLocalName()+": Sends inform to create a new unit to " + (msg.getSender()).getLocalName());
                             }
                         }
                 });
+                
             }
         }
     

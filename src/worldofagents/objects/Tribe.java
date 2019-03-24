@@ -1,8 +1,10 @@
 package worldofagents.objects;
  
 import jade.core.AID;
+import jade.core.behaviours.Behaviour;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 
 /**
  *
@@ -24,8 +26,8 @@ public class Tribe {
         id = pId;
         
         //TODO: define how many units of currentGold/food. By default 1000
-        currentGold = 1000;
-        currentFood = 1000;
+        currentGold = 150;
+        currentFood = 50;
         
         //TODO: remove in the future. just for testing
         townHallCollection.add(new TownHall(new AID(), 0, 0));
@@ -35,33 +37,12 @@ public class Tribe {
         return this.id;
     }
     
-    
     /**
-     * Add unit to tribe meeting the following restrictions:
-     *  - The unit was not previously added
-     *  - The requester unit is in the same coordinates that a town hall
-     *  - The tribe can afford the creation of a unit
-     * @param requester unit
-     * @param newUnit to be purchased
-     * @return true if the restrictions are met, false otherwise
+     * 
+     * @return number of current units 
      */
-    public boolean purchaseUnit(Unit requester, Unit newUnit) {
-        //Check if in the cell contains a townHall of the tribe
-        boolean townHallPresent = townHallCollection.stream().filter(townHall -> requester.sameCoords(townHall)).findAny().isPresent();
-        if (!townHallPresent || !canAffordUnit()) {
-            return false;
-        }
-        else {
-            if (!createUnit(newUnit)) {
-                return false;
-            }
-            else {
-                // TODO: watch for asynchronous operations on resources
-                currentGold -= UNIT_GOLD_COST;
-                currentFood -= UNIT_FOOD_COST;
-                return true;
-            }
-        }
+    public int getNumberUnits() {
+        return unitCollection.size();
     }
     
     /**
@@ -74,16 +55,34 @@ public class Tribe {
     }
     
     /**
-     * Check if a tribe contains a given unit
+     * 
      * @param unitAID to be found
-     * @return if the unit was found or not
+     * @return the unit or null if it does not exist
      */
-    public boolean containsUnit(AID unitAID) {
-        return unitCollection.stream().filter(unit -> unit.getId().equals(unitAID)).findAny().isPresent();
+    public Unit getUnit(AID unitAID) {
+        try {
+            return unitCollection.stream().filter(unit -> unit.getId().equals(unitAID)).findAny().get();
+        } catch (NoSuchElementException ex) {
+            return null;
+        }
     }
     
-    private boolean canAffordUnit() {
+    public boolean canAffordUnit() {
         return currentGold >= UNIT_GOLD_COST && currentFood >= UNIT_FOOD_COST;
+    }
+    
+    public boolean purchaseUnit() {
+        if (!canAffordUnit()) {
+            return false;
+        }
+        currentGold -= UNIT_GOLD_COST;
+        currentFood -= UNIT_FOOD_COST;
+        return true;
+    }
+    
+    public void refundUnit() {
+        currentGold += UNIT_GOLD_COST;
+        currentFood += UNIT_FOOD_COST;
     }
     
 }
