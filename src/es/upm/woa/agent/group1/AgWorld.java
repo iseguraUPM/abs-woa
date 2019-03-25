@@ -1,4 +1,4 @@
-package worldofagents;
+package es.upm.woa.agent.group1;
 
 // TODO: change header
 /**
@@ -32,14 +32,12 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import worldofagents.objects.Tribe;
-import worldofagents.objects.Unit;
-import static worldofagents.AgTribe.TRIBE;
-import static worldofagents.AgUnit.UNIT;
-import worldofagents.ontology.Cell;
-import worldofagents.ontology.CreateUnit;
-import worldofagents.ontology.GameOntology;
-import worldofagents.ontology.NotifyNewUnit;
+import static es.upm.woa.agent.group1.AgTribe.TRIBE;
+import static es.upm.woa.agent.group1.AgUnit.UNIT;
+import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.CreateUnit;
+import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.NotifyNewUnit;
 
 // TODO: change docs
 /**
@@ -60,7 +58,7 @@ public class AgWorld extends Agent {
     public static final String WORLD = "WORLD";
 
     private static final int WAIT_NEW_AGENT_REGISTRATION_MILLIS = 500;
-    private static final int STARTING_UNIT_NUMBER = 1;
+    private static final int STARTING_UNIT_NUMBER = 3;
 
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
@@ -152,7 +150,7 @@ public class AgWorld extends Agent {
     public boolean launchAgentTribe() {
         try {
             ContainerController cc = getContainerController();
-            AgentController ac = cc.createNewAgent("TestTribe", "worldofagents.AgTribe", null);
+            AgentController ac = cc.createNewAgent("TestTribe", "es.upm.woa.agent.group1.AgTribe", null);
             ac.start();
 
             doWait(WAIT_NEW_AGENT_REGISTRATION_MILLIS);
@@ -238,7 +236,7 @@ public class AgWorld extends Agent {
     private boolean launchAgentUnit(Tribe ownerTribe, String newUnitName) {
         try {
             ContainerController cc = getContainerController();
-            AgentController ac = cc.createNewAgent(newUnitName, "worldofagents.AgUnit", null);
+            AgentController ac = cc.createNewAgent(newUnitName, "es.upm.woa.agent.group1.AgUnit", null);
             ac.start();
 
             doWait(WAIT_NEW_AGENT_REGISTRATION_MILLIS);

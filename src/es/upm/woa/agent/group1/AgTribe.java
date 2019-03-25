@@ -1,4 +1,4 @@
-package worldofagents;
+package es.upm.woa.agent.group1;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -26,9 +26,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import worldofagents.objects.Unit;
-import worldofagents.ontology.GameOntology;
-import worldofagents.ontology.NotifyNewUnit;
+import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.NotifyNewUnit;
 
 /**
  *

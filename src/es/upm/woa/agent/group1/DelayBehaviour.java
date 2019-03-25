@@ -5,7 +5,7 @@
  */
 
 // https://www.iro.umontreal.ca/~vaucher/Agents/Jade/primer6.html#6.5
-package worldofagents;
+package es.upm.woa.agent.group1;
 
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;

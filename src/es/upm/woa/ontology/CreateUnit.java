@@ -1,4 +1,4 @@
-package worldofagents.ontology;
+package es.upm.woa.ontology;
 
 
 import jade.content.*;

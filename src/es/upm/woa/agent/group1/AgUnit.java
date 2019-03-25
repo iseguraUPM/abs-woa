@@ -1,4 +1,4 @@
-package worldofagents;
+package es.upm.woa.agent.group1;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -23,9 +23,9 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static worldofagents.AgWorld.WORLD;
-import worldofagents.ontology.CreateUnit;
-import worldofagents.ontology.GameOntology;
+import static es.upm.woa.agent.group1.AgWorld.WORLD;
+import es.upm.woa.ontology.CreateUnit;
+import es.upm.woa.ontology.GameOntology;
 
 /**
  *

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package worldofagents.objects;
+package es.upm.woa.agent.group1;
 
 import jade.core.AID;
 import java.util.UUID;

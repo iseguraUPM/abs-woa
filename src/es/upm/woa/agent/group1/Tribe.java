@@ -1,4 +1,4 @@
-package worldofagents.objects;
+package es.upm.woa.agent.group1;
  
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
