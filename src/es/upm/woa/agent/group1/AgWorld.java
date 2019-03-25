@@ -7,6 +7,7 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
+import com.sun.accessibility.internal.resources.accessibility;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
@@ -150,23 +151,18 @@ public class AgWorld extends Agent {
     public boolean launchAgentTribe() {
         try {
             ContainerController cc = getContainerController();
-            AgentController ac = cc.createNewAgent("TestTribe", "es.upm.woa.agent.group1.AgTribe", null);
+            AgTribe newTribe = new AgTribe();
+            AgentController ac = cc.acceptNewAgent("TestTribe", newTribe);
             ac.start();
-
-            doWait(WAIT_NEW_AGENT_REGISTRATION_MILLIS);
-            DFAgentDescription newTribeAgent = findAgent(TRIBE, "TestTribe");
-            if (newTribeAgent == null) {
+            
+            Tribe newTribeRef = new Tribe(newTribe.getAID());
+            if (!tribeCollection.add(newTribeRef)) {
                 ac.kill();
                 return false;
             } else {
-                Tribe newTribe = new Tribe(newTribeAgent.getName());
-                if (!tribeCollection.add(newTribe)) {
-                    ac.kill();
-                    return false;
-                } else {
-                    return true;
-                }
+                return true;
             }
+            
 
         } catch (StaleProxyException ex) {
             Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
@@ -236,29 +232,24 @@ public class AgWorld extends Agent {
     private boolean launchAgentUnit(Tribe ownerTribe, String newUnitName) {
         try {
             ContainerController cc = getContainerController();
-            AgentController ac = cc.createNewAgent(newUnitName, "es.upm.woa.agent.group1.AgUnit", null);
+            AgUnit newUnit = new AgUnit();
+            AgentController ac = cc.acceptNewAgent(newUnitName, newUnit);
             ac.start();
-
-            doWait(WAIT_NEW_AGENT_REGISTRATION_MILLIS);
-            DFAgentDescription newUnitAgent = findAgent(UNIT, newUnitName);
-            if (newUnitAgent == null) {
+            
+            Unit newUnitRef = new Unit(newUnit.getAID(), 0, 0);
+            if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
                 return false;
             } else {
-                Unit newUnit = new Unit(newUnitAgent.getName(), 0, 0);
-                if (!ownerTribe.createUnit(newUnit)) {
-                    ac.kill();
-                    return false;
-                } else {
-                    informTribeAboutNewUnit(ownerTribe, newUnit);
-                    return true;
-                }
+                informTribeAboutNewUnit(ownerTribe, newUnitRef);
+                return true;
             }
-
+            
         } catch (StaleProxyException ex) {
             Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
+        
     }
 
     private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit) {
