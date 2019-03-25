@@ -33,8 +33,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static es.upm.woa.agent.group1.AgTribe.TRIBE;
-import static es.upm.woa.agent.group1.AgUnit.UNIT;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
@@ -57,6 +55,8 @@ import es.upm.woa.ontology.NotifyNewUnit;
 public class AgWorld extends Agent {
 
     public static final String WORLD = "WORLD";
+    public static final String TRIBE = "TRIBE";
+    public static final String UNIT = "UNIT";
 
     private static final int WAIT_NEW_AGENT_REGISTRATION_MILLIS = 500;
     private static final int STARTING_UNIT_NUMBER = 3;

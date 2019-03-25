@@ -23,7 +23,6 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static es.upm.woa.agent.group1.AgWorld.WORLD;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 
@@ -34,6 +33,7 @@ import es.upm.woa.ontology.GameOntology;
 public class AgUnit extends Agent {
 
     public static final String UNIT = "UNIT";
+    public static final String WORLD = "WORLD";
     private Ontology ontology;
     private SLCodec codec;
 
