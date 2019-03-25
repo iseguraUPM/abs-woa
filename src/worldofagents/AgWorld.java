@@ -283,10 +283,8 @@ public class AgWorld extends Agent {
             getContentManager().fillContent(msg, agAction);
             send(msg);
             System.out.println(getLocalName() + ": INFORMS A TRIBE " + ownerTribe.getId().getName());
-        } catch (Codec.CodecException ce) {
+        } catch (Codec.CodecException | OntologyException ce) {
             ce.printStackTrace();
-        } catch (OntologyException oe) {
-            oe.printStackTrace();
         }
     }
 
@@ -302,58 +300,64 @@ public class AgWorld extends Agent {
         @Override
         public void action() {
 
-            ACLMessage reply = msg.createReply();
-            reply.setOntology(ontology.getName());
-            reply.setLanguage(codec.getName());
+            try {
+                ACLMessage reply = msg.createReply();
+                reply.setOntology(ontology.getName());
+                reply.setLanguage(codec.getName());
+                getContentManager().fillContent(reply, new Action(getAID(), new CreateUnit()));
 
-            AID unitRequester = msg.getSender();
-            final Tribe ownerTribe = findOwnerTribe(unitRequester);
-            Unit requesterUnit = findUnit(ownerTribe, unitRequester);
+                AID unitRequester = msg.getSender();
+                final Tribe ownerTribe = findOwnerTribe(unitRequester);
+                Unit requesterUnit = findUnit(ownerTribe, unitRequester);
 
-            // TODO: townhall location logic
-            if (ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
-                reply.setPerformative(ACLMessage.REFUSE);
-                System.out.println(myAgent.getLocalName() + ": Refuses to create a new unit for " + (msg.getSender()).getLocalName());
-                myAgent.send(reply);
-            } else {
-                ownerTribe.purchaseUnit();
-                reply.setPerformative(ACLMessage.AGREE);
-                myAgent.send(reply);
+                // TODO: townhall location logic
+                if (ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
+                    reply.setPerformative(ACLMessage.REFUSE);
+                    System.out.println(myAgent.getLocalName() + ": Refuses to create a new unit for " + (msg.getSender()).getLocalName());
+                    myAgent.send(reply);
+                } else {
+                    ownerTribe.purchaseUnit();
+                    reply.setPerformative(ACLMessage.AGREE);
+                    myAgent.send(reply);
 
-                System.out.println(myAgent.getLocalName() + ": Agrees to create a new unit for " + (msg.getSender()).getLocalName());
+                    System.out.println(myAgent.getLocalName() + ": Agrees to create a new unit for " + (msg.getSender()).getLocalName());
 
-                addBehaviour(new DelayBehaviour(myAgent, 15000) {
+                    addBehaviour(new DelayBehaviour(myAgent, 15000) {
 
-                    @Override
-                    public void handleElapsedTimeout() {
+                        @Override
+                        public void handleElapsedTimeout() {
 
-                        AgWorld agWorld = (AgWorld) myAgent;
+                            AgWorld agWorld = (AgWorld) myAgent;
 
-                        boolean success = agWorld.launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
+                            boolean success = agWorld.launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
 
-                        try {
-                            if (!success) {
-                                ownerTribe.refundUnit();
-                                ACLMessage newmsg = new ACLMessage(ACLMessage.FAILURE);
-                                getContentManager().fillContent(msg, new CreateUnit());
+                            try {
+                                ACLMessage newmsg = new ACLMessage(ACLMessage.UNKNOWN);
+                                newmsg.setOntology(ontology.getName());
+                                newmsg.setLanguage(codec.getName());
+                                getContentManager().fillContent(newmsg, new Action(getAID(), new CreateUnit()));
                                 newmsg.addReceiver(msg.getSender());
+                                
+                                if (!success) {
+                                    ownerTribe.refundUnit();
+                                    newmsg.setPerformative(ACLMessage.FAILURE);
+                                    System.out.println(agWorld.getLocalName() + ": Sends failure to create a new unit to " + (msg.getSender()).getLocalName());
+                                } else {
+                                    newmsg.setPerformative(ACLMessage.INFORM);
+                                    System.out.println(agWorld.getLocalName() + ": Sends inform to create a new unit to " + (msg.getSender()).getLocalName());
+                                }
                                 agWorld.send(newmsg);
-                                System.out.println(agWorld.getLocalName() + ": Sends failure to create a new unit to " + (msg.getSender()).getLocalName());
-                            } else {
-                                ACLMessage newmsg = new ACLMessage(ACLMessage.INFORM);
-                                getContentManager().fillContent(msg, new CreateUnit());
-                                newmsg.addReceiver(msg.getSender());
-                                agWorld.send(newmsg);
-                                System.out.println(agWorld.getLocalName() + ": Sends inform to create a new unit to " + (msg.getSender()).getLocalName());
+
+                            } catch (Codec.CodecException | OntologyException ex) {
+                                Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
                             }
 
-                        } catch (Codec.CodecException | OntologyException ex) {
-                            Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
                         }
+                    });
 
-                    }
-                });
-
+                }
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 

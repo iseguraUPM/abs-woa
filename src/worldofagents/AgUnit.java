@@ -69,7 +69,7 @@ public class AgUnit extends Agent {
                         msg.setOntology(ontology.getName());
                         msg.setLanguage(codec.getName());
 
-                        Action createUnitAction = new Action(worldAID, new CreateUnit());
+                        Action createUnitAction = new Action(getAID(), new CreateUnit());
                         getContentManager().fillContent(msg, createUnitAction);
 
                         msg.addReceiver(worldAID);
@@ -78,7 +78,7 @@ public class AgUnit extends Agent {
 
                         addBehaviour(new RequestCreateUnitBehaviour(MessageTemplate
                                 .and(MessageTemplate.MatchLanguage(codec.getName()),
-                                         MessageTemplate.MatchOntology(ontology.getName()))));
+                                        MessageTemplate.MatchOntology(ontology.getName()))));
 
                     }
                 } catch (Exception e) {
@@ -122,15 +122,15 @@ public class AgUnit extends Agent {
 
             try {
                 ACLMessage msg = receive(messageTemplate);
+                if (msg != null) {
+                    ContentElement ce = getContentManager().extractContent(msg);
+                    if (ce instanceof Action) {
 
-                ContentElement ce = getContentManager().extractContent(msg);
-                if (ce instanceof Action) {
+                        Action agAction = (Action) ce;
+                        Concept conc = agAction.getAction();
 
-                    Action agAction = (Action) ce;
-                    Concept conc = agAction.getAction();
+                        if (conc instanceof CreateUnit) {
 
-                    if (conc instanceof CreateUnit) {
-                        if (msg != null) {
                             switch (msg.getPerformative()) {
                                 case ACLMessage.NOT_UNDERSTOOD:
                                     System.out.println(myAgent.getLocalName() + ": received unit creation not understood from " + (msg.getSender()).getLocalName());
@@ -149,6 +149,9 @@ public class AgUnit extends Agent {
                     }
 
                 }
+                else {
+                    block();
+                }
 
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgUnit.class.getName()).log(Level.SEVERE, null, ex);
@@ -158,14 +161,15 @@ public class AgUnit extends Agent {
         private void agreedCreateUnit() {
             try {
                 ACLMessage msg = receive(messageTemplate);
-                ContentElement ce = getContentManager().extractContent(msg);
-                if (ce instanceof Action) {
+                if (msg != null) {
+                    ContentElement ce = getContentManager().extractContent(msg);
+                    if (ce instanceof Action) {
 
-                    Action agAction = (Action) ce;
-                    Concept conc = agAction.getAction();
+                        Action agAction = (Action) ce;
+                        Concept conc = agAction.getAction();
 
-                    if (conc instanceof CreateUnit) {
-                        if (msg != null) {
+                        if (conc instanceof CreateUnit) {
+
                             switch (msg.getPerformative()) {
 
                                 case ACLMessage.FAILURE:
