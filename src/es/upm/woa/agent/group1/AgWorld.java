@@ -86,21 +86,22 @@ public class AgWorld extends Agent {
                 final ConversationEnvelope envelope = new ConversationEnvelope(ontology,
                          codec, action, getAID(), ACLMessage.REQUEST);
 
-                waitReponse(envelope, new ResponseHandler() {
+                listenMessages(envelope, new ResponseHandler() {
                     @Override
-                    public void onRequest(AID sender, Concept content) {
+                    public void onRequest(ACLMessage message) {
                         System.out.println(myAgent.getLocalName()
-                                        + ": received unit creation request from " + sender.getLocalName());
+                                        + ": received unit creation request from " + message.getSender().getLocalName());
                         
-                        final Tribe ownerTribe = findOwnerTribe(sender);
-                        Unit requesterUnit = findUnit(ownerTribe, sender);
+                        final Tribe ownerTribe = findOwnerTribe(message.getSender());
+                        Unit requesterUnit = findUnit(ownerTribe, message.getSender());
 
                         // TODO: townhall location logic
                         if (ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
-                            sendMessage(new ConversationEnvelope(ontology, codec, action, sender, ACLMessage.REFUSE));
+                            respondMessage(new ConversationEnvelope(ontology, codec, action, message.getSender(), ACLMessage.REFUSE), message);
                         } else {
-                            sendMessage(new ConversationEnvelope(ontology
-                                    , codec, action, sender, ACLMessage.AGREE));
+                            ownerTribe.purchaseUnit();
+                            respondMessage(new ConversationEnvelope(ontology
+                                    , codec, action, message.getSender(), ACLMessage.AGREE), message);
 
                             addBehaviour(new DelayBehaviour(myAgent, 15000) {
 
@@ -112,10 +113,11 @@ public class AgWorld extends Agent {
                                     boolean success = agWorld.launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
                                     if (!success) {
                                         ownerTribe.refundUnit();
-                                        sendMessage(new ConversationEnvelope(ontology, codec, action, sender, ACLMessage.FAILURE));
+                                        respondMessage(new ConversationEnvelope(ontology, codec, action, message.getSender(), ACLMessage.FAILURE), message);
+
                                     }
                                     else {
-                                        sendMessage(new ConversationEnvelope(ontology, codec, action, sender, ACLMessage.INFORM));
+                                        respondMessage(new ConversationEnvelope(ontology, codec, action, message.getSender(), ACLMessage.INFORM), message);
                                     }
                                 }
                             });
@@ -281,80 +283,5 @@ public class AgWorld extends Agent {
         } catch (Codec.CodecException | OntologyException ce) {
             ce.printStackTrace();
         }
-    }
-
-    class CreateUnitBehaviour extends OneShotBehaviour {
-
-        ACLMessage msg, reply;
-
-        public CreateUnitBehaviour(Agent agent, ACLMessage msg) {
-            super(agent);
-            this.msg = msg;
-        }
-
-        @Override
-        public void action() {
-
-            try {
-                ACLMessage reply = msg.createReply();
-                reply.setOntology(ontology.getName());
-                reply.setLanguage(codec.getName());
-                getContentManager().fillContent(reply, new Action(getAID(), new CreateUnit()));
-
-                AID unitRequester = msg.getSender();
-                final Tribe ownerTribe = findOwnerTribe(unitRequester);
-                Unit requesterUnit = findUnit(ownerTribe, unitRequester);
-
-                // TODO: townhall location logic
-                if (ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
-                    reply.setPerformative(ACLMessage.REFUSE);
-                    System.out.println(myAgent.getLocalName() + ": Refuses to create a new unit for " + (msg.getSender()).getLocalName());
-                    myAgent.send(reply);
-                } else {
-                    ownerTribe.purchaseUnit();
-                    reply.setPerformative(ACLMessage.AGREE);
-                    myAgent.send(reply);
-
-                    System.out.println(myAgent.getLocalName() + ": Agrees to create a new unit for " + (msg.getSender()).getLocalName());
-
-                    addBehaviour(new DelayBehaviour(myAgent, 15000) {
-
-                        @Override
-                        public void handleElapsedTimeout() {
-
-                            AgWorld agWorld = (AgWorld) myAgent;
-
-                            boolean success = agWorld.launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
-
-                            try {
-                                ACLMessage newmsg = new ACLMessage(ACLMessage.UNKNOWN);
-                                newmsg.setOntology(ontology.getName());
-                                newmsg.setLanguage(codec.getName());
-                                getContentManager().fillContent(newmsg, new Action(getAID(), new CreateUnit()));
-                                newmsg.addReceiver(msg.getSender());
-
-                                if (!success) {
-                                    ownerTribe.refundUnit();
-                                    newmsg.setPerformative(ACLMessage.FAILURE);
-                                    System.out.println(agWorld.getLocalName() + ": Sends failure to create a new unit to " + (msg.getSender()).getLocalName());
-                                } else {
-                                    newmsg.setPerformative(ACLMessage.INFORM);
-                                    System.out.println(agWorld.getLocalName() + ": Sends inform to create a new unit to " + (msg.getSender()).getLocalName());
-                                }
-                                agWorld.send(newmsg);
-
-                            } catch (Codec.CodecException | OntologyException ex) {
-                                Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-
-                        }
-                    });
-
-                }
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
     }
 }

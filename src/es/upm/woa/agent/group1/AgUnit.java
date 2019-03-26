@@ -70,47 +70,50 @@ public class AgUnit extends Agent {
                                 = new ConversationEnvelope(ontology, codec
                                         , action, worldAID, ACLMessage.REQUEST);
                        
-                        sendMessage(newEnvelope);
-                        
+                        sendFirstMessage(newEnvelope, new SentMessageHandler() {
+                            @Override
+                            public void onSent(String conversationID) {
+                                
                         Envelope responseEnvelop = new ConversationEnvelope(ontology, codec
                                 , action, worldAID, ACLMessage.UNKNOWN);
                         
-                        waitReponse(responseEnvelop, new ResponseHandler() {
+                        receiveResponse(responseEnvelop, conversationID, new ResponseHandler() {
                             @Override
-                            public void onAgree(AID sender, Concept content) {
+                            public void onAgree(ACLMessage response) {
                                 System.out.println(myAgent.getLocalName()
-                                        + ": received unit creation agree from " + sender.getLocalName());
+                                        + ": received unit creation agree from " + response.getSender().getLocalName());
                                 
-                                waitReponse(responseEnvelop, new ResponseHandler() {
+                                receiveResponse(responseEnvelop, conversationID, new ResponseHandler() {
                                     @Override
-                                    public void onFailure(AID sender, Concept content) {
+                                    public void onFailure(ACLMessage response) {
                                         System.out.println(myAgent.getLocalName()
-                                                + ": received unit creation failure from " + sender.getLocalName());
-
+                                                + ": received unit creation failure from " + response.getSender().getLocalName());
                                     }
 
                                     @Override
-                                    public void onInform(AID sender, Concept content) {
+                                    public void onInform(ACLMessage response) {
                                         System.out.println(myAgent.getLocalName()
-                                                + ": received unit creation inform from " + sender.getLocalName());
-
+                                                + ": received unit creation inform from " + response.getSender().getLocalName());
                                     }
                                     
                                 });
                             }
 
                             @Override
-                            public void onNotUnderstood(AID sender, Concept content) {
-                                System.out.println(myAgent.getLocalName() + ": received unit creation not understood from " + sender.getLocalName());
+                            public void onNotUnderstood(ACLMessage response) {
+                                System.out.println(myAgent.getLocalName() + ": received unit creation not understood from " + response.getSender().getLocalName());
                             }
 
                             @Override
-                            public void onRefuse(AID sender, Concept content) {
-                                System.out.println(myAgent.getLocalName() + ": received unit creation refuse from " + sender.getLocalName());
+                            public void onRefuse(ACLMessage response) {
+                                System.out.println(myAgent.getLocalName() + ": received unit creation refuse from " + response.getSender().getLocalName());
                             }
                             
                             
                         });
+                            }
+                        });
+                        
                     }
                 } catch (FIPAException e) {
                     e.printStackTrace();
