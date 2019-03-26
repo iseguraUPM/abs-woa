@@ -13,16 +13,14 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.MicroRuntime;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CompositeBehaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.util.leap.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,17 +31,19 @@ import java.util.logging.Logger;
  */
 public abstract class Conversation extends SequentialBehaviour {
     
+    private final List<Behaviour> behaviourSequence;
+    
     private String conversationID;
     private ACLMessage lastResponse;
+    private boolean finished;
     
     public Conversation(Agent agent) {
         super(agent);
+        behaviourSequence = new ArrayList<>();
+        finished = false;
     }
     
     protected void sendMessage(final Envelope envelope) { 
-        if (getCurrent() != null && getCurrent() instanceof WaitBehaviour) {
-            removeSubBehaviour(getCurrent());
-        }
         
         addSubBehaviour(new OneShotBehaviour() {
             @Override
@@ -74,14 +74,10 @@ public abstract class Conversation extends SequentialBehaviour {
                 myAgent.send(newMsg);
             }
         });
-        
-        addSubBehaviour(new WaitBehaviour());
+
     }
     
     protected void waitReponse(final Envelope envelope, ResponseHandler handler) {
-        if (getCurrent() != null && getCurrent() instanceof WaitBehaviour) {
-            removeSubBehaviour(getCurrent());
-        }
         
         addSubBehaviour(new SimpleBehaviour(myAgent) {
             
@@ -116,7 +112,6 @@ public abstract class Conversation extends SequentialBehaviour {
             
         });
         
-        addSubBehaviour(new WaitBehaviour());
     }
     
     private MessageTemplate generateMessageFilter(Envelope envelope) {
@@ -187,6 +182,37 @@ public abstract class Conversation extends SequentialBehaviour {
         
     }
     
+    private Behaviour getLastChild() {
+        Object[] children;
+        children = getChildren().toArray();
+        
+        if (children.length > 0 && children[0] instanceof Behaviour) {
+            return (Behaviour) children[children.length - 1];
+        }
+        else {
+            return null;
+        }
+    }
+
+    @Override
+    public void addSubBehaviour(Behaviour behaviour) {
+        Behaviour last = getLastChild();
+        if (last != null && last instanceof WaitBehaviour) {
+            removeSubBehaviour(last);
+        }
+        
+        super.addSubBehaviour(behaviour);
+        
+        super.addSubBehaviour(new WaitBehaviour());
+    }
+    
+    protected void end() {
+        Behaviour last = getLastChild();
+        if (last != null && last instanceof WaitBehaviour) {
+            removeSubBehaviour(last);
+        }
+    }
+    
     abstract class ResponseHandler {
         
         public void onInform(AID sender, Concept content) {}
@@ -225,14 +251,24 @@ public abstract class Conversation extends SequentialBehaviour {
     
     private class WaitBehaviour extends SimpleBehaviour {
 
+        private boolean finished;
+
+        public WaitBehaviour() {
+            finished = false;
+        }     
+        
         @Override
         public void action() {
             block();
         }
+        
+        public void end() {
+            finished = true;
+        }
 
         @Override
         public boolean done() {
-            return false;
+            return finished;
         }
         
     }
