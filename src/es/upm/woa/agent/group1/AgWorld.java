@@ -7,10 +7,8 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
-import com.sun.accessibility.internal.resources.accessibility;
 import jade.content.Concept;
 import jade.content.ContentElement;
-import jade.content.ContentManager;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
@@ -80,42 +78,51 @@ public class AgWorld extends Agent {
         }
 
 //		BEHAVIOURS ****************************************************************
-        addBehaviour(new CyclicBehaviour() {
+        addBehaviour(new Conversation(this) {
             @Override
-            public void action() {
-                // Waits for requests
-                ACLMessage msg = receive(MessageTemplate.and(
-                        MessageTemplate.MatchLanguage(codec.getName()),
-                        MessageTemplate.MatchOntology(ontology.getName())
-                ));
+            public void onStart() {
+                Action action = new Action(getAID(), new CreateUnit());
 
-                if (msg != null) {
-                    try {
-                        if (msg.getPerformative() == ACLMessage.REQUEST) {
-                            ContentElement ce = getContentManager().extractContent(msg);
-                            if (ce instanceof Action) {
+                final ConversationEnvelope envelope = new ConversationEnvelope(ontology,
+                         codec, action, getAID(), ACLMessage.REQUEST);
 
-                                Action agAction = (Action) ce;
-                                Concept conc = agAction.getAction();
+                waitReponse(envelope, new ResponseHandler() {
+                    @Override
+                    public void onRequest(AID sender, Concept content) {
+                        System.out.println(myAgent.getLocalName()
+                                        + ": received unit creation request from " + sender.getLocalName());
+                        
+                        final Tribe ownerTribe = findOwnerTribe(sender);
+                        Unit requesterUnit = findUnit(ownerTribe, sender);
 
-                                if (conc instanceof CreateUnit) {
-                                    System.out.println(getLocalName() + ": received request from " + (msg.getSender()).getLocalName());
-                                    addBehaviour(new CreateUnitBehaviour(myAgent, msg));
+                        // TODO: townhall location logic
+                        if (ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
+                            sendMessage(new ConversationEnvelope(ontology, codec, action, sender, ACLMessage.REFUSE));
+                        } else {
+                            sendMessage(new ConversationEnvelope(ontology
+                                    , codec, action, sender, ACLMessage.AGREE));
+
+                            addBehaviour(new DelayBehaviour(myAgent, 15000) {
+
+                                @Override
+                                public void handleElapsedTimeout() {
+
+                                    AgWorld agWorld = (AgWorld) myAgent;
+
+                                    boolean success = agWorld.launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
+                                    if (!success) {
+                                        ownerTribe.refundUnit();
+                                        sendMessage(new ConversationEnvelope(ontology, codec, action, sender, ACLMessage.FAILURE));
+                                    }
+                                    else {
+                                        sendMessage(new ConversationEnvelope(ontology, codec, action, sender, ACLMessage.INFORM));
+                                    }
                                 }
-                            }
+                            });
+                            
                         }
-                    } catch (Codec.CodecException | OntologyException e) {
-                        e.printStackTrace();
-                        ACLMessage reply = msg.createReply();
-                        reply.setOntology(ontology.getName());
-                        reply.setLanguage(codec.getName());
-                        reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-                        send(reply);
                     }
-
-                } else {
-                    block();
-                }
+                });
             }
         });
 
@@ -154,7 +161,7 @@ public class AgWorld extends Agent {
             AgTribe newTribe = new AgTribe();
             AgentController ac = cc.acceptNewAgent("TestTribe", newTribe);
             ac.start();
-            
+
             Tribe newTribeRef = new Tribe(newTribe.getAID());
             if (!tribeCollection.add(newTribeRef)) {
                 ac.kill();
@@ -162,7 +169,6 @@ public class AgWorld extends Agent {
             } else {
                 return true;
             }
-            
 
         } catch (StaleProxyException ex) {
             Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
@@ -235,7 +241,7 @@ public class AgWorld extends Agent {
             AgUnit newUnit = new AgUnit();
             AgentController ac = cc.acceptNewAgent(newUnitName, newUnit);
             ac.start();
-            
+
             Unit newUnitRef = new Unit(newUnit.getAID(), 0, 0);
             if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
@@ -244,12 +250,12 @@ public class AgWorld extends Agent {
                 informTribeAboutNewUnit(ownerTribe, newUnitRef);
                 return true;
             }
-            
+
         } catch (StaleProxyException ex) {
             Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-        
+
     }
 
     private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit) {
@@ -326,7 +332,7 @@ public class AgWorld extends Agent {
                                 newmsg.setLanguage(codec.getName());
                                 getContentManager().fillContent(newmsg, new Action(getAID(), new CreateUnit()));
                                 newmsg.addReceiver(msg.getSender());
-                                
+
                                 if (!success) {
                                     ownerTribe.refundUnit();
                                     newmsg.setPerformative(ACLMessage.FAILURE);

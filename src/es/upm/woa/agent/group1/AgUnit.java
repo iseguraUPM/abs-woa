@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
+import jade.domain.JADEAgentManagement.CreateAgent;
 
 /**
  *
@@ -47,15 +48,15 @@ public class AgUnit extends Agent {
         }
 
         //Behaviours
-        addBehaviour(new OneShotBehaviour(this) {
+        addBehaviour(new Conversation(this) {
+            
             @Override
-            public void action() {
-                //TODO: Cuando crea un agente (condiciones)
+            public void onStart() {
                 DFAgentDescription dfd = new DFAgentDescription();
                 ServiceDescription sd = new ServiceDescription();
                 sd.setType(WORLD);
                 dfd.addServices(sd);
-
+                
                 try {
                     // It finds agents of the required type
                     DFAgentDescription[] worldAgent;
@@ -64,24 +65,54 @@ public class AgUnit extends Agent {
                     if (worldAgent.length > 0) {
                         AID worldAID = (AID) worldAgent[0].getName();
 
-                        // Sends the request to the world
-                        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-                        msg.setOntology(ontology.getName());
-                        msg.setLanguage(codec.getName());
+                        Action action = new Action(worldAID, new CreateUnit());
+                        final ConversationEnvelope newEnvelope
+                                = new ConversationEnvelope(ontology, codec
+                                        , action, worldAID, ACLMessage.REQUEST);
+                       
+                        sendMessage(newEnvelope);
+                        
+                        Envelope responseEnvelop = new ConversationEnvelope(ontology, codec
+                                , action, worldAID, ACLMessage.UNKNOWN);
+                        
+                        waitReponse(responseEnvelop, new ResponseHandler() {
+                            @Override
+                            public void onAgree(AID sender, Concept content) {
+                                System.out.println(myAgent.getLocalName()
+                                        + ": received unit creation agree from " + sender.getLocalName());
+                                
+                                waitReponse(responseEnvelop, new ResponseHandler() {
+                                    @Override
+                                    public void onFailure(AID sender, Concept content) {
+                                        System.out.println(myAgent.getLocalName()
+                                                + ": received unit creation failure from " + sender.getLocalName());
 
-                        Action createUnitAction = new Action(getAID(), new CreateUnit());
-                        getContentManager().fillContent(msg, createUnitAction);
+                                    }
 
-                        msg.addReceiver(worldAID);
-                        myAgent.send(msg);
-                        System.out.println(myAgent.getLocalName() + ": Sends a request to create a new unit");
+                                    @Override
+                                    public void onInform(AID sender, Concept content) {
+                                        System.out.println(myAgent.getLocalName()
+                                                + ": received unit creation inform from " + sender.getLocalName());
 
-                        addBehaviour(new RequestCreateUnitBehaviour(MessageTemplate
-                                .and(MessageTemplate.MatchLanguage(codec.getName()),
-                                        MessageTemplate.MatchOntology(ontology.getName()))));
+                                    }
+                                    
+                                });
+                            }
 
+                            @Override
+                            public void onNotUnderstood(AID sender, Concept content) {
+                                System.out.println(myAgent.getLocalName() + ": received unit creation not understood from " + sender.getLocalName());
+                            }
+
+                            @Override
+                            public void onRefuse(AID sender, Concept content) {
+                                System.out.println(myAgent.getLocalName() + ": received unit creation refuse from " + sender.getLocalName());
+                            }
+                            
+                            
+                        });
                     }
-                } catch (Exception e) {
+                } catch (FIPAException e) {
                     e.printStackTrace();
                 }
             }
@@ -107,87 +138,5 @@ public class AgUnit extends Agent {
         codec = new SLCodec();
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
-    }
-
-    class RequestCreateUnitBehaviour extends OneShotBehaviour {
-
-        private final MessageTemplate messageTemplate;
-
-        public RequestCreateUnitBehaviour(MessageTemplate template) {
-            this.messageTemplate = template;
-        }
-
-        @Override
-        public void action() {
-
-            try {
-                ACLMessage msg = receive(messageTemplate);
-                if (msg != null) {
-                    ContentElement ce = getContentManager().extractContent(msg);
-                    if (ce instanceof Action) {
-
-                        Action agAction = (Action) ce;
-                        Concept conc = agAction.getAction();
-
-                        if (conc instanceof CreateUnit) {
-
-                            switch (msg.getPerformative()) {
-                                case ACLMessage.NOT_UNDERSTOOD:
-                                    System.out.println(myAgent.getLocalName() + ": received unit creation not understood from " + (msg.getSender()).getLocalName());
-                                    break;
-                                case ACLMessage.REFUSE:
-                                    System.out.println(myAgent.getLocalName() + ": received unit creation refuse from " + (msg.getSender()).getLocalName());
-                                    break;
-                                case ACLMessage.AGREE:
-                                    System.out.println(myAgent.getLocalName() + ": received unit creation agree from " + (msg.getSender()).getLocalName());
-                                    agreedCreateUnit();
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-
-                }
-                else {
-                    block();
-                }
-
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgUnit.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        private void agreedCreateUnit() {
-            try {
-                ACLMessage msg = receive(messageTemplate);
-                if (msg != null) {
-                    ContentElement ce = getContentManager().extractContent(msg);
-                    if (ce instanceof Action) {
-
-                        Action agAction = (Action) ce;
-                        Concept conc = agAction.getAction();
-
-                        if (conc instanceof CreateUnit) {
-
-                            switch (msg.getPerformative()) {
-
-                                case ACLMessage.FAILURE:
-                                    System.out.println(myAgent.getLocalName() + ": received unit creation failure from " + (msg.getSender()).getLocalName());
-                                    break;
-                                case ACLMessage.INFORM:
-                                    System.out.println(myAgent.getLocalName() + ": received unit creation inform from " + (msg.getSender()).getLocalName());
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    }
-                }
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgUnit.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
     }
 }
