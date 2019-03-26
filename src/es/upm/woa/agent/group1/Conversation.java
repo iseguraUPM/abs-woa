@@ -5,7 +5,6 @@
  */
 package es.upm.woa.agent.group1;
 
-import es.upm.woa.ontology.CreateUnit;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
@@ -14,13 +13,12 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,15 +29,23 @@ import java.util.logging.Logger;
 public abstract class Conversation extends SimpleBehaviour {
     
     private SequentialBehaviour conversationBehaviour;
+    private String conversationID;
+    private ACLMessage lastResponse;
+    
+    public Conversation(Agent agent) {
+        conversationBehaviour = new SequentialBehaviour(agent);
+        conversationID = UUID.randomUUID().toString();
+    }
     
     @Override
     public final void action() {
-        
+        onStart();
+        myAgent.addBehaviour(conversationBehaviour);
     }
     
     @Override
     public final boolean done() {
-        return false;
+        return conversationBehaviour.done();
     }
     
     public abstract void onStart();
@@ -48,117 +54,132 @@ public abstract class Conversation extends SimpleBehaviour {
         conversationBehaviour.addSubBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {
-                Agent senderAgent = envelope.getSender();
-                ACLMessage newMsg = new ACLMessage(envelope.getPerformative());
                 
-                newMsg.setOntology(envelope.getOntology().getName());
-                newMsg.setLanguage(envelope.getCodec().getName());
-                
-                try {
-                    senderAgent.getContentManager().fillContent(newMsg, envelope.getAction());
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(Conversation.class.getName()).log(Level.SEVERE, null, ex);
+                ACLMessage newMsg;
+                if (lastResponse == null) {
+                    newMsg = new ACLMessage(envelope.getPerformative());
+                    
+                    newMsg.setOntology(envelope.getOntology().getName());
+                    newMsg.setLanguage(envelope.getCodec().getName());
+                    newMsg.setConversationId(conversationID);
+
+                    try {
+                        myAgent.getContentManager().fillContent(newMsg, envelope.getAction());
+                    } catch (Codec.CodecException | OntologyException ex) {
+                        Logger.getLogger(Conversation.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
+                else {
+                    newMsg = lastResponse.createReply();
+                }   
                 
-                newMsg.addReceiver(envelope.getReceiverAID());
-                
-                senderAgent.send(newMsg);
+                myAgent.send(newMsg);
             }
         });
     }
     
-    protected void waitReponse(Envelope envelope, ResponseHandler handler) {
+    protected void waitReponse(final Envelope envelope, ResponseHandler handler) {
         
-        conversationBehaviour.addSubBehaviour(new ParallelBehaviour(envelope.getSender()
-                , ParallelBehaviour.WHEN_ANY) {
+        conversationBehaviour.addSubBehaviour(new OneShotBehaviour(myAgent) {
         
-
             @Override
-            public void onStart() {
-                MessageTemplate filter = MessageTemplate
-                    .and(MessageTemplate.MatchLanguage(envelope.getCodec().getName()),
-                         MessageTemplate.MatchOntology(envelope.getOntology().getName()));
+            public void action() {
+                MessageTemplate filter = generateMessageFilter(envelope);
                 
-                addSubBehaviour(new ReceiveResponseBehaviour(myAgent, filter, ACLMessage.INFORM) {
-                    @Override
-                    public void onReceive() {
-                        handler.onInform();
+                lastResponse = myAgent.receive(filter);
+                        
+                if (lastResponse != null) {
+                    try {
+                        ContentElement ce = myAgent.getContentManager()
+                                .extractAbsContent(lastResponse);
+
+                        if (ce instanceof Action) {
+
+                            Action action = (Action) ce;
+                            Concept content = action.getAction();
+
+                            
+                            handleResponseByPerformative(handler
+                                    , lastResponse.getPerformative(), content);
+                        }
                     }
-                    
-                    @Override
-                    public void onError() {
+                    catch (Codec.CodecException | OntologyException ex) {
+
+                        Logger.getLogger(Conversation.class.getName()).log(Level.SEVERE, null, ex);
                         handler.onResponseError();
                     }
-                    
-                });
-                
-                addSubBehaviour(new ReceiveResponseBehaviour(myAgent, filter, ACLMessage.NOT_UNDERSTOOD) {
-                    @Override
-                    public void onReceive() {
-                        handler.onNotUnderstood();
-                    }
-                    
-                    @Override
-                    public void onError() {
-                        handler.onResponseError();
-                    }
-                    
-                });
-                
-                addSubBehaviour(new ReceiveResponseBehaviour(myAgent, filter, ACLMessage.FAILURE) {
-                    @Override
-                    public void onReceive() {
-                        handler.onFailure();
-                    }
-                    
-                    @Override
-                    public void onError() {
-                        handler.onResponseError();
-                    }
-                    
-                });
-                
-                addSubBehaviour(new ReceiveResponseBehaviour(myAgent, filter, ACLMessage.AGREE) {
-                    @Override
-                    public void onReceive() {
-                        handler.onAgree();
-                    }
-                    
-                    @Override
-                    public void onError() {
-                        handler.onResponseError();
-                    }
-                    
-                });
+
+                }
+                else {
+                    handler.onResponseError();
+                }
+            
             }
             
             
         });
         
+    }
+    
+    private MessageTemplate generateMessageFilter(Envelope envelope) {
+        MessageTemplate filter = MessageTemplate
+                .and(MessageTemplate.MatchLanguage(envelope.getCodec().getName()),
+                        MessageTemplate.MatchOntology(envelope.getOntology().getName()));
+        filter = MessageTemplate.and(filter
+                , MessageTemplate.MatchConversationId(conversationID));
+        return filter;
+    }
+    
+    private void handleResponseByPerformative(ResponseHandler handler, int performative, Concept content) {
+        switch (performative) {
+            case ACLMessage.AGREE:
+                handler.onAgree(content);
+                break;
+            case ACLMessage.REFUSE:
+                handler.onRefuse(content);
+                break;
+            case ACLMessage.CONFIRM:
+                handler.onConfirm(content);
+                break;
+            case ACLMessage.CANCEL:
+                handler.onCancel(content);
+                break;
+            case ACLMessage.INFORM:
+                handler.onInform(content);
+                break;
+            case ACLMessage.FAILURE:
+                handler.onFailure(content);
+                break;
+            case ACLMessage.NOT_UNDERSTOOD:
+            default:
+                handler.onNotUnderstood(content);
+                break;
+        }
     }
     
     abstract class ResponseHandler {
         
-        public void onInform() {}
+        public void onInform(Concept content) {}
         
-        public void onFailure() {}
+        public void onConfirm(Concept content) {}
         
-        public void onReject() {}
+        public void onFailure(Concept content) {}
         
-        public void onAgree() {}
+        public void onRefuse(Concept content) {}
         
-        public void onRequest() {}
+        public void onAgree(Concept content) {}
         
-        public void onNotUnderstood() {}
+        public void onRequest(Concept content) {}
+        
+        public void onNotUnderstood(Concept content) {}
+        
+        public void onCancel(Concept content) {};
         
         public void onResponseError() {}
         
     }
     
-    
     interface Envelope {
-        
-        Agent getSender();
         
         Ontology getOntology();
         
@@ -169,56 +190,6 @@ public abstract class Conversation extends SimpleBehaviour {
         Codec getCodec();
         
         AID getReceiverAID();
-        
-    }
-    
-    private abstract class ReceiveResponseBehaviour extends OneShotBehaviour {
-
-        private MessageTemplate filter;
-        private int performative;
-        
-        public ReceiveResponseBehaviour(Agent agent, MessageTemplate filter, int performative) {
-            super(agent);
-            this.filter = filter;
-            this.performative = performative;
-        }
-        
-        public abstract void onReceive();
-        
-        public abstract void onError();
-        
-        @Override
-        public final void action() {
-            ACLMessage response = myAgent.receive(MessageTemplate.and(filter
-                                , MessageTemplate.MatchPerformative(performative)));
-                        
-                if (response != null) {
-                    try {
-                        ContentElement ce = myAgent.getContentManager()
-                                .extractContent(response);
-
-                        if (ce instanceof Action) {
-
-                            Action agAction = (Action) ce;
-                            Concept conc = agAction.getAction();
-
-                            if (conc instanceof CreateUnit) {
-                                onReceive();
-                            }
-                        }
-                    } catch (Codec.CodecException | OntologyException ex) {
-
-                        Logger.getLogger(Conversation.class.getName()).log(Level.SEVERE, null, ex);
-                        onError();
-                    }
-
-                }
-                else {
-                    onError();
-                }
-            
-                
-        }
         
     }
    
