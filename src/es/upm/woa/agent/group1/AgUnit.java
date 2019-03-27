@@ -5,27 +5,20 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import jade.content.Concept;
-import jade.content.ContentElement;
-import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
-import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
-import jade.domain.JADEAgentManagement.CreateAgent;
 
 /**
  *
@@ -48,15 +41,16 @@ public class AgUnit extends Agent {
         }
 
         //Behaviours
-        addBehaviour(new Conversation(this) {
-            
+        Action createUnitAction = new Action(getAID(), new CreateUnit());
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
+
             @Override
             public void onStart() {
                 DFAgentDescription dfd = new DFAgentDescription();
                 ServiceDescription sd = new ServiceDescription();
                 sd.setType(WORLD);
                 dfd.addServices(sd);
-                
+
                 try {
                     // It finds agents of the required type
                     DFAgentDescription[] worldAgent;
@@ -65,58 +59,53 @@ public class AgUnit extends Agent {
                     if (worldAgent.length > 0) {
                         AID worldAID = (AID) worldAgent[0].getName();
 
-                        Action action = new Action(worldAID, new CreateUnit());
-                        final ConversationEnvelope newEnvelope
-                                = new ConversationEnvelope(ontology, codec
-                                        , action, worldAID, ACLMessage.REQUEST);
-                       
-                        sendFirstMessage(newEnvelope, new SentMessageHandler() {
+                        sendMessage(worldAID, ACLMessage.REQUEST
+                                , new SentMessageHandler() {
+                            
                             @Override
                             public void onSent(String conversationID) {
-                                
-                        Envelope responseEnvelop = new ConversationEnvelope(ontology, codec
-                                , action, worldAID, ACLMessage.UNKNOWN);
-                        
-                        receiveResponse(responseEnvelop, conversationID, new ResponseHandler() {
-                            @Override
-                            public void onAgree(ACLMessage response) {
-                                System.out.println(myAgent.getLocalName()
-                                        + ": received unit creation agree from " + response.getSender().getLocalName());
-                                
-                                receiveResponse(responseEnvelop, conversationID, new ResponseHandler() {
+
+                                receiveResponse(conversationID, new ResponseHandler() {
+                                    
                                     @Override
-                                    public void onFailure(ACLMessage response) {
+                                    public void onAgree(ACLMessage response) {
                                         System.out.println(myAgent.getLocalName()
-                                                + ": received unit creation failure from " + response.getSender().getLocalName());
+                                                + ": received unit creation agree from " + response.getSender().getLocalName());
+
+                                        receiveResponse(conversationID, new ResponseHandler() {
+                                            
+                                            @Override
+                                            public void onFailure(ACLMessage response) {
+                                                System.out.println(myAgent.getLocalName()
+                                                        + ": received unit creation failure from " + response.getSender().getLocalName());
+                                            }
+
+                                            @Override
+                                            public void onInform(ACLMessage response) {
+                                                System.out.println(myAgent.getLocalName()
+                                                        + ": received unit creation inform from " + response.getSender().getLocalName());
+                                            }
+
+                                        });
                                     }
 
                                     @Override
-                                    public void onInform(ACLMessage response) {
-                                        System.out.println(myAgent.getLocalName()
-                                                + ": received unit creation inform from " + response.getSender().getLocalName());
+                                    public void onNotUnderstood(ACLMessage response) {
+                                        System.out.println(myAgent.getLocalName() + ": received unit creation not understood from " + response.getSender().getLocalName());
                                     }
-                                    
+
+                                    @Override
+                                    public void onRefuse(ACLMessage response) {
+                                        System.out.println(myAgent.getLocalName() + ": received unit creation refuse from " + response.getSender().getLocalName());
+                                    }
+
                                 });
                             }
-
-                            @Override
-                            public void onNotUnderstood(ACLMessage response) {
-                                System.out.println(myAgent.getLocalName() + ": received unit creation not understood from " + response.getSender().getLocalName());
-                            }
-
-                            @Override
-                            public void onRefuse(ACLMessage response) {
-                                System.out.println(myAgent.getLocalName() + ": received unit creation refuse from " + response.getSender().getLocalName());
-                            }
-                            
-                            
                         });
-                            }
-                        });
-                        
+
                     }
                 } catch (FIPAException e) {
-                    e.printStackTrace();
+                    System.err.println(myAgent.getLocalName() + ": caught exception " + e);
                 }
             }
         });

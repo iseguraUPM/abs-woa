@@ -5,15 +5,12 @@
  */
 package es.upm.woa.agent.group1;
 
-import jade.content.Concept;
-import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -28,28 +25,39 @@ import java.util.logging.Logger;
  */
 public abstract class Conversation extends SimpleBehaviour {
 
+    private final Ontology ontology;
+    private final Codec codec;
+    private final Action action;
     private boolean finished;
 
-    public Conversation(Agent agent) {
+    public Conversation(Agent agent, Ontology ontology, Codec codec
+            , Action action) {
         super(agent);
+        this.finished = false;
+        this.ontology = ontology;
+        this.codec = codec;
+        this.action = action;
     }
 
-    protected void sendFirstMessage(final Envelope envelope, SentMessageHandler handler) {
+    protected void sendMessage(AID[] receivers, int performative, SentMessageHandler handler) {
 
         myAgent.addBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {
 
-                ACLMessage newMsg = new ACLMessage(envelope.getPerformative());
+                ACLMessage newMsg = new ACLMessage(performative);
                 String conversationID = UUID.randomUUID().toString();
 
-                newMsg.setOntology(envelope.getOntology().getName());
-                newMsg.setLanguage(envelope.getCodec().getName());
+                newMsg.setOntology(ontology.getName());
+                newMsg.setLanguage(codec.getName());
                 newMsg.setConversationId(conversationID);
-                newMsg.addReceiver(envelope.getReceiverAID());
+                
+                for (AID receiverAID : receivers) {
+                    newMsg.addReceiver(receiverAID);
+                }
 
                 try {
-                    myAgent.getContentManager().fillContent(newMsg, envelope.getAction());
+                    myAgent.getContentManager().fillContent(newMsg, action);
                     myAgent.send(newMsg);
                     handler.onSent(conversationID);
                 } catch (Codec.CodecException | OntologyException ex) {
@@ -59,17 +67,21 @@ public abstract class Conversation extends SimpleBehaviour {
             }
         });
     }
+    
+    protected void sendMessage(AID receiver, int performative, SentMessageHandler handler) {
+        sendMessage(new AID[]{receiver}, performative, handler);
+    }
 
-    public void respondMessage(final Envelope envelope, ACLMessage lastMessage) {
+    public void respondMessage(ACLMessage message, int performative) {
         myAgent.addBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {
 
-                ACLMessage newMsg = lastMessage.createReply();
-                newMsg.setPerformative(envelope.getPerformative());
+                ACLMessage newMsg = message.createReply();
+                newMsg.setPerformative(performative);
 
                 try {
-                    myAgent.getContentManager().fillContent(newMsg, envelope.getAction());
+                    myAgent.getContentManager().fillContent(newMsg, action);
                 } catch (Codec.CodecException | OntologyException ex) {
                     Logger.getLogger(Conversation.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -79,7 +91,7 @@ public abstract class Conversation extends SimpleBehaviour {
         });
     }
 
-    protected void receiveResponse(final Envelope envelope, String conversationID, ResponseHandler handler) {
+    protected void receiveResponse(String conversationID, ResponseHandler handler) {
 
         myAgent.addBehaviour(new SimpleBehaviour(myAgent) {
 
@@ -87,7 +99,7 @@ public abstract class Conversation extends SimpleBehaviour {
 
             @Override
             public void action() {
-                MessageTemplate filter = generateMessageFilter(envelope, conversationID);
+                MessageTemplate filter = generateMessageFilter(conversationID);
 
                 ACLMessage response = myAgent.receive(filter);
 
@@ -110,13 +122,14 @@ public abstract class Conversation extends SimpleBehaviour {
         });
     }
 
-    protected void listenMessages(final Envelope envelope, ResponseHandler handler) {
-
-        myAgent.addBehaviour(new CyclicBehaviour(myAgent) {
+    protected void listenMessages(int messageLimit, ResponseHandler handler) {
+        myAgent.addBehaviour(new SimpleBehaviour(myAgent) {
+            
+            int limit = messageLimit;
 
             @Override
             public void action() {
-                MessageTemplate filter = generateMessageFilter(envelope, null);
+                MessageTemplate filter = generateMessageFilter();
 
                 ACLMessage response = myAgent.receive(filter);
 
@@ -124,31 +137,35 @@ public abstract class Conversation extends SimpleBehaviour {
 
                     handleResponseByPerformative(handler,
                             response);
+                    
+                    if (limit > 0)
+                        limit--;
                 } else {
                     handler.onResponseError();
                     block();
                 }
-
             }
 
+            @Override
+            public boolean done() {
+                return limit == 0;
+            }
         });
-
+    }
+    
+    protected void listenMessages(ResponseHandler handler) {
+        listenMessages(-1, handler);
     }
 
-    private MessageTemplate generateMessageFilter(Envelope envelope, String conversationID) {
+    private MessageTemplate generateMessageFilter(String conversationID) {
+        return MessageTemplate.and(generateMessageFilter(),
+                MessageTemplate.MatchConversationId(conversationID)); 
+    }
+    
+    private MessageTemplate generateMessageFilter() {
         MessageTemplate filter = MessageTemplate
-                .and(MessageTemplate.MatchLanguage(envelope.getCodec().getName()),
-                        MessageTemplate.MatchOntology(envelope.getOntology().getName()));
-
-        if (conversationID != null) {
-            filter = MessageTemplate.and(filter,
-                    MessageTemplate.MatchConversationId(conversationID));
-        }
-        if (envelope.getPerformative() != ACLMessage.UNKNOWN) {
-            filter = MessageTemplate.and(filter, MessageTemplate
-                    .MatchPerformative(envelope.getPerformative()));
-        }
-
+                .and(MessageTemplate.MatchLanguage(codec.getName()),
+                        MessageTemplate.MatchOntology(ontology.getName()));
         return filter;
     }
 
@@ -182,6 +199,11 @@ public abstract class Conversation extends SimpleBehaviour {
                 break;
         }
     }
+    
+    private void logUnhandledMessage(String message, AID source) {
+        System.out.println(myAgent.getLocalName() + ": received unhandled "
+                + message + " from " + source.getLocalName());
+    }
 
     @Override
     public abstract void onStart();
@@ -209,45 +231,39 @@ public abstract class Conversation extends SimpleBehaviour {
     protected abstract class ResponseHandler {
 
         public void onInform(ACLMessage response) {
+            logUnhandledMessage("INFORM", response.getSender());
         }
 
         public void onConfirm(ACLMessage response) {
+            logUnhandledMessage("CONFIRM", response.getSender());
         }
 
         public void onFailure(ACLMessage response) {
+            logUnhandledMessage("FAILURE", response.getSender());
         }
 
         public void onRefuse(ACLMessage response) {
+            logUnhandledMessage("REFUSE", response.getSender());
         }
 
         public void onAgree(ACLMessage response) {
+            logUnhandledMessage("AGREE", response.getSender());
         }
 
         public void onRequest(ACLMessage response) {
+            logUnhandledMessage("REQUEST", response.getSender());
         }
 
         public void onNotUnderstood(ACLMessage response) {
+            logUnhandledMessage("NOT UNDERSTOOD", response.getSender());
         }
 
         public void onCancel(ACLMessage response) {
+            logUnhandledMessage("CANCEL", response.getSender());
         }
         
         public void onResponseError() {
         }
-
-    }
-
-    protected interface Envelope {
-
-        Ontology getOntology();
-
-        int getPerformative();
-
-        Action getAction();
-
-        Codec getCodec();
-
-        AID getReceiverAID();
 
     }
 

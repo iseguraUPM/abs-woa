@@ -7,8 +7,6 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
-import jade.content.Concept;
-import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
@@ -16,13 +14,10 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -78,15 +73,13 @@ public class AgWorld extends Agent {
         }
 
 //		BEHAVIOURS ****************************************************************
-        addBehaviour(new Conversation(this) {
+        Action createUnitAction = new Action(getAID(), new CreateUnit());
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
             @Override
             public void onStart() {
                 Action action = new Action(getAID(), new CreateUnit());
 
-                final ConversationEnvelope envelope = new ConversationEnvelope(ontology,
-                         codec, action, getAID(), ACLMessage.REQUEST);
-
-                listenMessages(envelope, new ResponseHandler() {
+                listenMessages(new ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
                         System.out.println(myAgent.getLocalName()
@@ -97,27 +90,24 @@ public class AgWorld extends Agent {
 
                         // TODO: townhall location logic
                         if (ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
-                            respondMessage(new ConversationEnvelope(ontology, codec, action, message.getSender(), ACLMessage.REFUSE), message);
+                            respondMessage(message, ACLMessage.REFUSE);
                         } else {
                             ownerTribe.purchaseUnit();
-                            respondMessage(new ConversationEnvelope(ontology
-                                    , codec, action, message.getSender(), ACLMessage.AGREE), message);
+                            respondMessage(message, ACLMessage.AGREE);
 
                             addBehaviour(new DelayBehaviour(myAgent, 15000) {
 
                                 @Override
                                 public void handleElapsedTimeout() {
 
-                                    AgWorld agWorld = (AgWorld) myAgent;
-
-                                    boolean success = agWorld.launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
+                                    boolean success = launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
                                     if (!success) {
                                         ownerTribe.refundUnit();
-                                        respondMessage(new ConversationEnvelope(ontology, codec, action, message.getSender(), ACLMessage.FAILURE), message);
+                                        respondMessage(message, ACLMessage.FAILURE);
 
                                     }
                                     else {
-                                        respondMessage(new ConversationEnvelope(ontology, codec, action, message.getSender(), ACLMessage.INFORM), message);
+                                        respondMessage(message, ACLMessage.INFORM);
                                     }
                                 }
                             });
@@ -178,43 +168,6 @@ public class AgWorld extends Agent {
         }
     }
 
-    private DFAgentDescription findAgent(String type, String agentName) {
-        DFAgentDescription dfd = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType(type);
-        dfd.addServices(sd);
-
-        try {
-            return searchAgentDescription(dfd, agentName);
-        } catch (FIPAException ex) {
-            Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
-    }
-
-    private DFAgentDescription searchAgentDescription(DFAgentDescription searchDescription, String agentName) throws FIPAException {
-        DFAgentDescription[] foundTribes;
-        foundTribes = DFService.search(this, searchDescription);
-
-        if (foundTribes.length == 0) {
-            return null;
-        }
-
-        int i = 0;
-        DFAgentDescription targetTribe = foundTribes[i];
-        while (i < foundTribes.length && !targetTribe.getName().getLocalName().equals(agentName)) {
-            if (++i < foundTribes.length) {
-                targetTribe = foundTribes[i];
-            }
-        }
-
-        if (foundTribes.length == 0 || !targetTribe.getName().getLocalName().equals(agentName)) {
-            return null;
-        } else {
-            return targetTribe;
-        }
-    }
-
     private void handInitialTribeResources() {
         tribeCollection.stream().forEach((tribe) -> {
             for (int i = 0; i < STARTING_UNIT_NUMBER; i++) {
@@ -262,11 +215,6 @@ public class AgWorld extends Agent {
 
     private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit) {
 
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-        msg.addReceiver(ownerTribe.getId());
-        msg.setOntology(ontology.getName());
-        msg.setLanguage(codec.getName());
-
         NotifyNewUnit notifyNewUnit = new NotifyNewUnit();
         Cell cell = new Cell();
         cell.setX(newUnit.getCoordX());
@@ -274,14 +222,12 @@ public class AgWorld extends Agent {
         notifyNewUnit.setLocation(cell);
         notifyNewUnit.setNewUnit(newUnit.getId());
 
-        Action agAction = new Action(ownerTribe.getId(), notifyNewUnit);
-        try {
-            // The ContentManager transforms the java objects into strings
-            getContentManager().fillContent(msg, agAction);
-            send(msg);
-            System.out.println(getLocalName() + ": INFORMS A TRIBE " + ownerTribe.getId().getName());
-        } catch (Codec.CodecException | OntologyException ce) {
-            ce.printStackTrace();
-        }
+        Action informNewUnitAction = new Action(ownerTribe.getId(), notifyNewUnit);
+        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction) {
+            @Override
+            public void onStart() {
+                sendMessage(ownerTribe.getId(), ACLMessage.INFORM, new SentMessageHandler() {});
+            }
+        });
     }
 }
