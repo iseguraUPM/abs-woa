@@ -51,7 +51,6 @@ public class AgWorld extends Agent {
     public static final String TRIBE = "TRIBE";
     public static final String UNIT = "UNIT";
 
-    private static final int WAIT_NEW_AGENT_REGISTRATION_MILLIS = 500;
     private static final int STARTING_UNIT_NUMBER = 3;
 
     private static final long serialVersionUID = 1L;
@@ -59,6 +58,7 @@ public class AgWorld extends Agent {
     private Codec codec;
 
     private Collection<Tribe> tribeCollection;
+    private WorldMap worldMap;
 
     @Override
     protected void setup() {
@@ -68,8 +68,8 @@ public class AgWorld extends Agent {
             initializeAgent();
             initializeWorld();
 
-        } catch (FIPAException e) {
-            e.printStackTrace();
+        } catch (FIPAException ex) {
+
         }
 
 //		BEHAVIOURS ****************************************************************
@@ -83,35 +83,42 @@ public class AgWorld extends Agent {
                     @Override
                     public void onRequest(ACLMessage message) {
                         System.out.println(myAgent.getLocalName()
-                                        + ": received unit creation request from " + message.getSender().getLocalName());
-                        
+                                + ": received unit creation request from " + message.getSender().getLocalName());
+
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
 
                         // TODO: townhall location logic
-                        if (ownerTribe == null || requesterUnit == null || !ownerTribe.canAffordUnit()) {
+                        if (ownerTribe == null || requesterUnit == null) {
                             respondMessage(message, ACLMessage.REFUSE);
                         } else {
-                            ownerTribe.purchaseUnit();
-                            respondMessage(message, ACLMessage.AGREE);
 
-                            addBehaviour(new DelayBehaviour(myAgent, 15000) {
+                            MapCell mapCell = worldMap.getCellAt(requesterUnit.getCoordX(),
+                                     requesterUnit.getCoordY());
+                            boolean hasTownHall = mapCell != null && mapCell.getContent().equals(WorldMap.TOWN_HALL);
+                            if (!hasTownHall || !ownerTribe.canAffordUnit()) {
+                                respondMessage(message, ACLMessage.REFUSE);
+                            } else {
+                                ownerTribe.purchaseUnit();
+                                respondMessage(message, ACLMessage.AGREE);
 
-                                @Override
-                                public void handleElapsedTimeout() {
+                                addBehaviour(new DelayBehaviour(myAgent, 15000) {
 
-                                    boolean success = launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
-                                    if (!success) {
-                                        ownerTribe.refundUnit();
-                                        respondMessage(message, ACLMessage.FAILURE);
+                                    @Override
+                                    public void handleElapsedTimeout() {
 
+                                        boolean success = launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
+                                        if (!success) {
+                                            ownerTribe.refundUnit();
+                                            respondMessage(message, ACLMessage.FAILURE);
+
+                                        } else {
+                                            respondMessage(message, ACLMessage.INFORM);
+                                        }
                                     }
-                                    else {
-                                        respondMessage(message, ACLMessage.INFORM);
-                                    }
-                                }
-                            });
-                            
+                                });
+
+                            }
                         }
                     }
                 });
@@ -140,6 +147,7 @@ public class AgWorld extends Agent {
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
 
+        worldMap = WorldMap.getInstance(1, 1);
         tribeCollection = new HashSet<>();
 
         if (launchAgentTribe()) {
@@ -197,7 +205,7 @@ public class AgWorld extends Agent {
             AgentController ac = cc.acceptNewAgent(newUnitName, newUnit);
             ac.start();
 
-            Unit newUnitRef = new Unit(newUnit.getAID(), 0, 0);
+            Unit newUnitRef = new Unit(newUnit.getAID(), 1, 1);
             if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
                 return false;
@@ -226,7 +234,8 @@ public class AgWorld extends Agent {
         addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction) {
             @Override
             public void onStart() {
-                sendMessage(ownerTribe.getId(), ACLMessage.INFORM, new SentMessageHandler() {});
+                sendMessage(ownerTribe.getId(), ACLMessage.INFORM, new SentMessageHandler() {
+                });
             }
         });
     }
