@@ -33,3 +33,17 @@
     I uploaded the changelog template to record any progress made. The idea is that this can be used as a
 	developer journal.
 ----------------------------------------------------------------------------------------------------------------
+(1) {28-03-2019 12:00} Cleaning and implementing other scenarios : Iñaki
+ 1. [COMPLETE]
+    Added some missing javadoc.
+ 2. [REMOVE]
+    Removed TownHall class. Buildings for now are specified in the "contents" of the MapCell an done in the
+	ontology.
+ 3. [NEW]
+    Added temporal solution for unit position placement. This is done to check scenarios where a unit is
+	in a cell without a TownHall. The same with MapCell ownership. A temporary numerical ID was added
+	to Tribe until a general solution is provided.
+ 4. [TEST]
+    All scenarios are now tested. Also, multiple tribe agents where created with their respective units working
+	and communicating as expected.
+----------------------------------------------------------------------------------------------------------------
