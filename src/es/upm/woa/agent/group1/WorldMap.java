@@ -25,10 +25,28 @@ public class WorldMap {
         WorldMap newInstance = new WorldMap();
         newInstance.worldMapContents = new MapCell[width][height];
         
+        // TODO: initial cells just for testing
         newInstance.worldMapContents[0][0] = new MapCell() {
             @Override
             public String getContent() {
                 return TOWN_HALL;
+            }
+
+            @Override
+            public int getOwner() {
+                return 0;
+            }
+        };
+        
+        newInstance.worldMapContents[1][1] = new MapCell() {
+            @Override
+            public String getContent() {
+                return TOWN_HALL;
+            }
+
+            @Override
+            public int getOwner() {
+                return 1;
             }
         };
         

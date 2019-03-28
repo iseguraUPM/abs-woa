@@ -1,5 +1,6 @@
 package es.upm.woa.agent.group1;
  
+import FIPA.AgentIDHelper;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import java.util.Collection;
@@ -16,25 +17,36 @@ public class Tribe {
     private final static int UNIT_GOLD_COST = 150;
     
     // TODO: unique ID generation
-    private AID id;
-    private final Collection<TownHall> townHallCollection = new HashSet<>();
+    private final AID agentID;
     private final Collection<Unit> unitCollection = new HashSet<>();
     private int currentGold;
     private int currentFood;
+    private final int id;
     
-    public Tribe(AID pId) {
-        id = pId;
+    public Tribe(AID pId, int identifier) {
+        agentID = pId;
+        id = identifier;
         
         //TODO: define how many units of currentGold/food. By default 1000
         currentGold = 150;
         currentFood = 50;
-        
-        //TODO: remove in the future. just for testing
-        townHallCollection.add(new TownHall(new AID(), 0, 0));
     }
     
-    public AID getId(){
-        return this.id;
+    /**
+     * 
+     * @return numerical identifier of the tribe
+     */
+    // TODO: suggest AID ownership identifier in ontology
+    public int getId() {
+        return id;
+    }
+    
+    /**
+     * 
+     * @return AID associated with this entity
+     */
+    public AID getAID(){
+        return this.agentID;
     }
     
     /**
@@ -67,10 +79,22 @@ public class Tribe {
         }
     }
     
+    public String getUnitNamePrefix() {
+        return getAID().getLocalName() + "_Unit";
+    }
+    
+    /**
+     * 
+     * @return the tribe can afford creation of a new unit
+     */
     public boolean canAffordUnit() {
         return currentGold >= UNIT_GOLD_COST && currentFood >= UNIT_FOOD_COST;
     }
     
+    /**
+     * Spend resources to create a new unit
+     * @return if the tribe can afford creation of a new unit
+     */
     public boolean purchaseUnit() {
         if (!canAffordUnit()) {
             return false;
@@ -80,6 +104,9 @@ public class Tribe {
         return true;
     }
     
+    /**
+     * Return resources spent for a new unit creation
+     */
     public void refundUnit() {
         currentGold += UNIT_GOLD_COST;
         currentFood += UNIT_FOOD_COST;

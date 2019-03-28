@@ -15,28 +15,38 @@ import jade.core.AID;
  */
 public abstract class WorldEntity {
     
-    private AID id;
+    private final AID id;
     private int coordX;
     private int coordY;
     
-    public WorldEntity(AID pId, int pCoordX, int pCoordY){
+    public WorldEntity(AID pId, int pCoordX, int pCoordY){ 
         id = pId;
         coordX = pCoordX;
         coordY = pCoordY;
     }
     
-    public AID getId(){
+    public AID getId() {
         return id;
     }
     
-    public int getCoordX(){
+    public int getCoordX() {
         return coordX;
     }
     
-    public int getCoordY(){
+    public int getCoordY() {
         return coordY;
     }
     
+    public void setPosition(int x, int y) {
+        coordX = x;
+        coordY = y;
+    }
+    
+    /**
+     * 
+     * @param otherEntity
+     * @return is in the same position as the other entity
+     */
     public boolean sameCoords(WorldEntity otherEntity) {
         return coordX == otherEntity.coordX && coordY == otherEntity.coordY;
     }

@@ -3,8 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-// https://www.iro.umontreal.ca/~vaucher/Agents/Jade/primer6.html#6.5
 package es.upm.woa.agent.group1;
 
 import jade.core.Agent;
@@ -12,11 +10,12 @@ import jade.core.behaviours.SimpleBehaviour;
 
 /**
  *
- * @author ISU
+ * @author https://www.iro.umontreal.ca/~vaucher/Agents/Jade/primer6.html#6.5
  */
 public class DelayBehaviour extends SimpleBehaviour 
 {
-   private long timeout, wakeupTime;
+   private final long timeout;
+   private long wakeupTime;
    private boolean finished = false;
    
    public DelayBehaviour(Agent a, long timeout) {

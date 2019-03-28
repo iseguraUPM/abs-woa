@@ -13,13 +13,11 @@ import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
@@ -47,7 +45,7 @@ public class AgTribe extends Agent {
             Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-//	BEHAVIOURS ****************************************************************
+        // Behaviors
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
         addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction) {
             @Override
@@ -95,8 +93,6 @@ public class AgTribe extends Agent {
         // Registers its description in the DF
         DFService.register(this, dfd);
         System.out.println(getLocalName() + ": registered in the DF");
-        dfd = null;
-        sd = null;
     }
 
     private void initializeTribe() {

@@ -11,6 +11,8 @@ package es.upm.woa.agent.group1;
  */
 public interface MapCell {  
     
+    public int getOwner();
+    
     public String getContent();
     
 }

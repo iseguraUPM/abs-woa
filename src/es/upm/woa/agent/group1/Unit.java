@@ -11,9 +11,9 @@ import jade.core.AID;
  *
  * @author Martin
  */
-public class Unit extends WorldEntity{
+public class Unit extends WorldEntity {
     
-    public Unit(AID pId, int pCoordX, int pCoordY){
+    public Unit(AID pId, int pCoordX, int pCoordY) {
         super(pId, pCoordX, pCoordY);
     }
 }

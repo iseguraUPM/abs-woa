@@ -10,7 +10,6 @@ package es.upm.woa.agent.group1;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
-import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
@@ -30,19 +29,18 @@ import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewUnit;
+import java.util.EmptyStackException;
+import java.util.Stack;
+import javafx.util.Pair;
 
 // TODO: change docs
 /**
  * This agent has the following functionality:
  * <ul>
- * <li> It registers itself in the DF as PAINTER
- * <li> Waits for requests of its painting service
- * <li> If any estimation request arrives, it answers with a random value
- * <li> Finally, it waits for the client answer
+ * <li>TODO</li>
  * </ul>
  *
- * @author Ricardo Imbert, UPM
- * @version $Date: 2009/04/01 13:45:18 $ $Revision: 1.1 $
+ * @author Iñaki Segura
  *
  */
 public class AgWorld extends Agent {
@@ -59,20 +57,31 @@ public class AgWorld extends Agent {
 
     private Collection<Tribe> tribeCollection;
     private WorldMap worldMap;
+    
+    // TODO: temporal initial coordinates for testing purposes
+    private Stack<Pair<Integer, Integer>> initialUnitCoordinates;
 
     @Override
     protected void setup() {
         System.out.println(getLocalName() + ": has entered into the system");
 
+        // TODO: temporal initial coordinates for testing purposes
+        initialUnitCoordinates = new Stack<>();
+        initialUnitCoordinates.add(new Pair(1, 1));
+        initialUnitCoordinates.add(new Pair(2, 2));
+        initialUnitCoordinates.add(new Pair(3, 3));
+        initialUnitCoordinates.add(new Pair(1, 1));
+        initialUnitCoordinates.add(new Pair(2, 2));
+        initialUnitCoordinates.add(new Pair(3, 3));
+        
         try {
             initializeAgent();
             initializeWorld();
-
         } catch (FIPAException ex) {
 
         }
 
-//		BEHAVIOURS ****************************************************************
+        // Behaviors
         Action createUnitAction = new Action(getAID(), new CreateUnit());
         addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
             @Override
@@ -94,31 +103,35 @@ public class AgWorld extends Agent {
                         } else {
 
                             MapCell mapCell = worldMap.getCellAt(requesterUnit.getCoordX(),
-                                     requesterUnit.getCoordY());
-                            boolean hasTownHall = mapCell != null && mapCell.getContent().equals(WorldMap.TOWN_HALL);
-                            if (!hasTownHall || !ownerTribe.canAffordUnit()) {
+                                    requesterUnit.getCoordY());
+                            boolean isOnTribeTownHall = mapCell != null
+                                    && mapCell.getOwner() == ownerTribe.getId()
+                                    && mapCell.getContent().equals(WorldMap.TOWN_HALL);
+                            if (!isOnTribeTownHall || !ownerTribe.canAffordUnit()) {
                                 respondMessage(message, ACLMessage.REFUSE);
                             } else {
                                 ownerTribe.purchaseUnit();
                                 respondMessage(message, ACLMessage.AGREE);
-
-                                addBehaviour(new DelayBehaviour(myAgent, 15000) {
-
-                                    @Override
-                                    public void handleElapsedTimeout() {
-
-                                        boolean success = launchAgentUnit(ownerTribe, "CreatedUnit" + ownerTribe.getNumberUnits());
-                                        if (!success) {
-                                            ownerTribe.refundUnit();
-                                            respondMessage(message, ACLMessage.FAILURE);
-
-                                        } else {
-                                            respondMessage(message, ACLMessage.INFORM);
-                                        }
-                                    }
-                                });
-
+                                initiateUnitCreation(ownerTribe, message);
                             }
+                        }
+                    }
+                });
+            }
+
+            private void initiateUnitCreation(Tribe ownerTribe, ACLMessage message) {
+                addBehaviour(new DelayBehaviour(myAgent, 15000) {
+
+                    @Override
+                    public void handleElapsedTimeout() {
+
+                        boolean success = launchNewAgentUnit(ownerTribe);
+                        if (!success) {
+                            ownerTribe.refundUnit();
+                            respondMessage(message, ACLMessage.FAILURE);
+
+                        } else {
+                            respondMessage(message, ACLMessage.INFORM);
                         }
                     }
                 });
@@ -137,8 +150,6 @@ public class AgWorld extends Agent {
         // Registers its description in the DF
         DFService.register(this, dfd);
         System.out.println(getLocalName() + ": registered in the DF");
-        dfd = null;
-        sd = null;
     }
 
     private void initializeWorld() {
@@ -147,41 +158,45 @@ public class AgWorld extends Agent {
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
 
-        worldMap = WorldMap.getInstance(1, 1);
+        worldMap = WorldMap.getInstance(3, 3);
         tribeCollection = new HashSet<>();
 
-        if (launchAgentTribe()) {
-            handInitialTribeResources();
+        Tribe newTribe = launchAgentTribe("TribeA", 0);
+        if (newTribe != null) {
+            handInitialTribeResources(newTribe);
+        }
+        
+        newTribe = launchAgentTribe("TribeB", 1);
+        if (newTribe != null) {
+            handInitialTribeResources(newTribe);
         }
     }
 
-    public boolean launchAgentTribe() {
+    private Tribe launchAgentTribe(String tribeName, int id) {
         try {
             ContainerController cc = getContainerController();
             AgTribe newTribe = new AgTribe();
-            AgentController ac = cc.acceptNewAgent("TestTribe", newTribe);
+            AgentController ac = cc.acceptNewAgent(tribeName, newTribe);
             ac.start();
 
-            Tribe newTribeRef = new Tribe(newTribe.getAID());
+            Tribe newTribeRef = new Tribe(newTribe.getAID(), id);
             if (!tribeCollection.add(newTribeRef)) {
                 ac.kill();
-                return false;
+                return null;
             } else {
-                return true;
+                return newTribeRef;
             }
 
         } catch (StaleProxyException ex) {
             Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            return null;
         }
     }
 
-    private void handInitialTribeResources() {
-        tribeCollection.stream().forEach((tribe) -> {
-            for (int i = 0; i < STARTING_UNIT_NUMBER; i++) {
-                launchAgentUnit(tribe, "TestUnit" + i);
-            }
-        });
+    private void handInitialTribeResources(Tribe tribe) {
+        for (int i = 0; i < STARTING_UNIT_NUMBER; i++) {
+            launchNewAgentUnit(tribe);
+        }
     }
 
     private Tribe findOwnerTribe(AID requesterUnAid) {
@@ -198,14 +213,23 @@ public class AgWorld extends Agent {
         return ownerTribe.getUnit(unitAID);
     }
 
-    private boolean launchAgentUnit(Tribe ownerTribe, String newUnitName) {
+    private boolean launchNewAgentUnit(Tribe ownerTribe) {
         try {
             ContainerController cc = getContainerController();
             AgUnit newUnit = new AgUnit();
-            AgentController ac = cc.acceptNewAgent(newUnitName, newUnit);
+            AgentController ac = cc.acceptNewAgent(generateNewUnitName(ownerTribe), newUnit);
             ac.start();
 
-            Unit newUnitRef = new Unit(newUnit.getAID(), 1, 1);
+            // TODO: temporal initial positions for testing purposes
+            Pair<Integer, Integer> position;
+            try {
+                position = initialUnitCoordinates.pop();
+            } catch (EmptyStackException ex) {
+                position = new Pair<>(0, 0);
+            }
+            Unit newUnitRef = new Unit(newUnit.getAID(), position.getKey()
+                    , position.getValue());
+            
             if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
                 return false;
@@ -218,7 +242,10 @@ public class AgWorld extends Agent {
             Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-
+    }
+    
+    private String generateNewUnitName(Tribe ownerTribe) {
+        return ownerTribe.getUnitNamePrefix() + ownerTribe.getNumberUnits();
     }
 
     private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit) {
@@ -230,11 +257,11 @@ public class AgWorld extends Agent {
         notifyNewUnit.setLocation(cell);
         notifyNewUnit.setNewUnit(newUnit.getId());
 
-        Action informNewUnitAction = new Action(ownerTribe.getId(), notifyNewUnit);
+        Action informNewUnitAction = new Action(ownerTribe.getAID(), notifyNewUnit);
         addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction) {
             @Override
             public void onStart() {
-                sendMessage(ownerTribe.getId(), ACLMessage.INFORM, new SentMessageHandler() {
+                sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
                 });
             }
         });

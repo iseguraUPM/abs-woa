@@ -40,7 +40,7 @@ public class AgUnit extends Agent {
             Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        //Behaviours
+        //Behaviors
         Action createUnitAction = new Action(getAID(), new CreateUnit());
         addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
 
@@ -121,8 +121,6 @@ public class AgUnit extends Agent {
         // Registers its description in the DF
         DFService.register(this, dfd);
         System.out.println(getLocalName() + ": registered in the DF");
-        dfd = null;
-        sd = null;
     }
 
     private void initializeUnit() {

@@ -20,7 +20,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * A behavior used for implementing interchanging messages between two or
+ * more agents.
  * @author ISU
  */
 public abstract class Conversation extends SimpleBehaviour {
@@ -39,6 +40,12 @@ public abstract class Conversation extends SimpleBehaviour {
         this.action = action;
     }
 
+    /**
+     * Sends a message to the required recipients
+     * @param receivers
+     * @param performative action to set the message
+     * @param handler
+     */
     protected void sendMessage(AID[] receivers, int performative, SentMessageHandler handler) {
 
         myAgent.addBehaviour(new OneShotBehaviour() {
@@ -68,10 +75,21 @@ public abstract class Conversation extends SimpleBehaviour {
         });
     }
     
+    /**
+     * Send message to one recipient
+     * @param receiver
+     * @param performative
+     * @param handler 
+     */
     protected void sendMessage(AID receiver, int performative, SentMessageHandler handler) {
         sendMessage(new AID[]{receiver}, performative, handler);
     }
 
+    /**
+     * Reply a message from one conversation
+     * @param message
+     * @param performative 
+     */
     public void respondMessage(ACLMessage message, int performative) {
         myAgent.addBehaviour(new OneShotBehaviour() {
             @Override
@@ -91,6 +109,11 @@ public abstract class Conversation extends SimpleBehaviour {
         });
     }
 
+    /**
+     * Listen to a message from a given conversation
+     * @param conversationID
+     * @param handler 
+     */
     protected void receiveResponse(String conversationID, ResponseHandler handler) {
 
         myAgent.addBehaviour(new SimpleBehaviour(myAgent) {
@@ -122,6 +145,12 @@ public abstract class Conversation extends SimpleBehaviour {
         });
     }
 
+    /**
+     * Listen to a given number of messages
+     * @param messageLimit of messages to listen. If it is less than zero
+     * it will listen forever.
+     * @param handler 
+     */
     protected void listenMessages(int messageLimit, ResponseHandler handler) {
         myAgent.addBehaviour(new SimpleBehaviour(myAgent) {
             
@@ -153,6 +182,10 @@ public abstract class Conversation extends SimpleBehaviour {
         });
     }
     
+    /**
+     * Listen to messages indefinitely
+     * @param handler 
+     */
     protected void listenMessages(ResponseHandler handler) {
         listenMessages(-1, handler);
     }
@@ -205,6 +238,10 @@ public abstract class Conversation extends SimpleBehaviour {
                 + message + " from " + source.getLocalName());
     }
 
+    /**
+     * Must override in order to instantiate a conversation. Here the conversation
+     * methods for message handling are placed.
+     */
     @Override
     public abstract void onStart();
 
@@ -214,7 +251,7 @@ public abstract class Conversation extends SimpleBehaviour {
     }
 
     @Override
-    public boolean done() {
+    public final boolean done() {
         return finished;
     }
 
