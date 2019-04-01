@@ -29,6 +29,7 @@ import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewUnit;
+import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.Stack;
 import javafx.util.Pair;
@@ -57,6 +58,8 @@ public class AgWorld extends Agent {
 
     private Collection<Tribe> tribeCollection;
     private WorldMap worldMap;
+    
+    private Collection<Transaction> activeTransactions;
     
     // TODO: temporal initial coordinates for testing purposes
     private Stack<Pair<Integer, Integer>> initialUnitCoordinates;
@@ -120,21 +123,44 @@ public class AgWorld extends Agent {
             }
 
             private void initiateUnitCreation(Tribe ownerTribe, ACLMessage message) {
-                addBehaviour(new DelayBehaviour(myAgent, 15000) {
-
+                
+                DelayedTransactionalBehaviour activeTransaction
+                        = new DelayedTransactionalBehaviour(myAgent, 15000) {
+                          
+                    boolean finished = false;
+                            
                     @Override
                     public void handleElapsedTimeout() {
+                        if (!finished) { 
+                            boolean success = launchNewAgentUnit(ownerTribe);
+                            if (!success) {
+                                ownerTribe.refundUnit();
+                                System.out.println(myAgent.getLocalName()
+                                + ": refunded unit to " + ownerTribe.getAID().getLocalName());
+                                respondMessage(message, ACLMessage.FAILURE);
 
-                        boolean success = launchNewAgentUnit(ownerTribe);
-                        if (!success) {
+                            } else {
+                                respondMessage(message, ACLMessage.INFORM);
+                            }
+                        }
+                        
+                        finished = true;
+                    }
+
+                    @Override
+                    public void rollback() {
+                        if (!finished) {
+                            System.out.println(myAgent.getLocalName()
+                                + ": refunded unit to " + ownerTribe.getAID().getLocalName());
                             ownerTribe.refundUnit();
                             respondMessage(message, ACLMessage.FAILURE);
-
-                        } else {
-                            respondMessage(message, ACLMessage.INFORM);
                         }
+                        finished = true;
                     }
-                });
+                };
+                
+                activeTransactions.add(activeTransaction);
+                addBehaviour(activeTransaction);
             }
         });
 
@@ -161,6 +187,8 @@ public class AgWorld extends Agent {
         worldMap = WorldMap.getInstance(3, 3);
         tribeCollection = new HashSet<>();
 
+        activeTransactions = new ArrayList<>();
+        
         Tribe newTribe = launchAgentTribe("TribeA", 0);
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
@@ -170,6 +198,11 @@ public class AgWorld extends Agent {
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
+    }
+    
+    private void finalizeWorld() {
+        activeTransactions.forEach(t -> t.rollback());
+        activeTransactions.clear();
     }
 
     private Tribe launchAgentTribe(String tribeName, int id) {
