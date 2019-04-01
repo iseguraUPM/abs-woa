@@ -52,3 +52,6 @@
     First iteration of rollback system. This is implemented in the case of a unit creation. If the game is over
 	it must stop ongoing operations by a "rollback" and perform some actions depending on the task. In the 
 	case of the unit creation refund the resources and send a FAILURE to the requester unit.
+ 2. [NOTE]
+    I tried implementing the above mechanic using the method "onEnd" from "Behaviour" class but it did not work
+	for me.
