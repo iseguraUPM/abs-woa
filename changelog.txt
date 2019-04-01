@@ -47,3 +47,8 @@
     All scenarios are now tested. Also, multiple tribe agents where created with their respective units working
 	and communicating as expected.
 ----------------------------------------------------------------------------------------------------------------
+ (2) {01-04-2019 15:20} Rollback system : Iñaki
+ 1. [NEW]
+    First iteration of rollback system. This is implemented in the case of a unit creation. If the game is over
+	it must stop ongoing operations by a "rollback" and perform some actions depending on the task. In the 
+	case of the unit creation refund the resources and send a FAILURE to the requester unit.
