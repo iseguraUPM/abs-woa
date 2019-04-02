@@ -52,6 +52,20 @@
     First iteration of rollback system. This is implemented in the case of a unit creation. If the game is over
 	it must stop ongoing operations by a "rollback" and perform some actions depending on the task. In the 
 	case of the unit creation refund the resources and send a FAILURE to the requester unit.
- 2. [NOTE]
+ 2. [NOTE] ref [NEW 2.1]
     I tried implementing the above mechanic using the method "onEnd" from "Behaviour" class but it did not work
 	for me.
+----------------------------------------------------------------------------------------------------------------
+ (3) {02-04-2019 15:00} Unit positioning system : Iñaki
+ 1. [REFACT]
+    Changed the way map cells are saved in the world map. As suggested only occupied cells will remain stored.
+	when there is no cell at a correct coordinate an empty cell is provided.
+ 2. [TODO]
+    We need to decide wether we use our own map cell implementation that later will need to be transformed for
+	serialization or use the Ontology "Cell". The latter exposes getters and setters that may not be available
+	to certain classes/agents.
+ 3. [NEW]
+    First iteration of the Unit positioning system. This class takes care of the logic of moving units
+	 around the map as specified in the documentation. Currently works for rectangular world maps 
+	(no need to be square).
+----------------------------------------------------------------------------------------------------------------
