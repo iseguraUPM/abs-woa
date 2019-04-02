@@ -5,6 +5,9 @@
  */
 package es.upm.woa.agent.group1;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  *
  * @author ISU
@@ -13,59 +16,116 @@ public class WorldMap {
     
     public static final String TOWN_HALL = "TownHall";
     
-    private MapCell[][] worldMapContents;
+    private final int width;
+    private final int height;
     
-    private WorldMap() {}
+    private final Map<Integer, MapCell> mapCells;
     
+    private WorldMap(int width, int height) {
+        this.width = width;
+        this.height = height;
+        mapCells = new TreeMap<>();
+    }
+    
+    public int getWidth() {
+       return width;
+    }
+    
+    public int getHeight() {
+        return height;
+    }
+    
+    /**
+     * Generates a map structure with the coordinates of a matrix. The origin is
+     * at 1,1. The first coordinate raises DOWN of the origin. The second coordinate
+     * raises RIGHT of the origin. Both coordinates are always ODD or both EVEN.
+     * @param width of the map
+     * @param height of the map
+     * @return 
+     */
     public static WorldMap getInstance(int width, int height) {
         if (width < 1 || height < 1) {
             return null;
         }
         
-        WorldMap newInstance = new WorldMap();
-        newInstance.worldMapContents = new MapCell[width][height];
-        
-        // TODO: initial cells just for testing
-        newInstance.worldMapContents[0][0] = new MapCell() {
-            @Override
-            public String getContent() {
-                return TOWN_HALL;
-            }
-
-            @Override
-            public int getOwner() {
-                return 0;
-            }
-        };
-        
-        newInstance.worldMapContents[1][1] = new MapCell() {
-            @Override
-            public String getContent() {
-                return TOWN_HALL;
-            }
-
-            @Override
-            public int getOwner() {
-                return 1;
-            }
-        };
+        WorldMap newInstance = new WorldMap(width, height);
         
         return newInstance;
+    }
+    
+    /**
+     * Adds a map cell to the map
+     * @param mapCell
+     * @return if the position was not occupied by an empty cell
+     */
+    public boolean addCell(MapCell mapCell) {
+        int index = toAbsolutePosition(mapCell.getXCoord(), mapCell.getYCoord());
+        
+        if (mapCells.containsKey(index))
+            return false;
+        
+        mapCells.put(index, mapCell);
+        return true;
     }
     
     /**
      * Return a cell by its coordinates (starting at 1,1)
      * @param x coordinate
      * @param y coordinate
-     * @return the requested cell or null if the coordinates fall out of bounds
+     * @return the requested cell
+     * @throws IndexOutOfBoundsException when the coordinates are past the bounds
+     * of the map
      */
-    public MapCell getCellAt(int x, int y) {
-        int width = worldMapContents.length;
-        if (x <1 || y < 1 || x > width || y > worldMapContents[width - 1].length) {
-            return null;
+    public MapCell getCellAt(int x, int y) throws IndexOutOfBoundsException {
+        if (x < 1 || y < 1 || x > height || y > width) {
+            throw new IndexOutOfBoundsException("Coordinates (" + x + "," + y
+                    + ") exceed map dimensions");
         }
         
-        return worldMapContents[x - 1][y - 1];
+        int index = toAbsolutePosition(x, y);
+        
+        MapCell targetCell = mapCells.get(index);
+        if (targetCell == null) {
+            targetCell = new EmptyMapCell(x, y);
+        }
+        
+        return targetCell;
+    }
+    
+    private int toAbsolutePosition(int x, int y) {
+        return (x - 1) * height + y;
+    }
+    
+    private class EmptyMapCell implements MapCell {
+
+        private final int x;
+        private final int y;
+
+        public EmptyMapCell(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public int getOwner() {
+            return -1;
+        }
+
+        @Override
+        public String getContent() {
+            return "";
+        }
+
+        @Override
+        public int getXCoord() {
+            return x;
+        }
+
+        @Override
+        public int getYCoord() {
+            return y;
+        }
+        
     }
     
 }

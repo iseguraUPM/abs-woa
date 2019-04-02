@@ -9,10 +9,14 @@ package es.upm.woa.agent.group1;
  *
  * @author ISU
  */
-public interface MapCell {  
+public interface MapCell {
     
     public int getOwner();
     
     public String getContent();
+    
+    public int getXCoord();
+    
+    public int getYCoord();
     
 }
