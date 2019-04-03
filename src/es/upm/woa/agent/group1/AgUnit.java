@@ -42,8 +42,6 @@ public class AgUnit extends Agent {
             Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        System.out.println(getLocalName() + ": hola");
-
         if(checkNewUnitIsNeeded()){
             startCreateUnitBehaviour();
         }else if(checkMoveToCellIsNeeded()){
