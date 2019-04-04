@@ -11,6 +11,8 @@ package es.upm.woa.agent.group1;
  */
 public interface Transaction {
     
+    void commit();
+    
     void rollback();
     
 }

@@ -28,12 +28,12 @@
 - [NOTE]
 ################################################################################################################
 ----------------------------------------------------------------------------------------------------------------
-(0) {27-03-2019 18:45} Uploaded changelog : Iñaki
+(0) {27-03-2019 18:45} Uploaded changelog : Inaki
  1. [COMPLETE]
     I uploaded the changelog template to record any progress made. The idea is that this can be used as a
 	developer journal.
 ----------------------------------------------------------------------------------------------------------------
-(1) {28-03-2019 12:00} Cleaning and implementing other scenarios : Iñaki
+(1) {28-03-2019 12:00} Cleaning and implementing other scenarios : Inaki
  1. [COMPLETE]
     Added some missing javadoc.
  2. [REMOVE]
@@ -47,7 +47,7 @@
     All scenarios are now tested. Also, multiple tribe agents where created with their respective units working
 	and communicating as expected.
 ----------------------------------------------------------------------------------------------------------------
- (2) {01-04-2019 15:20} Rollback system : Iñaki
+ (2) {01-04-2019 15:20} Rollback system : Inaki
  1. [NEW]
     First iteration of rollback system. This is implemented in the case of a unit creation. If the game is over
 	it must stop ongoing operations by a "rollback" and perform some actions depending on the task. In the 
@@ -56,7 +56,7 @@
     I tried implementing the above mechanic using the method "onEnd" from "Behaviour" class but it did not work
 	for me.
 ----------------------------------------------------------------------------------------------------------------
- (3) {02-04-2019 15:00} Unit positioning system : Iñaki
+ (3) {02-04-2019 15:00} Unit positioning system : Inaki
  1. [REFACT]
     Changed the way map cells are saved in the world map. As suggested only occupied cells will remain stored.
 	when there is no cell at a correct coordinate an empty cell is provided.
@@ -69,3 +69,6 @@
 	 around the map as specified in the documentation. Currently works for rectangular world maps 
 	(no need to be square).
 ----------------------------------------------------------------------------------------------------------------
+ (4) {04-04-2019 15:00} Revisited unit positioning system : Inaki
+ 1. [COMPLETE]
+    Finished logic of the unit positioner. To achieve this I changed the interface for Transactions.

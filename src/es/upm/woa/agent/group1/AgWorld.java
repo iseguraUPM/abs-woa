@@ -130,7 +130,7 @@ public class AgWorld extends Agent {
                     boolean finished = false;
                             
                     @Override
-                    public void handleElapsedTimeout() {
+                    public void commit() {
                         if (!finished) { 
                             boolean success = launchNewAgentUnit(ownerTribe);
                             if (!success) {

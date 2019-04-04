@@ -8,7 +8,8 @@ package es.upm.woa.agent.group1;
 import jade.core.Agent;
 
 /**
- *
+ * This modification of the DelayBehaviour behaves as a transaction. It executes
+ * commit once the elapsed time is over.
  * @author ISU
  */
 public abstract class DelayedTransactionalBehaviour extends DelayBehaviour
@@ -16,6 +17,11 @@ public abstract class DelayedTransactionalBehaviour extends DelayBehaviour
 
     public DelayedTransactionalBehaviour(Agent agent, long timeout) {
         super(agent, timeout);
+    }
+    
+    @Override
+    protected final void handleElapsedTimeout() {
+        commit();
     }
 
     @Override

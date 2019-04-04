@@ -5,6 +5,9 @@
  */
 package es.upm.woa.agent.group1;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  *
  * @author ISU
@@ -14,12 +17,14 @@ public class UnitCellPositioner {
     private static UnitCellPositioner instance;
     
     private final WorldMap worldMap;
+    private final Set<Unit> movingUnits;
     
     private final static int[][] POS_OPERATORS =
     {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {2, 0}, {0, 2}};
     
     private UnitCellPositioner(WorldMap worldMap) {
         this.worldMap = worldMap;
+        this.movingUnits = new HashSet<>();
     }
     
     /**
@@ -41,25 +46,63 @@ public class UnitCellPositioner {
      * @return the unit is currently undergoing positioning
      */
     public boolean isMoving(Unit unit) {
-        throw new UnsupportedOperationException();
+        return movingUnits.contains(unit);
     }
     
     /**
      * Moves the target unit to the new cell
      * @param unit to move
      * @param cell to position the unit
+     * @return the transaction of the movement
      * @throws IndexOutOfBoundsException if the unit cannot move to the 
      * target cell. This is usually because is not adjacent to its current
      * position. It can also mean that the unit is in an incorrect position.
      */
-    public void move(Unit unit, MapCell cell)
+    public Transaction move(Unit unit, MapCell cell)
             throws IndexOutOfBoundsException {
         if (!isCorrectPosition(unit.getCoordX(), unit.getCoordY())) {
             throw new IndexOutOfBoundsException(unit.getId().getLocalName() +
                     " is at an incorrect position");
         }
         
-        throw new UnsupportedOperationException();
+        if (!isAdjacent(unit, cell)) {
+            throw new IndexOutOfBoundsException(unit.getId().getLocalName() +
+                    " is not adjacent to cell [" + cell.getXCoord()
+                    + "," + cell.getYCoord() + "]");
+        }
+        
+        setAsMoving(unit);
+        
+        Transaction moveTransaction = createMovingTransaction(unit, cell);
+        
+        return moveTransaction;
+    }
+
+    private Transaction createMovingTransaction(Unit unit, MapCell cell) {
+        Transaction moveTransaction
+                = new Transaction() {
+                    
+                    @Override
+                    public void commit() {
+                        unit.setPosition(cell.getXCoord(), cell.getYCoord());
+                        unsetAsMoving(unit);
+                    }
+                    
+                    @Override
+                    public void rollback() {
+                        unsetAsMoving(unit);
+                    }
+                };
+        
+        return moveTransaction;
+    }
+    
+    private void setAsMoving(Unit movingUnit) {
+        movingUnits.add(movingUnit);
+    }
+    
+    private void unsetAsMoving(Unit movingUnit) {
+        movingUnits.remove(movingUnit);
     }
     
     // This checks that a position is inside the borders and both coordinates are

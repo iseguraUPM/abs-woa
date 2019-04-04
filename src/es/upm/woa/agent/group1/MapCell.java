@@ -18,5 +18,5 @@ public interface MapCell {
     public int getXCoord();
     
     public int getYCoord();
-    
+  
 }
