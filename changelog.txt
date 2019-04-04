@@ -72,3 +72,9 @@
  (4) {04-04-2019 15:00} Revisited unit positioning system : Inaki
  1. [COMPLETE]
     Finished logic of the unit positioner. To achieve this I changed the interface for Transactions.
+----------------------------------------------------------------------------------------------------------------
+ (5) {04-04-2019 19:00} A unit asks to move to another contiguous cell : Martin
+ 1. [COMPLETE]
+    Finished "A unit asks to move to another contiguous cell" scenario. In order to make the code more legible and not to have all the 
+        behaviours inside setup() method, I have moved both behaviours(createUnit and moveToCell) inside two new methods 
+        (startCreateUnitBehaviour and startMoveToCellBehaviour).
