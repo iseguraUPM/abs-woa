@@ -31,20 +31,20 @@ import es.upm.woa.ontology.NotifyNewUnit;
  */
 public class AgTribe extends Agent {
 
-    public static final String TRIBE = "TRIBE";
     private Ontology ontology;
     private Codec codec;
     private Collection<Unit> units;
 
     @Override
     protected void setup() {
-        try {
-            initializeAgent();
-            initializeTribe();
-        } catch (FIPAException ex) {
-            Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        
+        initializeAgent();
+        initializeTribe();
+        
+        startInformNewUnitBehaviour();
+    }
 
+    private void startInformNewUnitBehaviour() {
         // Behaviors
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
         addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction) {
@@ -80,19 +80,10 @@ public class AgTribe extends Agent {
                 });
             }
         });
-
     }
 
-    private void initializeAgent() throws FIPAException {
-        // Creates its own description
-        DFAgentDescription dfd = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setName(this.getName());
-        sd.setType(TRIBE);
-        dfd.addServices(sd);
-        // Registers its description in the DF
-        DFService.register(this, dfd);
-        System.out.println(getLocalName() + ": registered in the DF");
+    private void initializeAgent() {
+        
     }
 
     private void initializeTribe() {

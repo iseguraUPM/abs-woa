@@ -27,11 +27,10 @@ import es.upm.woa.ontology.GameOntology;
  */
 public class AgUnit extends Agent {
 
-    public static final String UNIT = "UNIT";
     public static final String WORLD = "WORLD";
     private Ontology ontology;
     private SLCodec codec;
-    private DFAgentDescription[] worldAgent;
+    private DFAgentDescription worldAgentServiceDescription;
 
     @Override
     protected void setup() {
@@ -50,16 +49,23 @@ public class AgUnit extends Agent {
     }
 
     private void initializeAgent() throws FIPAException {
-        // Creates its own description
-        DFAgentDescription dfd = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setName(this.getName());
-        sd.setType(UNIT);
-        dfd.addServices(sd);
-        // Registers its description in the DF
-        DFService.register(this, dfd);
-        System.out.println(getLocalName() + ": registered in the DF");
-        
+        //Finds the World in the DF
+        try{
+            DFAgentDescription dfdWorld = new DFAgentDescription();
+            ServiceDescription sdWorld = new ServiceDescription();
+            sdWorld.setType(WORLD);
+            dfdWorld.addServices(sdWorld);
+            // It finds agents of the required type
+            DFAgentDescription [] descriptions = DFService.search(this, dfdWorld);
+            if (descriptions.length == 0) {
+                //TODO what if the world is not found
+            }
+            else {
+                worldAgentServiceDescription = descriptions[0];
+            }
+        }catch (FIPAException e) {
+            System.err.println(this.getLocalName() + ": caught exception " + e);
+        }  
     }
 
     private void initializeUnit()  {
@@ -68,20 +74,7 @@ public class AgUnit extends Agent {
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
         
-        //Finds the World in the DF
-        try{
-            DFAgentDescription dfdWorld = new DFAgentDescription();
-            ServiceDescription sdWorld = new ServiceDescription();
-            sdWorld.setType(WORLD);
-            dfdWorld.addServices(sdWorld);
-            // It finds agents of the required type
-            worldAgent = DFService.search(this, dfdWorld);
-            if (worldAgent.length == 0) {
-                //TODO what if the world is not found
-            }
-        }catch (FIPAException e) {
-            System.err.println(this.getLocalName() + ": caught exception " + e);
-        }  
+        
     }
     
     private void startCreateUnitBehaviour(){
@@ -89,7 +82,7 @@ public class AgUnit extends Agent {
         addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
             @Override
             public void onStart() {
-                AID worldAID = (AID) worldAgent[0].getName();
+                AID worldAID = (AID) worldAgentServiceDescription.getName();
 
                 sendMessage(worldAID, ACLMessage.REQUEST
                         , new Conversation.SentMessageHandler() {
@@ -151,7 +144,7 @@ public class AgUnit extends Agent {
             @Override
             public void onStart() {
                 
-                AID worldAID = (AID) worldAgent[0].getName();
+                AID worldAID = (AID) worldAgentServiceDescription.getName();
                 System.out.println(getLocalName() + ": request move to cell");
                 sendMessage(worldAID, ACLMessage.REQUEST
                         , new Conversation.SentMessageHandler() {
