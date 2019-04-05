@@ -84,6 +84,10 @@ public class AgWorld extends Agent {
 
         }
 
+        startUnitCreationBehaviour();
+    }
+
+    private void startUnitCreationBehaviour() {
         // Behaviors
         Action createUnitAction = new Action(getAID(), new CreateUnit());
         addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
@@ -126,44 +130,43 @@ public class AgWorld extends Agent {
                 
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, 15000) {
-                          
-                    boolean finished = false;
                             
-                    @Override
-                    public void commit() {
-                        if (!finished) { 
-                            boolean success = launchNewAgentUnit(ownerTribe);
-                            if (!success) {
-                                ownerTribe.refundUnit();
-                                System.out.println(myAgent.getLocalName()
-                                + ": refunded unit to " + ownerTribe.getAID().getLocalName());
-                                respondMessage(message, ACLMessage.FAILURE);
-
-                            } else {
-                                respondMessage(message, ACLMessage.INFORM);
+                            boolean finished = false;
+                            
+                            @Override
+                            public void commit() {
+                                if (!finished) {
+                                    boolean success = launchNewAgentUnit(ownerTribe);
+                                    if (!success) {
+                                        ownerTribe.refundUnit();
+                                        System.out.println(myAgent.getLocalName()
+                                                + ": refunded unit to " + ownerTribe.getAID().getLocalName());
+                                        respondMessage(message, ACLMessage.FAILURE);
+                                        
+                                    } else {
+                                        respondMessage(message, ACLMessage.INFORM);
+                                    }
+                                }
+                                
+                                finished = true;
                             }
-                        }
-                        
-                        finished = true;
-                    }
-
-                    @Override
-                    public void rollback() {
-                        if (!finished) {
-                            System.out.println(myAgent.getLocalName()
-                                + ": refunded unit to " + ownerTribe.getAID().getLocalName());
-                            ownerTribe.refundUnit();
-                            respondMessage(message, ACLMessage.FAILURE);
-                        }
-                        finished = true;
-                    }
-                };
+                            
+                            @Override
+                            public void rollback() {
+                                if (!finished) {
+                                    System.out.println(myAgent.getLocalName()
+                                            + ": refunded unit to " + ownerTribe.getAID().getLocalName());
+                                    ownerTribe.refundUnit();
+                                    respondMessage(message, ACLMessage.FAILURE);
+                                }
+                                finished = true;
+                            }
+                        };
                 
                 activeTransactions.add(activeTransaction);
                 addBehaviour(activeTransaction);
             }
         });
-
     }
 
     private void initializeAgent() throws FIPAException {
