@@ -2,25 +2,15 @@ package es.upm.woa.ontology;
 
 
 import jade.content.*;
+import jade.util.leap.*;
 import jade.core.*;
 
 /**
 * Protege name: NotifyNewUnit
 * @author ontology bean generator
-* @version 2019/03/22, 10:37:19
+* @version 2019/04/5, 19:32:22
 */
 public class NotifyNewUnit implements AgentAction {
-
-   /**
-* Protege name: newUnit
-   */
-   private AID newUnit;
-   public void setNewUnit(AID value) { 
-    this.newUnit=value;
-   }
-   public AID getNewUnit() {
-     return this.newUnit;
-   }
 
    /**
 * Protege name: location
@@ -31,6 +21,17 @@ public class NotifyNewUnit implements AgentAction {
    }
    public Cell getLocation() {
      return this.location;
+   }
+
+   /**
+* Protege name: newUnit
+   */
+   private AID newUnit;
+   public void setNewUnit(AID value) { 
+    this.newUnit=value;
+   }
+   public AID getNewUnit() {
+     return this.newUnit;
    }
 
 }

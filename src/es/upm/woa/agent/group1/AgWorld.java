@@ -7,6 +7,7 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
+import es.upm.woa.ontology.Building;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
@@ -58,9 +59,9 @@ public class AgWorld extends Agent {
 
     private Collection<Tribe> tribeCollection;
     private WorldMap worldMap;
-    
+
     private Collection<Transaction> activeTransactions;
-    
+
     // TODO: temporal initial coordinates for testing purposes
     private Stack<Pair<Integer, Integer>> initialUnitCoordinates;
 
@@ -76,7 +77,7 @@ public class AgWorld extends Agent {
         initialUnitCoordinates.add(new Pair(1, 1));
         initialUnitCoordinates.add(new Pair(2, 2));
         initialUnitCoordinates.add(new Pair(3, 3));
-        
+
         try {
             initializeAgent();
             initializeWorld();
@@ -104,71 +105,91 @@ public class AgWorld extends Agent {
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
 
-                        // TODO: townhall location logic
                         if (ownerTribe == null || requesterUnit == null) {
                             respondMessage(message, ACLMessage.REFUSE);
+                        } else if (!canCreateUnit(ownerTribe, requesterUnit)) {
+                            respondMessage(message, ACLMessage.REFUSE);
                         } else {
-
-                            MapCell mapCell = worldMap.getCellAt(requesterUnit.getCoordX(),
-                                    requesterUnit.getCoordY());
-                            boolean isOnTribeTownHall = mapCell != null
-                                    && mapCell.getOwner() == ownerTribe.getId()
-                                    && mapCell.getContent().equals(WorldMap.TOWN_HALL);
-                            if (!isOnTribeTownHall || !ownerTribe.canAffordUnit()) {
-                                respondMessage(message, ACLMessage.REFUSE);
-                            } else {
-                                ownerTribe.purchaseUnit();
-                                respondMessage(message, ACLMessage.AGREE);
-                                initiateUnitCreation(ownerTribe, message);
-                            }
+                            ownerTribe.purchaseUnit();
+                            respondMessage(message, ACLMessage.AGREE);
+                            initiateUnitCreation(ownerTribe, message);
                         }
+
                     }
                 });
             }
 
             private void initiateUnitCreation(Tribe ownerTribe, ACLMessage message) {
-                
+
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, 15000) {
-                            
-                            boolean finished = false;
-                            
-                            @Override
-                            public void commit() {
-                                if (!finished) {
-                                    boolean success = launchNewAgentUnit(ownerTribe);
-                                    if (!success) {
-                                        ownerTribe.refundUnit();
-                                        System.out.println(myAgent.getLocalName()
-                                                + ": refunded unit to " + ownerTribe.getAID().getLocalName());
-                                        respondMessage(message, ACLMessage.FAILURE);
-                                        
-                                    } else {
-                                        respondMessage(message, ACLMessage.INFORM);
-                                    }
-                                }
-                                
-                                finished = true;
+
+                    boolean finished = false;
+
+                    @Override
+                    public void commit() {
+                        if (!finished) {
+                            boolean success = launchNewAgentUnit(ownerTribe);
+                            if (!success) {
+                                ownerTribe.refundUnit();
+                                System.out.println(myAgent.getLocalName()
+                                        + ": refunded unit to " + ownerTribe.getAID().getLocalName());
+                                respondMessage(message, ACLMessage.FAILURE);
+
+                            } else {
+                                respondMessage(message, ACLMessage.INFORM);
                             }
-                            
-                            @Override
-                            public void rollback() {
-                                if (!finished) {
-                                    System.out.println(myAgent.getLocalName()
-                                            + ": refunded unit to " + ownerTribe.getAID().getLocalName());
-                                    ownerTribe.refundUnit();
-                                    respondMessage(message, ACLMessage.FAILURE);
-                                }
-                                finished = true;
-                            }
-                        };
-                
+                        }
+
+                        finished = true;
+                    }
+
+                    @Override
+                    public void rollback() {
+                        if (!finished) {
+                            System.out.println(myAgent.getLocalName()
+                                    + ": refunded unit to " + ownerTribe.getAID().getLocalName());
+                            ownerTribe.refundUnit();
+                            respondMessage(message, ACLMessage.FAILURE);
+                        }
+                        finished = true;
+                    }
+                };
+
                 activeTransactions.add(activeTransaction);
                 addBehaviour(activeTransaction);
             }
         });
     }
 
+    private boolean canCreateUnit(Tribe tribe, Unit requester) {
+        try {
+            MapCell mapCell = worldMap.getCellAt(requester.getCoordX(),
+                                    requester.getCoordY());
+            return thereIsATownHall(mapCell, tribe);
+        }
+        catch (IndexOutOfBoundsException ex) {
+            return false;
+        }                   
+    }
+
+    private boolean thereIsATownHall(MapCell position, Tribe tribe) {
+        if (!(position.getContent() instanceof Building)) {
+            return false;
+        }
+        else {
+            Building building = (Building) position.getContent();
+            if (building.getType().size() == 0
+                    || !(building.getType().get(0) instanceof String)) {
+                return false;
+            }
+            else if (!building.getOwner().equals(tribe.getAID())) {
+                return false;
+            }
+            else return ((String)building.getType().get(0)).equals("TownHall");
+        }
+    }
+    
     private void initializeAgent() throws FIPAException {
         // Creates its own description
         DFAgentDescription dfd = new DFAgentDescription();
@@ -191,31 +212,31 @@ public class AgWorld extends Agent {
         tribeCollection = new HashSet<>();
 
         activeTransactions = new ArrayList<>();
-        
-        Tribe newTribe = launchAgentTribe("TribeA", 0);
+
+        Tribe newTribe = launchAgentTribe("TribeA");
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
-        
-        newTribe = launchAgentTribe("TribeB", 1);
+
+        newTribe = launchAgentTribe("TribeB");
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
     }
-    
+
     private void finalizeWorld() {
         activeTransactions.forEach(t -> t.rollback());
         activeTransactions.clear();
     }
 
-    private Tribe launchAgentTribe(String tribeName, int id) {
+    private Tribe launchAgentTribe(String tribeName) {
         try {
             ContainerController cc = getContainerController();
             AgTribe newTribe = new AgTribe();
             AgentController ac = cc.acceptNewAgent(tribeName, newTribe);
             ac.start();
 
-            Tribe newTribeRef = new Tribe(newTribe.getAID(), id);
+            Tribe newTribeRef = new Tribe(newTribe.getAID());
             if (!tribeCollection.add(newTribeRef)) {
                 ac.kill();
                 return null;
@@ -263,9 +284,9 @@ public class AgWorld extends Agent {
             } catch (EmptyStackException ex) {
                 position = new Pair<>(0, 0);
             }
-            Unit newUnitRef = new Unit(newUnit.getAID(), position.getKey()
-                    , position.getValue());
-            
+            Unit newUnitRef = new Unit(newUnit.getAID(), position.getKey(),
+                     position.getValue());
+
             if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
                 return false;
@@ -279,7 +300,7 @@ public class AgWorld extends Agent {
             return false;
         }
     }
-    
+
     private String generateNewUnitName(Tribe ownerTribe) {
         return ownerTribe.getUnitNamePrefix() + ownerTribe.getNumberUnits();
     }

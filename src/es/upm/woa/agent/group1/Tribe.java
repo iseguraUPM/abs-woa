@@ -16,29 +16,17 @@ public class Tribe {
     private final static int UNIT_FOOD_COST = 50;
     private final static int UNIT_GOLD_COST = 150;
     
-    // TODO: unique ID generation
     private final AID agentID;
     private final Collection<Unit> unitCollection = new HashSet<>();
     private int currentGold;
     private int currentFood;
-    private final int id;
     
-    public Tribe(AID pId, int identifier) {
+    public Tribe(AID pId) {
         agentID = pId;
-        id = identifier;
         
         //TODO: define how many units of currentGold/food. By default 1000
         currentGold = 150;
         currentFood = 50;
-    }
-    
-    /**
-     * 
-     * @return numerical identifier of the tribe
-     */
-    // TODO: suggest AID ownership identifier in ontology
-    public int getId() {
-        return id;
     }
     
     /**

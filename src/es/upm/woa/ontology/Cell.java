@@ -8,30 +8,19 @@ import jade.core.*;
 /**
 * Protege name: Cell
 * @author ontology bean generator
-* @version 2019/03/19, 16:00:20
+* @version 2019/04/5, 19:32:22
 */
 public class Cell implements Concept {
 
    /**
-* Protege name: owner
+* Protege name: x
    */
-   private int owner;
-   public void setOwner(int value) { 
-    this.owner=value;
+   private int x;
+   public void setX(int value) { 
+    this.x=value;
    }
-   public int getOwner() {
-     return this.owner;
-   }
-
-   /**
-* Protege name: content
-   */
-   private String content;
-   public void setContent(String value) { 
-    this.content=value;
-   }
-   public String getContent() {
-     return this.content;
+   public int getX() {
+     return this.x;
    }
 
    /**
@@ -46,14 +35,35 @@ public class Cell implements Concept {
    }
 
    /**
-* Protege name: x
+* Protege name: content
    */
-   private int x;
-   public void setX(int value) { 
-    this.x=value;
+   private List content = new ArrayList();
+   public void addContent(Object elem) { 
+     List oldList = this.content;
+     content.add(elem);
    }
-   public int getX() {
-     return this.x;
+   public boolean removeContent(Object elem) {
+     List oldList = this.content;
+     boolean result = content.remove(elem);
+     return result;
+   }
+   public void clearAllContent() {
+     List oldList = this.content;
+     content.clear();
+   }
+   public Iterator getAllContent() {return content.iterator(); }
+   public List getContent() {return content; }
+   public void setContent(List l) {content = l; }
+
+   /**
+* Protege name: owner
+   */
+   private AID owner;
+   public void setOwner(AID value) { 
+    this.owner=value;
+   }
+   public AID getOwner() {
+     return this.owner;
    }
 
 }

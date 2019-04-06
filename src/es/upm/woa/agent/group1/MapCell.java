@@ -5,15 +5,18 @@
  */
 package es.upm.woa.agent.group1;
 
+import jade.content.Concept;
+import jade.core.AID;
+
 /**
  *
  * @author ISU
  */
 public interface MapCell {
     
-    public int getOwner();
+    public AID getOwner();
     
-    public String getContent();
+    public Concept getContent();
     
     public int getXCoord();
     

@@ -5,6 +5,9 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.ontology.Empty;
+import jade.content.Concept;
+import jade.core.AID;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -107,13 +110,13 @@ public class WorldMap {
         }
 
         @Override
-        public int getOwner() {
-            return -1;
+        public AID getOwner() {
+            return null;
         }
 
         @Override
-        public String getContent() {
-            return "";
+        public Concept getContent() {
+            return new Empty();
         }
 
         @Override
