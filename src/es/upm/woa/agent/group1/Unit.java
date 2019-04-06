@@ -13,7 +13,18 @@ import jade.core.AID;
  */
 public class Unit extends WorldEntity {
     
+    private boolean movingToAnotherCell;
+    
     public Unit(AID pId, int pCoordX, int pCoordY) {
         super(pId, pCoordX, pCoordY);
+        this.movingToAnotherCell = false;
+    }
+    
+    public void setMovingToAnotherCell(boolean movingToAnotherCell) {
+        this.movingToAnotherCell = movingToAnotherCell;
+    }
+
+    public boolean getMovingToAnotherCell() {
+        return movingToAnotherCell;
     }
 }
