@@ -58,6 +58,7 @@ public abstract class Conversation extends SimpleBehaviour {
                 newMsg.setOntology(ontology.getName());
                 newMsg.setLanguage(codec.getName());
                 newMsg.setConversationId(conversationID);
+                newMsg.setProtocol(action.getClass().getSimpleName());
                 
                 for (AID receiverAID : receivers) {
                     newMsg.addReceiver(receiverAID);
@@ -199,6 +200,10 @@ public abstract class Conversation extends SimpleBehaviour {
         MessageTemplate filter = MessageTemplate
                 .and(MessageTemplate.MatchLanguage(codec.getName()),
                         MessageTemplate.MatchOntology(ontology.getName()));
+        filter = MessageTemplate.and(filter
+                , MessageTemplate.MatchProtocol(action.getAction()
+                        .getClass().getSimpleName()));
+        
         return filter;
     }
 
