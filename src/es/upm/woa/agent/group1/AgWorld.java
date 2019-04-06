@@ -29,7 +29,12 @@ import java.util.logging.Logger;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.MoveToCell;
 import es.upm.woa.ontology.NotifyNewUnit;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.onto.OntologyException;
+import static jade.core.Agent.D_MIN;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.Stack;
@@ -51,7 +56,7 @@ public class AgWorld extends Agent {
     public static final String TRIBE = "TRIBE";
     public static final String UNIT = "UNIT";
 
-    private static final int STARTING_UNIT_NUMBER = 3;
+    private static final int STARTING_UNIT_NUMBER = 1;
 
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
@@ -85,7 +90,8 @@ public class AgWorld extends Agent {
 
         }
 
-        startUnitCreationBehaviour();
+        //startUnitCreationBehaviour();
+        startMoveToCellBehaviour();
     }
 
     private void startUnitCreationBehaviour() {
@@ -161,8 +167,13 @@ public class AgWorld extends Agent {
             }
         });
     }
-
+    
     private boolean canCreateUnit(Tribe tribe, Unit requester) {
+        
+        if(UnitCellPositioner.getInstance(worldMap).isMoving(requester)){
+            return false;
+        }
+        
         try {
             MapCell mapCell = worldMap.getCellAt(requester.getCoordX(),
                                     requester.getCoordY());
@@ -217,11 +228,12 @@ public class AgWorld extends Agent {
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
-
+        /*
         newTribe = launchAgentTribe("TribeB");
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
+        */
     }
 
     private void finalizeWorld() {
@@ -311,6 +323,9 @@ public class AgWorld extends Agent {
         Cell cell = new Cell();
         cell.setX(newUnit.getCoordX());
         cell.setY(newUnit.getCoordY());
+        
+        //TODO this shouldn't be mandatory
+        cell.setOwner(this.getAID());
         notifyNewUnit.setLocation(cell);
         notifyNewUnit.setNewUnit(newUnit.getId());
 
@@ -322,5 +337,106 @@ public class AgWorld extends Agent {
                 });
             }
         });
+    }
+    
+    private void startMoveToCellBehaviour() {
+        // Behaviors
+        //TODO The response ontology is not yet defined. It needs to be changed in the future. 
+        Action createUnitAction = new Action(getAID(), new CreateUnit());
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
+            @Override
+            public void onStart() {
+                Action action = new Action();
+
+                listenMessages(new Conversation.ResponseHandler() {
+                    @Override
+                    public void onRequest(ACLMessage message) {
+                        System.out.println(myAgent.getLocalName()
+                                + ": received unit 'move to cell' request from " + message.getSender().getLocalName());
+
+                        final Tribe ownerTribe = findOwnerTribe(message.getSender());
+                        Unit requesterUnit = findUnit(ownerTribe, message.getSender());
+                        
+                        if (ownerTribe == null || requesterUnit == null) {
+                            respondMessage(message, ACLMessage.REFUSE);
+                        }else{
+
+                            try {
+                                ContentElement ce = getContentManager().extractContent(message);
+                                Action agAction = (Action) ce;
+                                Concept conc = agAction.getAction();
+                                MoveToCell targetCell= (MoveToCell) conc;
+                                MapCell mapCell = worldMap.getCellAt(targetCell.getTarget().getX(), targetCell.getTarget().getY());
+                                if (!canMoveToCell(requesterUnit, mapCell)) {
+                                    respondMessage(message, ACLMessage.REFUSE);
+                                } else {
+                                    respondMessage(message, ACLMessage.AGREE);
+                                    initiateMoveToCell(requesterUnit, mapCell, message);
+                                }
+
+                            } catch (Codec.CodecException | OntologyException ex) {
+                                Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                });
+            }
+
+            private void initiateMoveToCell(Unit requesterUnit, MapCell mapCell, ACLMessage message) {
+                //TODO message content must be updated
+                UnitCellPositioner.getInstance(worldMap).move(requesterUnit, mapCell);
+                
+                DelayedTransactionalBehaviour activeTransaction
+                        = new DelayedTransactionalBehaviour(myAgent, 6000) {
+
+                    boolean finished = false;
+
+                    @Override
+                    public void commit() {
+                        if (!finished) {
+                            boolean success = moveAgent(requesterUnit, mapCell);
+                            
+                            if (!success) {
+                                System.out.println(myAgent.getLocalName()
+                                        + ": refunded unit 'move to cell' to " + requesterUnit.getId().getLocalName());
+                                respondMessage(message, ACLMessage.FAILURE);
+
+                            } else {
+                                respondMessage(message, ACLMessage.INFORM);
+                            }
+                        }
+
+                        finished = true;
+                    }
+
+                    @Override
+                    public void rollback() {
+                        if (!finished) {
+                            System.out.println(myAgent.getLocalName()
+                                    + ": refunded unit 'move to cell' to " + requesterUnit.getId().getLocalName());
+                            respondMessage(message, ACLMessage.FAILURE);
+                        }
+                        finished = true;
+                    }
+                };
+
+                activeTransactions.add(activeTransaction);
+                addBehaviour(activeTransaction);
+            }
+        });
+    }
+    
+    private boolean canMoveToCell(Unit requester, MapCell mappCell) {
+        if(UnitCellPositioner.getInstance(worldMap).isMoving(requester)){
+            return false;
+        }
+        
+        UnitCellPositioner.getInstance(worldMap).isAdjacent(requester, mappCell);
+        return true;    
+    }
+    
+    private boolean moveAgent(Unit requesterUnit, MapCell newCell){
+        requesterUnit.setPosition(newCell.getXCoord(), newCell.getYCoord());
+        return true;
     }
 }

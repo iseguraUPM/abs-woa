@@ -20,6 +20,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.MoveToCell;
+import jade.util.leap.ArrayList;
+import jade.util.leap.List;
 
 /**
  *
@@ -73,8 +76,6 @@ public class AgUnit extends Agent {
         codec = new SLCodec();
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
-        
-        
     }
     
     private void startCreateUnitBehaviour(){
@@ -134,18 +135,27 @@ public class AgUnit extends Agent {
     }
     
     private void startMoveToCellBehaviour(){
+        
         Cell newCellPosition = new Cell();
+        newCellPosition.setContent(new ArrayList());
+        //TODO this shouldn't be mandatory
+        newCellPosition.setOwner(this.getAID());
         //TODO by default 0,0
-        newCellPosition.setX(0);
-        newCellPosition.setY(0);
-        Action moveToCell = new Action(getAID(), newCellPosition);
-        addBehaviour(new Conversation(this, ontology, codec, moveToCell){
+        newCellPosition.setX(2);
+        newCellPosition.setY(2);
+        
+        MoveToCell moveToCell = new MoveToCell();
+        moveToCell.setTarget(newCellPosition);
+        
+        Action moveToCellAction = new Action(getAID(), moveToCell);
+
+        addBehaviour(new Conversation(this, ontology, codec, moveToCellAction){
 
             @Override
             public void onStart() {
                 
                 AID worldAID = (AID) worldAgentServiceDescription.getName();
-                System.out.println(getLocalName() + ": request move to cell");
+
                 sendMessage(worldAID, ACLMessage.REQUEST
                         , new Conversation.SentMessageHandler() {
                     @Override
