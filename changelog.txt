@@ -92,3 +92,20 @@
 	the content as a Concept (Empty, Building, TownHall etc.), the problem is that this is a list of 
 	objects when there must be only one. This also happens when accessing the "Building" type. There is
 	also two instances of owner AID: one Cell attribute and one Building attribute.
+
+----------------------------------------------------------------------------------------------------------------
+ (7) {06-04-2019 18:30} Implement world movetocell request behaviour: Martin
+ 1. [NEW]
+    Implement two new use cases:
+        - 4.2.1. As the world I want to confirm a unit about the result of a movement request so that it can 
+            finish the unit movement process
+        - 4.2.3. As the world I want to cancel the movement of a unit when the game is over so that I can 
+            finish myself without anybody waiting for me.
+    Come Action creations updated with the new ontology.
+ 2. [TODO]
+    - As the current Ontology needs to be changed, sended actions needs to be refactored.
+    - UnitCellPositioner doesn't take into account that a unit movement needs 6 hours. We have to set the unit
+      position six hours after the request. For now, this is done in the AgWorld moveAgent method.
+    - We need to set the response message somehow.
+    - The protocol controler in is not working. That's the reason why startUnitCreationBehaviour() in AgWorld 
+        and protocol checkings in Conversation class are commented.
