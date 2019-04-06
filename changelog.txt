@@ -79,7 +79,16 @@
         behaviours inside setup() method, I have moved both behaviours(createUnit and moveToCell) inside two new methods 
         (startCreateUnitBehaviour and startMoveToCellBehaviour).
 ----------------------------------------------------------------------------------------------------------------
- (6) {05-04-2019 12:00} Removed service registering : 
+ (6) {05-04-2019 12:00} Removed service registering : Inaki
  1. [FIX]
     Removed AgTribe and AgUnit service self-registering. Initially this was blindly implemented in all agents. But
       out agents must not be publicly announced.
+----------------------------------------------------------------------------------------------------------------
+ (7) {06-04-2019 10:00} Added new ontology : Inaki
+ 1. [NEW]
+    Added the new version of the ontology. Also fixed the corresponding dependencies to the changes made.
+ 2. [TODO]
+    The current state of the ontology is quite complicated to implement. The new "Cell" version incorporates
+	the content as a Concept (Empty, Building, TownHall etc.), the problem is that this is a list of 
+	objects when there must be only one. This also happens when accessing the "Building" type. There is
+	also two instances of owner AID: one Cell attribute and one Building attribute.
