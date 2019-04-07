@@ -30,6 +30,7 @@ import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
+import es.upm.woa.ontology.NotifyNewCellDiscovery;
 import es.upm.woa.ontology.NotifyNewUnit;
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -58,7 +59,7 @@ public class AgWorld extends Agent {
     public static final String TRIBE = "TRIBE";
     public static final String UNIT = "UNIT";
 
-    private static final int STARTING_UNIT_NUMBER = 3;
+    private static final int STARTING_UNIT_NUMBER = 2;
 
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
@@ -95,7 +96,7 @@ public class AgWorld extends Agent {
 
         }
 
-        startUnitCreationBehaviour();
+        //startUnitCreationBehaviour();
         startMoveToCellBehaviour();
     }
 
@@ -352,6 +353,25 @@ public class AgWorld extends Agent {
                 });
             }
         });
+        informTribeAboutDiscoveredCell(ownerTribe, cell);
+    }
+    
+    private void informTribeAboutDiscoveredCell(Tribe ownerTribe, Cell newCell) {
+
+        NotifyNewCellDiscovery notifyNewCellDiscovery = new NotifyNewCellDiscovery();
+        
+        //TODO this shouldn't be mandatory
+        newCell.setOwner(this.getAID());
+        notifyNewCellDiscovery.setNewCell(newCell);
+
+        Action informNewCellDiscoveryAction = new Action(ownerTribe.getAID(), notifyNewCellDiscovery);
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+            @Override
+            public void onStart() {
+                sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
+                });
+            }
+        });
     }
     
     private void startMoveToCellBehaviour() {
@@ -411,17 +431,18 @@ public class AgWorld extends Agent {
                         @Override
                         public void onMove() {
                             Tribe ownerTribe = findOwnerTribe(requesterUnit.getId());
-                                Cell newCell = new Cell();
-                                newCell.setX(mapCell.getXCoord());
-                                newCell.setY(mapCell.getYCoord());
-                                
-                                ArrayList<Cell> positions = new ArrayList<>();
-                                positions = exploredCells.get(ownerTribe);
-                                if(!positions.contains(newCell)){
-                                    positions.add(newCell);
+                            Cell newCell = new Cell();
+                            newCell.setX(mapCell.getXCoord());
+                            newCell.setY(mapCell.getYCoord());
+
+                            ArrayList<Cell> positions = new ArrayList<>();
+                            positions = exploredCells.get(ownerTribe);
+                            if(!positions.contains(newCell)){
+                                positions.add(newCell);
                             }
                             exploredCells.put(ownerTribe, positions);
                             respondMessage(message, ACLMessage.INFORM);
+                            informTribeAboutDiscoveredCell(ownerTribe, newCell);
                         }
 
                         @Override

@@ -5,6 +5,7 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.ontology.Cell;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
@@ -19,7 +20,11 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.NotifyNewCellDiscovery;
 import es.upm.woa.ontology.NotifyNewUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -30,6 +35,8 @@ public class AgTribe extends Agent {
     private Ontology ontology;
     private Codec codec;
     private Collection<Unit> units;
+    //private Collection<Cell> discoveredCells;
+    private Map<ArrayList<Integer>, Cell> discoveredCells; 
 
     @Override
     protected void setup() {
@@ -38,6 +45,7 @@ public class AgTribe extends Agent {
         initializeTribe();
         
         startInformNewUnitBehaviour();
+        startInformNewCellDiscoveryBehaviour();
     }
 
     private void startInformNewUnitBehaviour() {
@@ -77,6 +85,50 @@ public class AgTribe extends Agent {
             }
         });
     }
+    
+    
+    private void startInformNewCellDiscoveryBehaviour() {
+        // Behaviors
+        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+            @Override
+            public void onStart() {
+                listenMessages(new ResponseHandler() {
+                    @Override
+                    public void onInform(ACLMessage response) {
+                        try {
+                            ContentElement ce = getContentManager().extractContent(response);
+                            if (ce instanceof Action) {
+                                
+                                Action agAction = (Action) ce;
+                                Concept conc = agAction.getAction();
+                                
+                                if (conc instanceof NotifyNewCellDiscovery) {
+                                    System.out.println(getLocalName() + ": received inform"
+                                            + " request from " + response.getSender().getLocalName());
+                                    NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
+                                    ArrayList<Integer> coords = new ArrayList<>();
+                                    coords.add(newCellInfo.getNewCell().getX());
+                                    coords.add(newCellInfo.getNewCell().getY());
+                                    if(discoveredCells.get(coords) == null){
+                                        System.out.println(getLocalName() + ": cell discovered at "
+                                            + newCellInfo.getNewCell().getX() + ", "
+                                            + newCellInfo.getNewCell().getY() + " ");
+                                        addDiscoveredCell(coords, newCellInfo.getNewCell());
+                                    }
+                                    
+                                }
+                            }
+                        } catch (Codec.CodecException | OntologyException ex) {
+                            Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+
+                    }
+
+                });
+            }
+        });
+    }
 
     private void initializeAgent() {
         
@@ -89,6 +141,7 @@ public class AgTribe extends Agent {
         getContentManager().registerOntology(ontology);
 
         units = new HashSet<>();
+        discoveredCells = new HashMap<>();
 
     }
 
@@ -102,6 +155,11 @@ public class AgTribe extends Agent {
 
     public void addUnit(NotifyNewUnit newUnitInfo) {
         units.add(new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY()));
+    }
+    
+    public void addDiscoveredCell(ArrayList<Integer> coords, Cell cell) {        
+        discoveredCells.put(coords, cell);
+        System.out.println(discoveredCells);
     }
 
 }
