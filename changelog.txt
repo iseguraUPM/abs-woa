@@ -111,9 +111,14 @@
         and protocol checkings in Conversation class are commented.
 
 ----------------------------------------------------------------------------------------------------------------
- (9) {07-04-2019 14:08} The word knows visited cells for each tribe: Juan Pablp
+ (9) {07-04-2019 14:08} The word knows visited cells for each tribe: Juan Pablo
  1. [NEW]
     The world stores the information of the cells visited by a tribe, both when units are created and when there
     is a movement performed. (5.5.1)
  2. [TODO]
     Finish also 5.5.2, in which we should inform all units that that cell is now known for the whole tribe.
+----------------------------------------------------------------------------------------------------------------
+ (10) {07-04-2019 15:00} Unit movement fixes : Inaki
+ 1. [FIX]
+    Fixed unit movement. Now the unit positioner has the control on the behaviour launch. Also, fixed the conversation
+	protocol filtering. Temporal solution: specify protocol name (String).
