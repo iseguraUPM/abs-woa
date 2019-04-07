@@ -94,7 +94,7 @@
 	also two instances of owner AID: one Cell attribute and one Building attribute.
 
 ----------------------------------------------------------------------------------------------------------------
- (7) {06-04-2019 18:30} Implement world movetocell request behaviour: Martin
+ (8) {06-04-2019 18:30} Implement world movetocell request behaviour: Martin
  1. [NEW]
     Implement two new use cases:
         - 4.2.1. As the world I want to confirm a unit about the result of a movement request so that it can 
@@ -109,3 +109,11 @@
     - We need to set the response message somehow.
     - The protocol controler in is not working. That's the reason why startUnitCreationBehaviour() in AgWorld 
         and protocol checkings in Conversation class are commented.
+
+----------------------------------------------------------------------------------------------------------------
+ (9) {07-04-2019 14:08} The word knows visited cells for each tribe: Juan Pablp
+ 1. [NEW]
+    The world stores the information of the cells visited by a tribe, both when units are created and when there
+    is a movement performed. (5.5.1)
+ 2. [TODO]
+    Finish also 5.5.2, in which we should inform all units that that cell is now known for the whole tribe.

@@ -36,6 +36,9 @@ import jade.content.ContentElement;
 import jade.content.onto.OntologyException;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import javafx.util.Pair;
 
@@ -68,7 +71,10 @@ public class AgWorld extends Agent {
 
     // TODO: temporal initial coordinates for testing purposes
     private Stack<Pair<Integer, Integer>> initialUnitCoordinates;
-
+    
+    
+    private Map<Tribe, ArrayList<Cell>> exploredCells; 
+    
     @Override
     protected void setup() {
         System.out.println(getLocalName() + ": has entered into the system");
@@ -220,6 +226,7 @@ public class AgWorld extends Agent {
 
         worldMap = WorldMap.getInstance(3, 3);
         tribeCollection = new HashSet<>();
+        exploredCells = new HashMap<>();
 
         activeTransactions = new ArrayList<>();
 
@@ -253,6 +260,7 @@ public class AgWorld extends Agent {
                 ac.kill();
                 return null;
             } else {
+                exploredCells.put(newTribeRef, new ArrayList<>());
                 return newTribeRef;
             }
 
@@ -298,7 +306,8 @@ public class AgWorld extends Agent {
             }
             Unit newUnitRef = new Unit(newUnit.getAID(), position.getKey(),
                      position.getValue());
-
+            
+            
             if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
                 return false;
@@ -323,6 +332,12 @@ public class AgWorld extends Agent {
         Cell cell = new Cell();
         cell.setX(newUnit.getCoordX());
         cell.setY(newUnit.getCoordY());
+        
+        ArrayList<Cell> positions = new ArrayList<>();
+        positions = exploredCells.get(ownerTribe);
+        positions.add(cell);
+
+        exploredCells.put(ownerTribe, positions);
         
         //TODO this shouldn't be mandatory
         cell.setOwner(this.getAID());
@@ -395,6 +410,17 @@ public class AgWorld extends Agent {
                                     .UnitMovementHandler() {
                         @Override
                         public void onMove() {
+                            Tribe ownerTribe = findOwnerTribe(requesterUnit.getId());
+                                Cell newCell = new Cell();
+                                newCell.setX(mapCell.getXCoord());
+                                newCell.setY(mapCell.getYCoord());
+                                
+                                ArrayList<Cell> positions = new ArrayList<>();
+                                positions = exploredCells.get(ownerTribe);
+                                if(!positions.contains(newCell)){
+                                    positions.add(newCell);
+                            }
+                            exploredCells.put(ownerTribe, positions);
                             respondMessage(message, ACLMessage.INFORM);
                         }
 
