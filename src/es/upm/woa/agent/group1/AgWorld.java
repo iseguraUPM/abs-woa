@@ -334,11 +334,6 @@ public class AgWorld extends Agent {
         cell.setX(newUnit.getCoordX());
         cell.setY(newUnit.getCoordY());
         
-        ArrayList<Cell> positions = new ArrayList<>();
-        positions = exploredCells.get(ownerTribe);
-        positions.add(cell);
-
-        exploredCells.put(ownerTribe, positions);
         
         //TODO this shouldn't be mandatory
         cell.setOwner(this.getAID());
@@ -353,7 +348,14 @@ public class AgWorld extends Agent {
                 });
             }
         });
-        informTribeAboutDiscoveredCell(ownerTribe, cell);
+        if(!exploredCells.get(ownerTribe).contains(cell)){
+            ArrayList<Cell> positions = new ArrayList<>();
+            positions = exploredCells.get(ownerTribe);
+            positions.add(cell);
+            exploredCells.put(ownerTribe, positions);
+            
+            informTribeAboutDiscoveredCell(ownerTribe, cell);
+        }
     }
     
     private void informTribeAboutDiscoveredCell(Tribe ownerTribe, Cell newCell) {
@@ -435,14 +437,21 @@ public class AgWorld extends Agent {
                             newCell.setX(mapCell.getXCoord());
                             newCell.setY(mapCell.getYCoord());
 
-                            ArrayList<Cell> positions = new ArrayList<>();
-                            positions = exploredCells.get(ownerTribe);
-                            if(!positions.contains(newCell)){
-                                positions.add(newCell);
-                            }
-                            exploredCells.put(ownerTribe, positions);
+                            
                             respondMessage(message, ACLMessage.INFORM);
-                            informTribeAboutDiscoveredCell(ownerTribe, newCell);
+                            
+                            if(!exploredCells.get(ownerTribe).contains(newCell)){
+                                ArrayList<Cell> positions = new ArrayList<>();
+                                positions = exploredCells.get(ownerTribe);
+                                if(!positions.contains(newCell)){
+                                    positions.add(newCell);
+                                }
+                                exploredCells.put(ownerTribe, positions);
+                                
+                                informTribeAboutDiscoveredCell(ownerTribe, newCell);
+                                
+                                
+                            }
                         }
 
                         @Override
