@@ -34,7 +34,6 @@ import es.upm.woa.ontology.NotifyNewUnit;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.OntologyException;
-import static jade.core.Agent.D_MIN;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.Stack;
@@ -56,7 +55,7 @@ public class AgWorld extends Agent {
     public static final String TRIBE = "TRIBE";
     public static final String UNIT = "UNIT";
 
-    private static final int STARTING_UNIT_NUMBER = 1;
+    private static final int STARTING_UNIT_NUMBER = 3;
 
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
@@ -90,14 +89,14 @@ public class AgWorld extends Agent {
 
         }
 
-        //startUnitCreationBehaviour();
+        startUnitCreationBehaviour();
         startMoveToCellBehaviour();
     }
 
     private void startUnitCreationBehaviour() {
         // Behaviors
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, "CreateUnit") {
             @Override
             public void onStart() {
                 Action action = new Action(getAID(), new CreateUnit());
@@ -228,6 +227,7 @@ public class AgWorld extends Agent {
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
+        
         /*
         newTribe = launchAgentTribe("TribeB");
         if (newTribe != null) {
@@ -330,7 +330,7 @@ public class AgWorld extends Agent {
         notifyNewUnit.setNewUnit(newUnit.getId());
 
         Action informNewUnitAction = new Action(ownerTribe.getAID(), notifyNewUnit);
-        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction) {
+        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, "NotifyNewUnit") {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
@@ -343,7 +343,7 @@ public class AgWorld extends Agent {
         // Behaviors
         //TODO The response ontology is not yet defined. It needs to be changed in the future. 
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, "MoveToCell") {
             @Override
             public void onStart() {
                 Action action = new Action();
@@ -366,13 +366,10 @@ public class AgWorld extends Agent {
                                 Action agAction = (Action) ce;
                                 Concept conc = agAction.getAction();
                                 MoveToCell targetCell= (MoveToCell) conc;
-                                MapCell mapCell = worldMap.getCellAt(targetCell.getTarget().getX(), targetCell.getTarget().getY());
-                                if (!canMoveToCell(requesterUnit, mapCell)) {
-                                    respondMessage(message, ACLMessage.REFUSE);
-                                } else {
-                                    respondMessage(message, ACLMessage.AGREE);
-                                    initiateMoveToCell(requesterUnit, mapCell, message);
-                                }
+                                MapCell mapCell = worldMap.getCellAt(targetCell
+                                        .getTarget().getX(), targetCell.getTarget().getY());
+                                
+                                initiateMoveToCell(requesterUnit, mapCell, message);
 
                             } catch (Codec.CodecException | OntologyException ex) {
                                 Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
@@ -383,60 +380,43 @@ public class AgWorld extends Agent {
             }
 
             private void initiateMoveToCell(Unit requesterUnit, MapCell mapCell, ACLMessage message) {
-                //TODO message content must be updated
-                UnitCellPositioner.getInstance(worldMap).move(requesterUnit, mapCell);
-                
-                DelayedTransactionalBehaviour activeTransaction
-                        = new DelayedTransactionalBehaviour(myAgent, 6000) {
-
-                    boolean finished = false;
-
-                    @Override
-                    public void commit() {
-                        if (!finished) {
-                            boolean success = moveAgent(requesterUnit, mapCell);
-                            
-                            if (!success) {
-                                System.out.println(myAgent.getLocalName()
-                                        + ": refunded unit 'move to cell' to " + requesterUnit.getId().getLocalName());
-                                respondMessage(message, ACLMessage.FAILURE);
-
-                            } else {
-                                respondMessage(message, ACLMessage.INFORM);
-                            }
+                UnitCellPositioner unitPositioner = UnitCellPositioner.getInstance(worldMap);
+                if (unitPositioner.isMoving(requesterUnit)) {
+                    System.out.println(myAgent.getLocalName()
+                                        + ": unit already moving "
+                                    + requesterUnit.getId().getLocalName());
+                    respondMessage(message, ACLMessage.REFUSE);
+                }
+                                
+                try {
+                    //TODO message content must be updated
+                    Transaction moveTransaction = unitPositioner.move(myAgent
+                            , requesterUnit, mapCell, new UnitCellPositioner
+                                    .UnitMovementHandler() {
+                        @Override
+                        public void onMove() {
+                            respondMessage(message, ACLMessage.INFORM);
                         }
 
-                        finished = true;
-                    }
-
-                    @Override
-                    public void rollback() {
-                        if (!finished) {
+                        @Override
+                        public void onCancel() {
                             System.out.println(myAgent.getLocalName()
-                                    + ": refunded unit 'move to cell' to " + requesterUnit.getId().getLocalName());
-                            respondMessage(message, ACLMessage.FAILURE);
+                                        + ": refunded unit 'move to cell' to "
+                                    + requesterUnit.getId().getLocalName());
+                                respondMessage(message, ACLMessage.FAILURE);
                         }
-                        finished = true;
-                    }
-                };
-
-                activeTransactions.add(activeTransaction);
-                addBehaviour(activeTransaction);
+                    });
+                    respondMessage(message, ACLMessage.AGREE);
+                    activeTransactions.add(moveTransaction);
+                  
             }
+            catch (IndexOutOfBoundsException ex) {
+                System.out.println(myAgent.getLocalName()
+                        + ": cannot move unit - " + ex);
+                respondMessage(message, ACLMessage.REFUSE);
+            }
+        }
         });
     }
-    
-    private boolean canMoveToCell(Unit requester, MapCell mappCell) {
-        if(UnitCellPositioner.getInstance(worldMap).isMoving(requester)){
-            return false;
-        }
-        
-        UnitCellPositioner.getInstance(worldMap).isAdjacent(requester, mappCell);
-        return true;    
-    }
-    
-    private boolean moveAgent(Unit requesterUnit, MapCell newCell){
-        requesterUnit.setPosition(newCell.getXCoord(), newCell.getYCoord());
-        return true;
-    }
+                
 }

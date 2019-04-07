@@ -22,7 +22,6 @@ import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 import jade.util.leap.ArrayList;
-import jade.util.leap.List;
 
 /**
  *
@@ -44,11 +43,9 @@ public class AgUnit extends Agent {
             Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        if(checkNewUnitIsNeeded()){
-            startCreateUnitBehaviour();
-        }else if(checkMoveToCellIsNeeded()){
-            startMoveToCellBehaviour();
-        }   
+        
+        startCreateUnitBehaviour();
+        startMoveToCellBehaviour();
     }
 
     private void initializeAgent() throws FIPAException {
@@ -80,7 +77,7 @@ public class AgUnit extends Agent {
     
     private void startCreateUnitBehaviour(){
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction) {
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, "CreateUnit") {
             @Override
             public void onStart() {
                 AID worldAID = (AID) worldAgentServiceDescription.getName();
@@ -149,7 +146,10 @@ public class AgUnit extends Agent {
         
         Action moveToCellAction = new Action(getAID(), moveToCell);
 
-        addBehaviour(new Conversation(this, ontology, codec, moveToCellAction){
+        
+        
+        addBehaviour(new Conversation(this, ontology, codec, moveToCellAction, "MoveToCell"){
+            
 
             @Override
             public void onStart() {
@@ -160,6 +160,8 @@ public class AgUnit extends Agent {
                         , new Conversation.SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
+                        System.out.println(myAgent.getLocalName() + " unit want to move to "
+                                + newCellPosition.getX() + ", " +newCellPosition.getY());
 
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
@@ -178,8 +180,11 @@ public class AgUnit extends Agent {
 
                                     @Override
                                     public void onInform(ACLMessage response) {
+                                        
                                         System.out.println(myAgent.getLocalName()
                                                 + ": received unit 'move to cell' inform from " + response.getSender().getLocalName());
+                                        System.out.println(myAgent.getLocalName() + " unit moved to "
+                                                + newCellPosition.getX() + ", " +newCellPosition.getY());
                                     }
 
                                 });
@@ -202,11 +207,4 @@ public class AgUnit extends Agent {
         });
     }
     
-    private boolean checkNewUnitIsNeeded(){
-        return false;
-    }
-    
-    private boolean checkMoveToCellIsNeeded(){
-        return true;
-    }
 }

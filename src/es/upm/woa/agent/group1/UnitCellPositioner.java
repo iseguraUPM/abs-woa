@@ -5,6 +5,7 @@
  */
 package es.upm.woa.agent.group1;
 
+import jade.core.Agent;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,6 +14,8 @@ import java.util.Set;
  * @author ISU
  */
 public class UnitCellPositioner {
+    
+    private static final int UNIT_MOVE_TIME_MILLIS = 600;
     
     private static UnitCellPositioner instance;
     
@@ -51,14 +54,16 @@ public class UnitCellPositioner {
     
     /**
      * Moves the target unit to the new cell
+     * @param agent to execute movement
      * @param unit to move
      * @param cell to position the unit
+     * @param handler
      * @return the transaction of the movement
      * @throws IndexOutOfBoundsException if the unit cannot move to the 
      * target cell. This is usually because is not adjacent to its current
      * position. It can also mean that the unit is in an incorrect position.
      */
-    public Transaction move(Unit unit, MapCell cell)
+    public Transaction move(Agent agent, Unit unit, MapCell cell, UnitMovementHandler handler)
             throws IndexOutOfBoundsException {
         if (!isCorrectPosition(unit.getCoordX(), unit.getCoordY())) {
             throw new IndexOutOfBoundsException(unit.getId().getLocalName() +
@@ -73,28 +78,42 @@ public class UnitCellPositioner {
         
         setAsMoving(unit);
         
-        Transaction moveTransaction = createMovingTransaction(unit, cell);
+        DelayedTransactionalBehaviour dtb = createMovementBehaviour(agent, unit
+                , cell, handler);
         
-        return moveTransaction;
+        agent.addBehaviour(dtb);
+        
+        return dtb;
     }
 
-    private Transaction createMovingTransaction(Unit unit, MapCell cell) {
-        Transaction moveTransaction
-                = new Transaction() {
-                    
-                    @Override
-                    public void commit() {
-                        unit.setPosition(cell.getXCoord(), cell.getYCoord());
-                        unsetAsMoving(unit);
-                    }
-                    
-                    @Override
-                    public void rollback() {
-                        unsetAsMoving(unit);
-                    }
-                };
-        
-        return moveTransaction;
+    private DelayedTransactionalBehaviour createMovementBehaviour(Agent agent
+            , Unit unit, MapCell cell, UnitMovementHandler handler) {
+        DelayedTransactionalBehaviour dtb =
+                new DelayedTransactionalBehaviour(agent, UNIT_MOVE_TIME_MILLIS) {
+            
+            boolean finished;
+            
+            @Override
+            public void commit() {
+                if (!finished) {
+                    unit.setPosition(cell.getXCoord(), cell.getYCoord());
+                    unsetAsMoving(unit);
+                    handler.onMove();
+                }
+                finished = true;
+            }
+
+            @Override
+            public void rollback() {
+                if (!finished) {
+                    unsetAsMoving(unit);
+                    handler.onCancel();
+                }
+                finished = true;
+            }
+            
+        };
+        return dtb;
     }
     
     private void setAsMoving(Unit movingUnit) {
@@ -114,12 +133,15 @@ public class UnitCellPositioner {
     }
     
     // NOTE: this assumes unit is in a correct position
-    public boolean isAdjacent(Unit unit, MapCell cell) {
+    private boolean isAdjacent(Unit unit, MapCell cell) {
         int x1 = unit.getCoordX();
         int y1 = unit.getCoordX();
         int x2 = cell.getXCoord();
         int y2 = cell.getYCoord();
         
+        if (x1 == x2 && y1 == y2) {
+            return false;
+        }
         
         for (int[] operator : POS_OPERATORS) {
             int newX = x1 + operator[0];
@@ -199,6 +221,14 @@ public class UnitCellPositioner {
         else {
             return number - 1;
         }
+    }
+    
+    public interface UnitMovementHandler {
+        
+        void onMove();
+        
+        void onCancel();
+        
     }
     
 }

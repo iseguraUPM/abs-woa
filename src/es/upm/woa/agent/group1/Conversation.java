@@ -29,15 +29,17 @@ public abstract class Conversation extends SimpleBehaviour {
     private final Ontology ontology;
     private final Codec codec;
     private final Action action;
+    private final String protocol;
     private boolean finished;
 
     public Conversation(Agent agent, Ontology ontology, Codec codec
-            , Action action) {
+            , Action action, String protocol) {
         super(agent);
         this.finished = false;
         this.ontology = ontology;
         this.codec = codec;
         this.action = action;
+        this.protocol = protocol;
     }
 
     /**
@@ -58,7 +60,7 @@ public abstract class Conversation extends SimpleBehaviour {
                 newMsg.setOntology(ontology.getName());
                 newMsg.setLanguage(codec.getName());
                 newMsg.setConversationId(conversationID);
-                //newMsg.setProtocol(action.getClass().getSimpleName());
+                newMsg.setProtocol(protocol);
                 
                 for (AID receiverAID : receivers) {
                     newMsg.addReceiver(receiverAID);
@@ -200,9 +202,8 @@ public abstract class Conversation extends SimpleBehaviour {
         MessageTemplate filter = MessageTemplate
                 .and(MessageTemplate.MatchLanguage(codec.getName()),
                         MessageTemplate.MatchOntology(ontology.getName()));
-        //filter = MessageTemplate.and(filter
-        //        , MessageTemplate.MatchProtocol(action.getAction()
-        //                .getClass().getSimpleName()));
+        filter = MessageTemplate.and(filter
+                , MessageTemplate.MatchProtocol(protocol));
         
         return filter;
     }

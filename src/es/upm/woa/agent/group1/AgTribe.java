@@ -43,7 +43,7 @@ public class AgTribe extends Agent {
     private void startInformNewUnitBehaviour() {
         // Behaviors
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
-        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction) {
+        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, "NotifyNewUnit") {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {

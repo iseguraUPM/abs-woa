@@ -1,8 +1,6 @@
 package es.upm.woa.agent.group1;
  
-import FIPA.AgentIDHelper;
 import jade.core.AID;
-import jade.core.behaviours.Behaviour;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
