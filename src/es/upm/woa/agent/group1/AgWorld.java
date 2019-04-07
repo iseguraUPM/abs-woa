@@ -59,7 +59,7 @@ public class AgWorld extends Agent {
     public static final String TRIBE = "TRIBE";
     public static final String UNIT = "UNIT";
 
-    private static final int STARTING_UNIT_NUMBER = 2;
+    private static final int STARTING_UNIT_NUMBER = 3;
 
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
@@ -348,13 +348,27 @@ public class AgWorld extends Agent {
                 });
             }
         });
-        if(!exploredCells.get(ownerTribe).contains(cell)){
+        if(exploredCells.get(ownerTribe).contains(cell)){
+            System.out.println("CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
+        }else{
+            System.out.println("NO CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
+        }
+        
+        if(!isCellStored(ownerTribe, cell)){
             ArrayList<Cell> positions = new ArrayList<>();
             positions = exploredCells.get(ownerTribe);
             positions.add(cell);
             exploredCells.put(ownerTribe, positions);
             
             informTribeAboutDiscoveredCell(ownerTribe, cell);
+            ArrayList<Unit> tribeUnits = new ArrayList<>();
+            tribeUnits = ownerTribe.getUnits();
+            int i = 0;
+            for(Unit tribeUnit:tribeUnits){
+                System.out.println(i + " UNIDAD INFORMADA DE " + cell.getX() + "-" + cell.getY());
+                i++;
+                informUnitAboutDiscoveredCell(tribeUnit, cell);
+            }
         }
     }
     
@@ -371,6 +385,23 @@ public class AgWorld extends Agent {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
+                });
+            }
+        });
+    }
+    
+    private void informUnitAboutDiscoveredCell(Unit ownerUnit, Cell newCell) {
+        NotifyNewCellDiscovery notifyNewCellDiscovery = new NotifyNewCellDiscovery();
+        
+        //TODO this shouldn't be mandatory
+        newCell.setOwner(this.getAID());
+        notifyNewCellDiscovery.setNewCell(newCell);
+
+        Action informNewCellDiscoveryAction = new Action(ownerUnit.getId(), notifyNewCellDiscovery);
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+            @Override
+            public void onStart() {
+                sendMessage(ownerUnit.getId(), ACLMessage.INFORM, new SentMessageHandler() {
                 });
             }
         });
@@ -440,7 +471,7 @@ public class AgWorld extends Agent {
                             
                             respondMessage(message, ACLMessage.INFORM);
                             
-                            if(!exploredCells.get(ownerTribe).contains(newCell)){
+                            if(!isCellStored(ownerTribe, newCell)){
                                 ArrayList<Cell> positions = new ArrayList<>();
                                 positions = exploredCells.get(ownerTribe);
                                 if(!positions.contains(newCell)){
@@ -450,7 +481,14 @@ public class AgWorld extends Agent {
                                 
                                 informTribeAboutDiscoveredCell(ownerTribe, newCell);
                                 
-                                
+                                ArrayList<Unit> tribeUnits = new ArrayList<>();
+                                tribeUnits = ownerTribe.getUnits();
+                                int i = 0;
+                                for(Unit tribeUnit:tribeUnits){
+                                    System.out.println(i + " UNIDAD INFORMADA DE " + newCell.getX() + "-" + newCell.getY());
+                                    i++;
+                                    informUnitAboutDiscoveredCell(tribeUnit, newCell);
+                                }
                             }
                         }
 
@@ -474,5 +512,14 @@ public class AgWorld extends Agent {
         }
         });
     }
-                
+    
+    private boolean isCellStored(Tribe tribe, Cell cell){
+        ArrayList<Cell> cells = exploredCells.get(tribe);
+        for(Cell eachCell:cells){
+            if(eachCell.getX() == cell.getX() && eachCell.getY() == cell.getY()){
+                return true;
+            }
+        }
+        return false;
+    }
 }

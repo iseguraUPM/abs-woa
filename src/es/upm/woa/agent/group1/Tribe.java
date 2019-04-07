@@ -1,6 +1,7 @@
 package es.upm.woa.agent.group1;
  
 import jade.core.AID;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
@@ -41,6 +42,15 @@ public class Tribe {
      */
     public int getNumberUnits() {
         return unitCollection.size();
+    }
+    
+    /**
+     * 
+     * @return units 
+     */
+    public ArrayList<Unit> getUnits() {
+        ArrayList<Unit> unitCollectionArray = new ArrayList<>(unitCollection);
+        return unitCollectionArray;
     }
     
     /**

@@ -21,6 +21,11 @@ import java.util.logging.Logger;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
+import es.upm.woa.ontology.NotifyNewCellDiscovery;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
+import jade.content.onto.OntologyException;
 import jade.util.leap.ArrayList;
 
 /**
@@ -46,6 +51,7 @@ public class AgUnit extends Agent {
         
         startCreateUnitBehaviour();
         startMoveToCellBehaviour();
+        startInformNewCellDiscoveryBehaviour();
     }
 
     private void initializeAgent() throws FIPAException {
@@ -203,6 +209,45 @@ public class AgUnit extends Agent {
                         });
                     }
                 });        
+            }
+        });
+    }
+    
+    
+    
+    private void startInformNewCellDiscoveryBehaviour() {
+        // Behaviors
+        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+            @Override
+            public void onStart() {
+                listenMessages(new ResponseHandler() {
+                    @Override
+                    public void onInform(ACLMessage response) {
+                        try {
+                            ContentElement ce = getContentManager().extractContent(response);
+                            if (ce instanceof Action) {
+                                
+                                Action agAction = (Action) ce;
+                                Concept conc = agAction.getAction();
+                                
+                                if (conc instanceof NotifyNewCellDiscovery) {
+                                    System.out.println(getLocalName() + ": received inform"
+                                            + " request from " + response.getSender().getLocalName());
+                                    NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
+                                    
+                                        System.out.println(getLocalName() + ": cell discovered at "
+                                            + newCellInfo.getNewCell().getX() + ", "
+                                            + newCellInfo.getNewCell().getY() + " ");
+                                }
+                            }
+                        } catch (Codec.CodecException | OntologyException ex) {
+                            Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+
+                    }
+
+                });
             }
         });
     }
