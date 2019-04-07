@@ -131,8 +131,13 @@
  2. [TODO]
     Finish also 5.5.2, in which we should inform all units that that cell is now known for the whole tribe.
 ----------------------------------------------------------------------------------------------------------------
- (12) {07-04-2019 15:00} Unit movement fixes : Juan Pablo
+ (12) {07-04-2019 17:30} Unit movement fixes : Juan Pablo
  1. [FIX]
     The world handles the informs that are sent to tribes, and checks whether the tribe already knows the cell
     before sending the inform indicating that a cell has been discovered.
+----------------------------------------------------------------------------------------------------------------
+ (13) {07-04-2019 18:20} Units informed of cells discovered: Juan Pablo
+ 1. [NEW]
+    When a unit discovers a new cell, all the units belonging to the same cell get informed of the 
+    new discovery
 ----------------------------------------------------------------------------------------------------------------
