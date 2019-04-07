@@ -117,8 +117,18 @@
     is a movement performed. (5.5.1)
  2. [TODO]
     Finish also 5.5.2, in which we should inform all units that that cell is now known for the whole tribe.
+    Finish also 5.5.3, in which tribes are informed that new cells have been discovered by its units.
 ----------------------------------------------------------------------------------------------------------------
  (10) {07-04-2019 15:00} Unit movement fixes : Inaki
  1. [FIX]
     Fixed unit movement. Now the unit positioner has the control on the behaviour launch. Also, fixed the conversation
 	protocol filtering. Temporal solution: specify protocol name (String).
+
+----------------------------------------------------------------------------------------------------------------
+ (9) {07-04-2019 17:12} Tribes informed of cells discovered: Juan Pablo
+ 1. [NEW]
+    When a unit discovers a new cell, the tribe gets informed about it and stores the information corresponding to 
+    the cell in order to use it for its strategy. (5.5.3)
+ 2. [TODO]
+    Finish also 5.5.2, in which we should inform all units that that cell is now known for the whole tribe.
+----------------------------------------------------------------------------------------------------------------
