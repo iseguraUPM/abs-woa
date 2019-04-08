@@ -7,6 +7,10 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
+import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.map.UnitCellPositioner;
+import es.upm.woa.agent.group1.map.WorldMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;

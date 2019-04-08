@@ -1,5 +1,7 @@
 package es.upm.woa.agent.group1;
  
+import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.map.GameMap;
 import jade.core.AID;
 import java.util.Collection;
 import java.util.HashSet;

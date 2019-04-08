@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.map;
 
 import es.upm.woa.ontology.Empty;
 import jade.content.Concept;
