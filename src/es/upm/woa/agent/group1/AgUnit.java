@@ -6,7 +6,13 @@ package es.upm.woa.agent.group1;
  * and open the template in the editor.
  */
 import es.upm.woa.agent.group1.protocol.Conversation;
+
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.CreateUnit;
+import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.MoveToCell;
+import es.upm.woa.ontology.NotifyNewCellDiscovery;
+
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
@@ -17,17 +23,16 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import es.upm.woa.ontology.CreateUnit;
-import es.upm.woa.ontology.GameOntology;
-import es.upm.woa.ontology.MoveToCell;
-import es.upm.woa.ontology.NotifyNewCellDiscovery;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
-import jade.util.leap.ArrayList;
+
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
 
 /**
  *

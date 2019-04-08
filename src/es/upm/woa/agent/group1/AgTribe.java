@@ -6,7 +6,12 @@ package es.upm.woa.agent.group1;
  * and open the template in the editor.
  */
 import es.upm.woa.agent.group1.protocol.Conversation;
+
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.NotifyNewCellDiscovery;
+import es.upm.woa.ontology.NotifyNewUnit;
+
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
@@ -16,13 +21,11 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import es.upm.woa.ontology.GameOntology;
-import es.upm.woa.ontology.NotifyNewCellDiscovery;
-import es.upm.woa.ontology.NotifyNewUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;

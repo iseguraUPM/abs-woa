@@ -14,7 +14,15 @@ import es.upm.woa.agent.group1.map.WorldMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
+
 import es.upm.woa.ontology.Building;
+import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.CreateUnit;
+import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.MoveToCell;
+import es.upm.woa.ontology.NotifyNewCellDiscovery;
+import es.upm.woa.ontology.NotifyNewUnit;
+
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
@@ -28,20 +36,15 @@ import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.onto.OntologyException;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import es.upm.woa.ontology.Cell;
-import es.upm.woa.ontology.CreateUnit;
-import es.upm.woa.ontology.GameOntology;
-import es.upm.woa.ontology.MoveToCell;
-import es.upm.woa.ontology.NotifyNewCellDiscovery;
-import es.upm.woa.ontology.NotifyNewUnit;
-import jade.content.Concept;
-import jade.content.ContentElement;
-import jade.content.onto.OntologyException;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
@@ -61,8 +64,6 @@ import javafx.util.Pair;
 public class AgWorld extends Agent {
 
     public static final String WORLD = "WORLD";
-    public static final String TRIBE = "TRIBE";
-    public static final String UNIT = "UNIT";
 
     private static final int STARTING_UNIT_NUMBER = 3;
 
@@ -91,7 +92,7 @@ public class AgWorld extends Agent {
         initialUnitCoordinates.add(new Pair(1, 1));
         initialUnitCoordinates.add(new Pair(2, 2));
         initialUnitCoordinates.add(new Pair(3, 3));
-
+        
         try {
             initializeAgent();
             initializeWorld();
