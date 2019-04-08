@@ -102,11 +102,12 @@ public abstract class Conversation extends SimpleBehaviour {
                 ACLMessage newMsg = message.createReply();
                 newMsg.setPerformative(performative);
 
-                try {
+                // TODO: check if we need to setcontent on responses
+                /*try {
                     myAgent.getContentManager().fillContent(newMsg, action);
                 } catch (Codec.CodecException | OntologyException ex) {
                     Logger.getLogger(Conversation.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                }*/
 
                 myAgent.send(newMsg);
             }
@@ -240,9 +241,9 @@ public abstract class Conversation extends SimpleBehaviour {
         }
     }
     
-    private void logUnhandledMessage(String message, AID source) {
-        System.out.println(myAgent.getLocalName() + ": received unhandled "
-                + message + " from " + source.getLocalName());
+    private void logUnhandledMessage(String type, AID source) {
+        Logger.getGlobal().log(Level.WARNING, "PROTOCOL: {0} from {1} to {2} not handled"
+                , new Object[]{type, source.getLocalName(), myAgent.getAID().getLocalName()});
     }
 
     /**

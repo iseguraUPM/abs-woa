@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
 
 /**
  *
@@ -69,18 +71,19 @@ public class AgTribe extends Agent {
                                 Concept conc = agAction.getAction();
                                 
                                 if (conc instanceof NotifyNewUnit) {
-                                    System.out.println(getLocalName() + ": received inform"
-                                            + " request from " + response.getSender().getLocalName());
+                                    log(Level.FINE, "receive NotifyNewUnit inform from "
+                                        + response.getSender().getLocalName());
                                     NotifyNewUnit newUnitInfo = (NotifyNewUnit) conc;
-                                    System.out.println(getLocalName() + ": new unit '"
-                                            + newUnitInfo.getNewUnit().getLocalName()+ "' at "
-                                            + newUnitInfo.getLocation().getX() + " "
+                                    log(Level.FINE, "new unit created at " + 
+                                            + newUnitInfo.getLocation().getX()
+                                            + " "
                                             + newUnitInfo.getLocation().getY());
                                     addUnit(newUnitInfo);
                                 }
                             }
                         } catch (Codec.CodecException | OntologyException ex) {
-                            Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
+                            log(Level.WARNING, "could not receive message"
+                                    + " (" + ex + ")");
                         }
 
                     }
@@ -108,23 +111,24 @@ public class AgTribe extends Agent {
                                 Concept conc = agAction.getAction();
                                 
                                 if (conc instanceof NotifyNewCellDiscovery) {
-                                    System.out.println(getLocalName() + ": received inform"
-                                            + " request from " + response.getSender().getLocalName());
+                                    log(Level.FINE, "receive NotifyNewCellDiscovery inform from "
+                                        + response.getSender().getLocalName());
                                     NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
                                     ArrayList<Integer> coords = new ArrayList<>();
                                     coords.add(newCellInfo.getNewCell().getX());
                                     coords.add(newCellInfo.getNewCell().getY());
                                     if(discoveredCells.get(coords) == null){
-                                        System.out.println(getLocalName() + ": cell discovered at "
-                                            + newCellInfo.getNewCell().getX() + ", "
-                                            + newCellInfo.getNewCell().getY() + " ");
+                                        log(Level.FINER, "cell discovery at "
+                                            + newCellInfo.getNewCell().getX()
+                                            + ", "
+                                            + newCellInfo.getNewCell().getY());
                                         addDiscoveredCell(coords, newCellInfo.getNewCell());
                                     }
                                     
                                 }
                             }
                         } catch (Codec.CodecException | OntologyException ex) {
-                            Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
+                            log(Level.WARNING, "could not receive message (" + ex + ")");
                         }
 
                     }
@@ -164,6 +168,11 @@ public class AgTribe extends Agent {
     public void addDiscoveredCell(ArrayList<Integer> coords, Cell cell) {        
         discoveredCells.put(coords, cell);
         System.out.println(discoveredCells);
+    }
+    
+    private void log(Level logLevel, String message) {
+        String compMsg = getLocalName() + ": " + message;
+        Logger.getLogger("WOAGROUP1").log(logLevel, compMsg);
     }
 
 }

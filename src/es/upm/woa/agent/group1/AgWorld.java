@@ -49,6 +49,9 @@ import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
 import java.util.Stack;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
 import javafx.util.Pair;
 
 // TODO: change docs
@@ -82,8 +85,11 @@ public class AgWorld extends Agent {
     
     @Override
     protected void setup() {
-        System.out.println(getLocalName() + ": has entered into the system");
-
+        Logger.getLogger("WOAGROUP1").setLevel(Level.FINER);
+        Logger.getLogger("WOAGROUP1")
+                .addHandler(new ConsoleHandler());
+        log(Level.INFO, "has entered the system");
+        
         // TODO: temporal initial coordinates for testing purposes
         initialUnitCoordinates = new Stack<>();
         initialUnitCoordinates.add(new Pair(1, 1));
@@ -93,12 +99,8 @@ public class AgWorld extends Agent {
         initialUnitCoordinates.add(new Pair(2, 2));
         initialUnitCoordinates.add(new Pair(3, 3));
         
-        try {
-            initializeAgent();
-            initializeWorld();
-        } catch (FIPAException ex) {
-
-        }
+        initializeAgent();
+        initializeWorld();
 
         //startUnitCreationBehaviour();
         startMoveToCellBehaviour();
@@ -115,8 +117,8 @@ public class AgWorld extends Agent {
                 listenMessages(new ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        System.out.println(myAgent.getLocalName()
-                                + ": received unit creation request from " + message.getSender().getLocalName());
+                        log(Level.FINE, "received CreateUnit request from"
+                                + message.getSender().getLocalName());
 
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
@@ -148,8 +150,7 @@ public class AgWorld extends Agent {
                             boolean success = launchNewAgentUnit(ownerTribe);
                             if (!success) {
                                 ownerTribe.refundUnit();
-                                System.out.println(myAgent.getLocalName()
-                                        + ": refunded unit to " + ownerTribe.getAID().getLocalName());
+                                
                                 respondMessage(message, ACLMessage.FAILURE);
 
                             } else {
@@ -163,8 +164,8 @@ public class AgWorld extends Agent {
                     @Override
                     public void rollback() {
                         if (!finished) {
-                            System.out.println(myAgent.getLocalName()
-                                    + ": refunded unit to " + ownerTribe.getAID().getLocalName());
+                            log(Level.INFO, "refunded unit to "
+                                        + ownerTribe.getAID().getLocalName());
                             ownerTribe.refundUnit();
                             respondMessage(message, ACLMessage.FAILURE);
                         }
@@ -211,16 +212,20 @@ public class AgWorld extends Agent {
         }
     }
     
-    private void initializeAgent() throws FIPAException {
-        // Creates its own description
-        DFAgentDescription dfd = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setName(this.getName());
-        sd.setType(WORLD);
-        dfd.addServices(sd);
-        // Registers its description in the DF
-        DFService.register(this, dfd);
-        System.out.println(getLocalName() + ": registered in the DF");
+    private void initializeAgent() {
+        try {
+            // Creates its own description
+            DFAgentDescription dfd = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setName(this.getName());
+            sd.setType(WORLD);
+            dfd.addServices(sd);
+            // Registers its description in the DF
+            DFService.register(this, dfd);
+            log(Level.INFO, "registered in the DF");
+        } catch (FIPAException ex) {
+            log(Level.WARNING, "could not register in the DF (" + ex + ")");
+        }
     }
 
     private void initializeWorld() {
@@ -269,7 +274,8 @@ public class AgWorld extends Agent {
             }
 
         } catch (StaleProxyException ex) {
-            Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
+            log(Level.WARNING, "could not launch tribe " + tribeName + " (" + ex
+                    + ")");
             return null;
         }
     }
@@ -321,7 +327,8 @@ public class AgWorld extends Agent {
             }
 
         } catch (StaleProxyException ex) {
-            Logger.getLogger(AgWorld.class.getName()).log(Level.SEVERE, null, ex);
+            log(Level.WARNING, "could not launch new unit (" + ex
+                    + ")");
             return false;
         }
     }
@@ -360,10 +367,14 @@ public class AgWorld extends Agent {
         try {
             exploredTribeCells.getCellAt(cell.getX()
                     , cell.getY());
-            System.out.println("CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
+            log(Level.FINER, ownerTribe.getAID().getLocalName()
+                    + " already knows cell "
+                    + cell.getX() + "," + cell.getY());
         }
         catch (NoSuchElementException ex) {
-            System.out.println("NO CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
+            log(Level.FINER, ownerTribe.getAID().getLocalName()
+                    + " discovered cell "
+                    + cell.getX() + "," + cell.getY());
             addNewlyExploredCell(cell, exploredTribeCells, ownerTribe);
         }
     }
@@ -373,10 +384,10 @@ public class AgWorld extends Agent {
             MapCell exploredCell = worldMap.getCellAt(cell.getX(), cell.getY());
             exploredTribeCells.addCell(exploredCell);
             informTribeAboutDiscoveredCell(ownerTribe, cell);
-            int i = 0;
             for(Unit tribeUnit : ownerTribe.getUnitsIterable()){
-                System.out.println(i + " UNIDAD INFORMADA DE " + cell.getX() + "-" + cell.getY());
-                i++;
+                log(Level.FINER, tribeUnit.getId().getLocalName()
+                        + " was informed of cell "
+                        + cell.getX() + ", " + cell.getY());
                 informUnitAboutDiscoveredCell(tribeUnit, cell);
             }
         }
@@ -388,8 +399,6 @@ public class AgWorld extends Agent {
 
         NotifyNewCellDiscovery notifyNewCellDiscovery = new NotifyNewCellDiscovery();
         
-        //TODO this shouldn't be mandatory
-        newCell.setOwner(this.getAID());
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerTribe.getAID(), notifyNewCellDiscovery);
@@ -405,8 +414,6 @@ public class AgWorld extends Agent {
     private void informUnitAboutDiscoveredCell(Unit ownerUnit, Cell newCell) {
         NotifyNewCellDiscovery notifyNewCellDiscovery = new NotifyNewCellDiscovery();
         
-        //TODO this shouldn't be mandatory
-        newCell.setOwner(this.getAID());
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerUnit.getId(), notifyNewCellDiscovery);
@@ -431,8 +438,9 @@ public class AgWorld extends Agent {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        System.out.println(myAgent.getLocalName()
-                                + ": received unit 'move to cell' request from " + message.getSender().getLocalName());
+                        log(Level.FINE, "received unit MoveToCell"
+                                + " request from " + message.getSender()
+                                        .getLocalName());
 
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
@@ -452,7 +460,7 @@ public class AgWorld extends Agent {
                                 initiateMoveToCell(requesterUnit, mapCell, message);
 
                             } catch (Codec.CodecException | OntologyException ex) {
-                                Logger.getLogger(AgTribe.class.getName()).log(Level.SEVERE, null, ex);
+                                log(Level.WARNING, "could not receive message (" + ex + ")");
                             }
                         }
                     }
@@ -462,9 +470,8 @@ public class AgWorld extends Agent {
             private void initiateMoveToCell(Unit requesterUnit, MapCell mapCell, ACLMessage message) {
                 UnitCellPositioner unitPositioner = UnitCellPositioner.getInstance(worldMap);
                 if (unitPositioner.isMoving(requesterUnit)) {
-                    System.out.println(myAgent.getLocalName()
-                                        + ": unit already moving "
-                                    + requesterUnit.getId().getLocalName());
+                    log(Level.FINE, requesterUnit.getId().getLocalName()
+                            + " already moving. Cannot move again");
                     respondMessage(message, ACLMessage.REFUSE);
                 }
                                 
@@ -476,6 +483,7 @@ public class AgWorld extends Agent {
                         @Override
                         public void onMove() {
                             Tribe ownerTribe = findOwnerTribe(requesterUnit.getId());
+                            
                             Cell newCell = new Cell();
                             newCell.setX(mapCell.getXCoord());
                             newCell.setY(mapCell.getYCoord());
@@ -496,11 +504,17 @@ public class AgWorld extends Agent {
                   
             }
             catch (IndexOutOfBoundsException ex) {
-                System.out.println(myAgent.getLocalName()
-                        + ": cannot move unit - " + ex);
+                log(Level.FINE, requesterUnit.getId().getLocalName()
+                            + " cannot move to cell " + mapCell.getXCoord()
+                        + ", " + mapCell.getYCoord() + "(" + ex + ")");
                 respondMessage(message, ACLMessage.REFUSE);
             }
         }
         });
+    }
+    
+    private void log(Level logLevel, String message) {
+        String compMsg = getLocalName() + ": " + message;
+        Logger.getLogger("WOAGROUP1").log(logLevel, compMsg);
     }
 }
