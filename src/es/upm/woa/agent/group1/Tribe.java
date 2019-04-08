@@ -1,10 +1,12 @@
 package es.upm.woa.agent.group1;
  
 import jade.core.AID;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  *
@@ -17,11 +19,13 @@ public class Tribe {
     
     private final AID agentID;
     private final Collection<Unit> unitCollection = new HashSet<>();
+    private final GameMap knownMap;
     private int currentGold;
     private int currentFood;
     
     public Tribe(AID pId) {
         agentID = pId;
+        knownMap = new TribeMap();
         
         //TODO: define how many units of currentGold/food. By default 1000
         currentGold = 150;
@@ -48,9 +52,8 @@ public class Tribe {
      * 
      * @return units 
      */
-    public ArrayList<Unit> getUnits() {
-        ArrayList<Unit> unitCollectionArray = new ArrayList<>(unitCollection);
-        return unitCollectionArray;
+    public Iterable<Unit> getUnitsIterable() {
+        return unitCollection;
     }
     
     /**
@@ -73,6 +76,10 @@ public class Tribe {
         } catch (NoSuchElementException ex) {
             return null;
         }
+    }
+    
+    public GameMap getKnownMap() {
+        return knownMap;
     }
     
     public String getUnitNamePrefix() {
@@ -106,6 +113,72 @@ public class Tribe {
     public void refundUnit() {
         currentGold += UNIT_GOLD_COST;
         currentFood += UNIT_FOOD_COST;
+    }
+    
+    private class TribeMap implements GameMap {
+
+        private final Set<MapCell> mapCells;
+        private int maxHeight;
+        private int minHeight;
+        private int maxWidth;
+        private int minWidth;
+        
+        public TribeMap() {
+            mapCells = new HashSet<>();
+            maxHeight = 0;
+            minWidth = 0;
+            maxWidth = 0;
+            minWidth = 0;
+        }
+
+        @Override
+        public int getHeight() {
+            return maxHeight - minHeight;
+        }
+
+        @Override
+        public int getWidth() {
+            return maxWidth - minWidth;
+        }
+
+        
+        @Override
+        public boolean addCell(MapCell mapCell) {
+            boolean success = mapCells.add(mapCell);
+            if (!success) {
+                return false;
+            }
+            else {
+                updateSize(mapCell);
+                return true;
+            }
+        }
+
+        private void updateSize(MapCell mapCell) {
+            maxHeight = mapCell.getXCoord() > maxHeight
+                    ? mapCell.getXCoord() : maxHeight;
+            minHeight = mapCell.getXCoord() < minHeight
+                    ? mapCell.getXCoord() : minHeight;
+            maxWidth = mapCell.getYCoord()> maxWidth
+                    ? mapCell.getYCoord(): maxWidth;
+            minWidth = mapCell.getYCoord()< minWidth
+                    ? mapCell.getYCoord(): minWidth;
+        }
+
+        @Override
+        public MapCell getCellAt(int x, int y) throws NoSuchElementException {
+            MapCell foundCell = mapCells.stream()
+                .filter(mapCell -> mapCell.getXCoord() == x
+                        && mapCell.getYCoord() == y).findAny().get();
+            
+            return foundCell;
+        }
+
+        @Override
+        public Iterable<MapCell> getKnownCellsIterable() {
+            return mapCells;
+        }
+        
     }
     
 }

@@ -9,15 +9,14 @@ import es.upm.woa.ontology.Empty;
 import jade.content.Concept;
 import jade.core.AID;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
 /**
  *
  * @author ISU
  */
-public class WorldMap {
-    
-    public static final String TOWN_HALL = "TownHall";
+public class WorldMap implements GameMap {
     
     private final int width;
     private final int height;
@@ -30,10 +29,12 @@ public class WorldMap {
         mapCells = new TreeMap<>();
     }
     
+    @Override
     public int getWidth() {
        return width;
     }
     
+    @Override
     public int getHeight() {
         return height;
     }
@@ -56,11 +57,8 @@ public class WorldMap {
         return newInstance;
     }
     
-    /**
-     * Adds a map cell to the map
-     * @param mapCell
-     * @return if the position was not occupied by an empty cell
-     */
+    
+    @Override
     public boolean addCell(MapCell mapCell) {
         int index = toAbsolutePosition(mapCell.getXCoord(), mapCell.getYCoord());
         
@@ -71,15 +69,9 @@ public class WorldMap {
         return true;
     }
     
-    /**
-     * Return a cell by its coordinates (starting at 1,1)
-     * @param x coordinate
-     * @param y coordinate
-     * @return the requested cell
-     * @throws IndexOutOfBoundsException when the coordinates are past the bounds
-     * of the map
-     */
-    public MapCell getCellAt(int x, int y) throws IndexOutOfBoundsException {
+    
+    @Override
+    public MapCell getCellAt(int x, int y) throws NoSuchElementException {
         if (x < 1 || y < 1 || x > height || y > width) {
             throw new IndexOutOfBoundsException("Coordinates (" + x + "," + y
                     + ") exceed map dimensions");
@@ -97,6 +89,11 @@ public class WorldMap {
     
     private int toAbsolutePosition(int x, int y) {
         return (x - 1) * height + y;
+    }
+
+    @Override
+    public Iterable<MapCell> getKnownCellsIterable() {
+        return mapCells.values();
     }
     
     private class EmptyMapCell implements MapCell {

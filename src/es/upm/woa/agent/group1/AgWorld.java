@@ -37,9 +37,7 @@ import jade.content.ContentElement;
 import jade.content.onto.OntologyException;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Stack;
 import javafx.util.Pair;
 
@@ -73,8 +71,6 @@ public class AgWorld extends Agent {
     // TODO: temporal initial coordinates for testing purposes
     private Stack<Pair<Integer, Integer>> initialUnitCoordinates;
     
-    
-    private Map<Tribe, ArrayList<Cell>> exploredCells; 
     
     @Override
     protected void setup() {
@@ -227,7 +223,6 @@ public class AgWorld extends Agent {
 
         worldMap = WorldMap.getInstance(3, 3);
         tribeCollection = new HashSet<>();
-        exploredCells = new HashMap<>();
 
         activeTransactions = new ArrayList<>();
 
@@ -244,6 +239,7 @@ public class AgWorld extends Agent {
         */
     }
 
+    // NOTE: will be used. Do not delete.
     private void finalizeWorld() {
         activeTransactions.forEach(t -> t.rollback());
         activeTransactions.clear();
@@ -261,7 +257,6 @@ public class AgWorld extends Agent {
                 ac.kill();
                 return null;
             } else {
-                exploredCells.put(newTribeRef, new ArrayList<>());
                 return newTribeRef;
             }
 
@@ -348,27 +343,36 @@ public class AgWorld extends Agent {
                 });
             }
         });
-        if(exploredCells.get(ownerTribe).contains(cell)){
-            System.out.println("CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
-        }else{
-            System.out.println("NO CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
-        }
         
-        if(!isCellStored(ownerTribe, cell)){
-            ArrayList<Cell> positions = new ArrayList<>();
-            positions = exploredCells.get(ownerTribe);
-            positions.add(cell);
-            exploredCells.put(ownerTribe, positions);
-            
+        processTribeKnownCell(ownerTribe, cell);
+    }
+
+    private void processTribeKnownCell(Tribe ownerTribe, Cell cell) {
+        GameMap exploredTribeCells = ownerTribe.getKnownMap();
+        try {
+            exploredTribeCells.getCellAt(cell.getX()
+                    , cell.getY());
+            System.out.println("CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
+        }
+        catch (NoSuchElementException ex) {
+            System.out.println("NO CONTIENE LA CELDA" + cell.getX() + "-" + cell.getY());
+            addNewlyExploredCell(cell, exploredTribeCells, ownerTribe);
+        }
+    }
+
+    private void addNewlyExploredCell(Cell cell, GameMap exploredTribeCells, Tribe ownerTribe) {
+        try {
+            MapCell exploredCell = worldMap.getCellAt(cell.getX(), cell.getY());
+            exploredTribeCells.addCell(exploredCell);
             informTribeAboutDiscoveredCell(ownerTribe, cell);
-            ArrayList<Unit> tribeUnits = new ArrayList<>();
-            tribeUnits = ownerTribe.getUnits();
             int i = 0;
-            for(Unit tribeUnit:tribeUnits){
+            for(Unit tribeUnit : ownerTribe.getUnitsIterable()){
                 System.out.println(i + " UNIDAD INFORMADA DE " + cell.getX() + "-" + cell.getY());
                 i++;
                 informUnitAboutDiscoveredCell(tribeUnit, cell);
             }
+        }
+        catch (NoSuchElementException e) {
         }
     }
     
@@ -471,25 +475,7 @@ public class AgWorld extends Agent {
                             
                             respondMessage(message, ACLMessage.INFORM);
                             
-                            if(!isCellStored(ownerTribe, newCell)){
-                                ArrayList<Cell> positions = new ArrayList<>();
-                                positions = exploredCells.get(ownerTribe);
-                                if(!positions.contains(newCell)){
-                                    positions.add(newCell);
-                                }
-                                exploredCells.put(ownerTribe, positions);
-                                
-                                informTribeAboutDiscoveredCell(ownerTribe, newCell);
-                                
-                                ArrayList<Unit> tribeUnits = new ArrayList<>();
-                                tribeUnits = ownerTribe.getUnits();
-                                int i = 0;
-                                for(Unit tribeUnit:tribeUnits){
-                                    System.out.println(i + " UNIDAD INFORMADA DE " + newCell.getX() + "-" + newCell.getY());
-                                    i++;
-                                    informUnitAboutDiscoveredCell(tribeUnit, newCell);
-                                }
-                            }
+                            processTribeKnownCell(ownerTribe, newCell);
                         }
 
                         @Override
@@ -511,15 +497,5 @@ public class AgWorld extends Agent {
             }
         }
         });
-    }
-    
-    private boolean isCellStored(Tribe tribe, Cell cell){
-        ArrayList<Cell> cells = exploredCells.get(tribe);
-        for(Cell eachCell:cells){
-            if(eachCell.getX() == cell.getX() && eachCell.getY() == cell.getY()){
-                return true;
-            }
-        }
-        return false;
     }
 }

@@ -120,7 +120,7 @@
     Finish also 5.5.3, in which tribes are informed that new cells have been discovered by its units.
 ----------------------------------------------------------------------------------------------------------------
  (10) {07-04-2019 15:00} Unit movement fixes : Inaki
- 1. [FIX]
+ 1. [FIX] ref [TODO 8.2]
     Fixed unit movement. Now the unit positioner has the control on the behaviour launch. Also, fixed the conversation
 	protocol filtering. Temporal solution: specify protocol name (String).
 ----------------------------------------------------------------------------------------------------------------
@@ -140,4 +140,11 @@
  1. [NEW]
     When a unit discovers a new cell, all the units belonging to the same cell get informed of the 
     new discovery
+----------------------------------------------------------------------------------------------------------------
+ (14) {08/04/2019 13:00} Refactoring tribe known cell system : Inaki
+ 1. [REFACT] ref [NEW 11.1]
+    Moved information from known cells to the tribe. The reason is it feels more natural that way. Also, added
+      some reusable code to AgWorld.
+ 2. [REFACT]
+    Changed Tribe returning a collection with all the units. Better return an iterator to cycle on all the units.
 ----------------------------------------------------------------------------------------------------------------
