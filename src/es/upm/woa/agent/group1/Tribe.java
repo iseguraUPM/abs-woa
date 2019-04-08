@@ -2,9 +2,7 @@ package es.upm.woa.agent.group1;
  
 import jade.core.AID;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 

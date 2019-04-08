@@ -480,10 +480,7 @@ public class AgWorld extends Agent {
 
                         @Override
                         public void onCancel() {
-                            System.out.println(myAgent.getLocalName()
-                                        + ": refunded unit 'move to cell' to "
-                                    + requesterUnit.getId().getLocalName());
-                                respondMessage(message, ACLMessage.FAILURE);
+                            respondMessage(message, ACLMessage.FAILURE);
                         }
                     });
                     respondMessage(message, ACLMessage.AGREE);
