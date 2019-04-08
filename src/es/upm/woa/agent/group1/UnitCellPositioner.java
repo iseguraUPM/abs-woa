@@ -5,6 +5,8 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
+import es.upm.woa.agent.group1.protocol.Transaction;
 import jade.core.Agent;
 import java.util.HashSet;
 import java.util.Set;

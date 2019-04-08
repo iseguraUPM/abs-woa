@@ -7,6 +7,9 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
+import es.upm.woa.agent.group1.protocol.Conversation;
+import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
+import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.Building;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;

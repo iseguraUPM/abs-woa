@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.protocol;
 
 import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
@@ -93,7 +93,7 @@ public abstract class Conversation extends SimpleBehaviour {
      * @param message
      * @param performative 
      */
-    public void respondMessage(ACLMessage message, int performative) {
+    protected void respondMessage(ACLMessage message, int performative) {
         myAgent.addBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {

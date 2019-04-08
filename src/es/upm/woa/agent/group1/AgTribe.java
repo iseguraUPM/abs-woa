@@ -5,6 +5,7 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
 import jade.content.Concept;
 import jade.content.ContentElement;
