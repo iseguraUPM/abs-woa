@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: GameOntology.java
  * @author ontology bean generator
- * @version 2019/04/5, 19:32:22
+ * @version 2019/04/8, 12:20:37
  */
 public class GameOntology extends jade.content.onto.Ontology  {
   //NAME
@@ -77,8 +77,8 @@ public class GameOntology extends jade.content.onto.Ontology  {
     // adding fields
     cellSchema.add(CELL_X, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     cellSchema.add(CELL_Y, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
-    cellSchema.add(CELL_CONTENT, new ConceptSchema("Concept"), 0, ObjectSchema.UNLIMITED);
-    cellSchema.add(CELL_OWNER, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);
+    cellSchema.add(CELL_CONTENT, new ConceptSchema("Concept"), ObjectSchema.OPTIONAL);
+    cellSchema.add(CELL_OWNER, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.OPTIONAL);
     buildingSchema.add(BUILDING_TYPE, (TermSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
     buildingSchema.add(BUILDING_OWNER, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);
     moveToCellSchema.add(MOVETOCELL_TARGET, cellSchema, ObjectSchema.MANDATORY);

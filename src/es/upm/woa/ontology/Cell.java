@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: Cell
 * @author ontology bean generator
-* @version 2019/04/5, 19:32:22
+* @version 2019/04/8, 12:20:37
 */
 public class Cell implements Concept {
 
@@ -37,23 +37,13 @@ public class Cell implements Concept {
    /**
 * Protege name: content
    */
-   private List content = new ArrayList();
-   public void addContent(Object elem) { 
-     List oldList = this.content;
-     content.add(elem);
+   private Object content;
+   public void setContent(Object value) { 
+    this.content=value;
    }
-   public boolean removeContent(Object elem) {
-     List oldList = this.content;
-     boolean result = content.remove(elem);
-     return result;
+   public Object getContent() {
+     return this.content;
    }
-   public void clearAllContent() {
-     List oldList = this.content;
-     content.clear();
-   }
-   public Iterator getAllContent() {return content.iterator(); }
-   public List getContent() {return content; }
-   public void setContent(List l) {content = l; }
 
    /**
 * Protege name: owner
