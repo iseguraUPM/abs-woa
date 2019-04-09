@@ -78,13 +78,14 @@ class TribeMap implements GameMap {
         // else oldest goes first
         @Override
         public int compare(MapCell c1, MapCell c2) {
-            if (c1.getXCoord() == c2.getXCoord()
-                    && c1.getYCoord() == c2.getYCoord()) {
-                return 0;
-            }
-            else {
-                return -1;
-            }
+            return (int) getDistance(c1, c2);
+        }
+        
+        private double getDistance(MapCell c1, MapCell c2) {
+            final double dx = c1.getXCoord() - c2.getXCoord(); 
+            final double dy = c1.getYCoord() - c2.getYCoord();
+
+            return Math.sqrt(dx*dx + dy*dy);
         }
         
     }

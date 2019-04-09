@@ -28,12 +28,7 @@ import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 
-import java.util.ArrayList;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
-
 
 
 /**
@@ -43,6 +38,8 @@ import java.util.logging.StreamHandler;
 public class AgUnit extends Agent {
 
     public static final String WORLD = "WORLD";
+    
+    
     private Ontology ontology;
     private SLCodec codec;
     private DFAgentDescription worldAgentServiceDescription;
@@ -52,6 +49,10 @@ public class AgUnit extends Agent {
         
         initializeAgent();
         initializeUnit();
+        
+        if (worldAgentServiceDescription == null) {
+            return;
+        }
         
         startCreateUnitBehaviour();
         startMoveToCellBehaviour();
@@ -73,7 +74,7 @@ public class AgUnit extends Agent {
             else {
                 worldAgentServiceDescription = descriptions[0];
             }
-        }catch (FIPAException ex) {
+        } catch (FIPAException ex) {
             log(Level.WARNING, " the WORLD agent was not found (" + ex + ")");
         }  
     }
@@ -87,7 +88,7 @@ public class AgUnit extends Agent {
     
     private void startCreateUnitBehaviour(){
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, "CreateUnit") {
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
                 AID worldAID = (AID) worldAgentServiceDescription.getName();
@@ -146,9 +147,6 @@ public class AgUnit extends Agent {
     private void startMoveToCellBehaviour(){
         
         Cell newCellPosition = new Cell();
-        newCellPosition.setContent(new ArrayList());
-        //TODO this shouldn't be mandatory
-        newCellPosition.setOwner(this.getAID());
         //TODO by default 0,0
         newCellPosition.setX(2);
         newCellPosition.setY(2);
@@ -157,10 +155,7 @@ public class AgUnit extends Agent {
         moveToCell.setTarget(newCellPosition);
         
         Action moveToCellAction = new Action(getAID(), moveToCell);
-
-        
-        
-        addBehaviour(new Conversation(this, ontology, codec, moveToCellAction, "MoveToCell"){
+        addBehaviour(new Conversation(this, ontology, codec, moveToCellAction, GameOntology.MOVETOCELL){
             
 
             @Override
@@ -173,7 +168,7 @@ public class AgUnit extends Agent {
                     @Override
                     public void onSent(String conversationID) {
                         log(Level.FINE,  "wants to move to cell "
-                                + newCellPosition.getX() + ", " +newCellPosition.getY());
+                                + newCellPosition.getX() + "," +newCellPosition.getY());
 
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
@@ -197,7 +192,7 @@ public class AgUnit extends Agent {
                                         + response.getSender().getLocalName());
                                         
                                         log(Level.FINE,  "moved to cell "
-                                                + newCellPosition.getX() + ", "
+                                                + newCellPosition.getX() + ","
                                                 +newCellPosition.getY());
                                     }
 
@@ -228,7 +223,7 @@ public class AgUnit extends Agent {
     private void startInformNewCellDiscoveryBehaviour() {
         // Behaviors
         Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -246,11 +241,12 @@ public class AgUnit extends Agent {
                                         + response.getSender().getLocalName());
                                     
                                     NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
-                                    
+                                    /*
                                     log(Level.FINER, "cell discovery at "
                                             + newCellInfo.getNewCell().getX()
-                                            + ", "
+                                            + ","
                                             + newCellInfo.getNewCell().getY());
+                                    */
                                 }
                             }
                         } catch (Codec.CodecException | OntologyException ex) {
@@ -267,7 +263,7 @@ public class AgUnit extends Agent {
     
     private void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
-        Logger.getLogger("WOAGROUP1").log(logLevel, compMsg);
+        System.out.println(compMsg);
     }
     
 }

@@ -14,7 +14,6 @@ import es.upm.woa.agent.group1.map.WorldMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
-
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
@@ -44,14 +43,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
 import java.util.Stack;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
 import javafx.util.Pair;
 
 // TODO: change docs
@@ -69,7 +64,7 @@ public class AgWorld extends Agent {
     public static final String WORLD = "WORLD";
 
     private static final int STARTING_UNIT_NUMBER = 3;
-
+    
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
     private Codec codec;
@@ -85,11 +80,8 @@ public class AgWorld extends Agent {
     
     @Override
     protected void setup() {
-        Logger.getLogger("WOAGROUP1").setLevel(Level.FINER);
-        Logger.getLogger("WOAGROUP1")
-                .addHandler(new ConsoleHandler());
         log(Level.INFO, "has entered the system");
-        
+
         // TODO: temporal initial coordinates for testing purposes
         initialUnitCoordinates = new Stack<>();
         initialUnitCoordinates.add(new Pair(1, 1));
@@ -102,14 +94,14 @@ public class AgWorld extends Agent {
         initializeAgent();
         initializeWorld();
 
-        //startUnitCreationBehaviour();
+        startUnitCreationBehaviour();
         startMoveToCellBehaviour();
     }
 
     private void startUnitCreationBehaviour() {
         // Behaviors
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, "CreateUnit") {
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
                 Action action = new Action(getAID(), new CreateUnit());
@@ -351,7 +343,7 @@ public class AgWorld extends Agent {
         notifyNewUnit.setNewUnit(newUnit.getId());
 
         Action informNewUnitAction = new Action(ownerTribe.getAID(), notifyNewUnit);
-        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, "NotifyNewUnit") {
+        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
@@ -387,7 +379,7 @@ public class AgWorld extends Agent {
             for(Unit tribeUnit : ownerTribe.getUnitsIterable()){
                 log(Level.FINER, tribeUnit.getId().getLocalName()
                         + " was informed of cell "
-                        + cell.getX() + ", " + cell.getY());
+                        + cell.getX() + "," + cell.getY());
                 informUnitAboutDiscoveredCell(tribeUnit, cell);
             }
         }
@@ -402,7 +394,7 @@ public class AgWorld extends Agent {
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerTribe.getAID(), notifyNewCellDiscovery);
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
@@ -417,7 +409,7 @@ public class AgWorld extends Agent {
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerUnit.getId(), notifyNewCellDiscovery);
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
             @Override
             public void onStart() {
                 sendMessage(ownerUnit.getId(), ACLMessage.INFORM, new SentMessageHandler() {
@@ -430,7 +422,7 @@ public class AgWorld extends Agent {
         // Behaviors
         //TODO The response ontology is not yet defined. It needs to be changed in the future. 
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, "MoveToCell") {
+        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
                 Action action = new Action();
@@ -515,6 +507,6 @@ public class AgWorld extends Agent {
     
     private void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
-        Logger.getLogger("WOAGROUP1").log(logLevel, compMsg);
+        System.out.println(compMsg);
     }
 }

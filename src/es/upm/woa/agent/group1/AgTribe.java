@@ -26,22 +26,20 @@ import jade.lang.acl.ACLMessage;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author ISU
  */
 public class AgTribe extends Agent {
-
+    
     private Ontology ontology;
     private Codec codec;
     private Collection<Unit> units;
     private GameMap knownMap;
 
     @Override
-    protected void setup() {
-        
+    protected void setup() {        
         initializeAgent();
         initializeTribe();
         
@@ -52,7 +50,7 @@ public class AgTribe extends Agent {
     private void startInformNewUnitBehaviour() {
         // Behaviors
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
-        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, "NotifyNewUnit") {
+        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -92,7 +90,7 @@ public class AgTribe extends Agent {
     private void startInformNewCellDiscoveryBehaviour() {
         // Behaviors
         Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, "NotifyNewCellDiscovery") {
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -106,7 +104,7 @@ public class AgTribe extends Agent {
                                 Concept conc = agAction.getAction();
                                 
                                 if (conc instanceof NotifyNewCellDiscovery) {
-                                    log(Level.FINE, "receive NotifyNewCellDiscovery inform from "
+                                    log(Level.FINE, "received NotifyNewCellDiscovery inform from "
                                         + response.getSender().getLocalName());
                                     NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
                                     
@@ -126,7 +124,14 @@ public class AgTribe extends Agent {
                         if (cellAdded) {
                             log(Level.FINER, "cell discovery at "
                                     + newCellInfo.getNewCell().getX()
-                                    + ", "
+                                    + ","
+                                    + newCellInfo.getNewCell().getY());
+                        }
+                        else {
+                            // Should not happen
+                            log(Level.WARNING, "already knew cell at "
+                                    + newCellInfo.getNewCell().getX()
+                                    + ","
                                     + newCellInfo.getNewCell().getY());
                         }
                     }
@@ -168,7 +173,7 @@ public class AgTribe extends Agent {
     
     private void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
-        Logger.getLogger("WOAGROUP1").log(logLevel, compMsg);
+        System.out.println(compMsg);
     }
 
 }
