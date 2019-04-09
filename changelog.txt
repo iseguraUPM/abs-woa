@@ -148,3 +148,9 @@
  2. [REFACT]
     Changed Tribe returning a collection with all the units. Better return an iterator to cycle on all the units.
 ----------------------------------------------------------------------------------------------------------------
+ (15) {09/04/2019 18:00} Refactoring agent tribe known cells : Inaki
+ 1. [REFACT]
+    Added the same implementation to Agent Tribe storing cells as "Tribe" so code is reused.
+ 2. [NOTE]
+    We could serialize the GameMap of Agent Tribe and send it straight to the 
+        agent units with a custom protocol.

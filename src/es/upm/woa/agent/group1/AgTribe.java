@@ -5,9 +5,10 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
-import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewCellDiscovery;
 import es.upm.woa.ontology.NotifyNewUnit;
@@ -26,11 +27,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
 
 /**
  *
@@ -41,8 +37,7 @@ public class AgTribe extends Agent {
     private Ontology ontology;
     private Codec codec;
     private Collection<Unit> units;
-    //private Collection<Cell> discoveredCells;
-    private Map<ArrayList<Integer>, Cell> discoveredCells; 
+    private GameMap knownMap;
 
     @Override
     protected void setup() {
@@ -76,7 +71,7 @@ public class AgTribe extends Agent {
                                     NotifyNewUnit newUnitInfo = (NotifyNewUnit) conc;
                                     log(Level.FINE, "new unit created at " + 
                                             + newUnitInfo.getLocation().getX()
-                                            + " "
+                                            + ", "
                                             + newUnitInfo.getLocation().getY());
                                     addUnit(newUnitInfo);
                                 }
@@ -114,16 +109,8 @@ public class AgTribe extends Agent {
                                     log(Level.FINE, "receive NotifyNewCellDiscovery inform from "
                                         + response.getSender().getLocalName());
                                     NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
-                                    ArrayList<Integer> coords = new ArrayList<>();
-                                    coords.add(newCellInfo.getNewCell().getX());
-                                    coords.add(newCellInfo.getNewCell().getY());
-                                    if(discoveredCells.get(coords) == null){
-                                        log(Level.FINER, "cell discovery at "
-                                            + newCellInfo.getNewCell().getX()
-                                            + ", "
-                                            + newCellInfo.getNewCell().getY());
-                                        addDiscoveredCell(coords, newCellInfo.getNewCell());
-                                    }
+                                    
+                                    processNewCell(newCellInfo);
                                     
                                 }
                             }
@@ -131,6 +118,17 @@ public class AgTribe extends Agent {
                             log(Level.WARNING, "could not receive message (" + ex + ")");
                         }
 
+                    }
+
+                    private void processNewCell(NotifyNewCellDiscovery newCellInfo) {
+                        boolean cellAdded = knownMap.addCell(MapCellFactory
+                                .getInstance().buildCell(newCellInfo.getNewCell()));
+                        if (cellAdded) {
+                            log(Level.FINER, "cell discovery at "
+                                    + newCellInfo.getNewCell().getX()
+                                    + ", "
+                                    + newCellInfo.getNewCell().getY());
+                        }
                     }
 
                 });
@@ -149,8 +147,7 @@ public class AgTribe extends Agent {
         getContentManager().registerOntology(ontology);
 
         units = new HashSet<>();
-        discoveredCells = new HashMap<>();
-
+        knownMap = new TribeMap();
     }
 
     public Ontology getOntology() {
@@ -165,9 +162,8 @@ public class AgTribe extends Agent {
         units.add(new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY()));
     }
     
-    public void addDiscoveredCell(ArrayList<Integer> coords, Cell cell) {        
-        discoveredCells.put(coords, cell);
-        System.out.println(discoveredCells);
+    public GameMap getKnownMap() {        
+        return knownMap;
     }
     
     private void log(Level logLevel, String message) {

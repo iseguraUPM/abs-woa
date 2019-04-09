@@ -1,6 +1,5 @@
 package es.upm.woa.agent.group1;
  
-import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.GameMap;
 
 import jade.core.AID;
@@ -8,7 +7,6 @@ import jade.core.AID;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 /**
  *
@@ -116,71 +114,5 @@ public class Tribe {
         currentGold += UNIT_GOLD_COST;
         currentFood += UNIT_FOOD_COST;
     }
-    
-    private class TribeMap implements GameMap {
-
-        private final Set<MapCell> mapCells;
-        private int maxHeight;
-        private int minHeight;
-        private int maxWidth;
-        private int minWidth;
         
-        public TribeMap() {
-            mapCells = new HashSet<>();
-            maxHeight = 0;
-            minWidth = 0;
-            maxWidth = 0;
-            minWidth = 0;
-        }
-
-        @Override
-        public int getHeight() {
-            return maxHeight - minHeight;
-        }
-
-        @Override
-        public int getWidth() {
-            return maxWidth - minWidth;
-        }
-
-        
-        @Override
-        public boolean addCell(MapCell mapCell) {
-            boolean success = mapCells.add(mapCell);
-            if (!success) {
-                return false;
-            }
-            else {
-                updateSize(mapCell);
-                return true;
-            }
-        }
-
-        private void updateSize(MapCell mapCell) {
-            maxHeight = mapCell.getXCoord() > maxHeight
-                    ? mapCell.getXCoord() : maxHeight;
-            minHeight = mapCell.getXCoord() < minHeight
-                    ? mapCell.getXCoord() : minHeight;
-            maxWidth = mapCell.getYCoord()> maxWidth
-                    ? mapCell.getYCoord(): maxWidth;
-            minWidth = mapCell.getYCoord()< minWidth
-                    ? mapCell.getYCoord(): minWidth;
-        }
-
-        @Override
-        public MapCell getCellAt(int x, int y) throws NoSuchElementException {
-            MapCell foundCell = mapCells.stream()
-                .filter(mapCell -> mapCell.getXCoord() == x
-                        && mapCell.getYCoord() == y).findAny().get();
-            
-            return foundCell;
-        }
-
-        @Override
-        public Iterable<MapCell> getKnownCellsIterable() {
-            return mapCells;
-        }
-        
-    }
-    
 }
