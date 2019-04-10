@@ -165,6 +165,8 @@ public class UnitCellPositioner {
         return false;
     }
     
+    // NOTE: this corrects the position of coordinates inside the boundaries and
+    //  just outside by a distance of one. It will not work with greater offsets.
     private int [] correctPosition(int x, int y) {
         int[] pos = new int[] {x, y};
         

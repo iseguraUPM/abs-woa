@@ -11,6 +11,7 @@ import es.upm.woa.agent.group1.map.MapCell;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 
 /**
@@ -70,6 +71,10 @@ class TribeMap implements GameMap {
     @Override
     public Iterable<MapCell> getKnownCellsIterable() {
         return mapCells;
+    }
+    
+    public Stack<MapCell> traceRoute(MapCell target) {
+        return new Stack<>();
     }
     
     private class KnownCellComparator implements Comparator<MapCell> {

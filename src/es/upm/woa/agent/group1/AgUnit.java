@@ -5,6 +5,7 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
 import es.upm.woa.ontology.Cell;
@@ -39,10 +40,28 @@ public class AgUnit extends Agent {
 
     public static final String WORLD = "WORLD";
     
-    
+    private GameMap knownMap;
     private Ontology ontology;
     private SLCodec codec;
     private DFAgentDescription worldAgentServiceDescription;
+    
+    /// NOTE: this methods must be package-private
+    GameMap getKnownMap() {
+        return knownMap;
+    }
+    
+    Ontology getOntology() {
+        return ontology;
+    }
+    
+    Codec getCodec() {
+        return codec;
+    }
+    
+    AID getWorldAID() {
+        return worldAgentServiceDescription.getName();
+    }
+    /// !NOTE
 
     @Override
     protected void setup() {
@@ -261,7 +280,7 @@ public class AgUnit extends Agent {
         });
     }
     
-    private void log(Level logLevel, String message) {
+    void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
         System.out.println(compMsg);
     }
