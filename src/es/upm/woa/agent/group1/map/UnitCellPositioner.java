@@ -5,6 +5,7 @@
  */
 package es.upm.woa.agent.group1.map;
 
+import es.upm.woa.agent.group1.GameClock;
 import es.upm.woa.agent.group1.Unit;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
@@ -20,7 +21,7 @@ import java.util.Set;
  */
 public class UnitCellPositioner {
     
-    private static final int UNIT_MOVE_TIME_MILLIS = 600;
+    private static final int UNIT_MOVE_TICKS = 6;
     
     private static UnitCellPositioner instance;
     
@@ -94,7 +95,7 @@ public class UnitCellPositioner {
     private DelayedTransactionalBehaviour createMovementBehaviour(Agent agent
             , Unit unit, MapCell cell, UnitMovementHandler handler) {
         DelayedTransactionalBehaviour dtb =
-                new DelayedTransactionalBehaviour(agent, UNIT_MOVE_TIME_MILLIS) {
+                new DelayedTransactionalBehaviour(agent, UNIT_MOVE_TICKS) {
             
             boolean finished;
             

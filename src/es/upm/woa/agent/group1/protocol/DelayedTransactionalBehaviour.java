@@ -5,14 +5,16 @@
  */
 package es.upm.woa.agent.group1.protocol;
 
+import es.upm.woa.agent.group1.Ticker;
+
 import jade.core.Agent;
 
 /**
- * This modification of the DelayBehaviour behaves as a transaction. It executes
+ * This modification of the DelayTickBehaviour behaves as a transaction. It executes
  * commit once the elapsed time is over.
  * @author ISU
  */
-public abstract class DelayedTransactionalBehaviour extends DelayBehaviour
+public abstract class DelayedTransactionalBehaviour extends DelayTickBehaviour
         implements Transaction {
 
     public DelayedTransactionalBehaviour(Agent agent, long timeout) {

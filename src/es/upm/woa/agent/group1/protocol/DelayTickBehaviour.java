@@ -5,6 +5,9 @@
  */
 package es.upm.woa.agent.group1.protocol;
 
+import es.upm.woa.agent.group1.GameClock;
+import es.upm.woa.agent.group1.Ticker;
+
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;
 
@@ -12,26 +15,25 @@ import jade.core.behaviours.SimpleBehaviour;
  *
  * @author https://www.iro.umontreal.ca/~vaucher/Agents/Jade/primer6.html#6.5
  */
-public class DelayBehaviour extends SimpleBehaviour 
-{
+public class DelayTickBehaviour extends SimpleBehaviour {
    private final long timeout;
    private long wakeupTime;
    private boolean finished = false;
    
-   public DelayBehaviour(Agent a, long timeout) {
+   public DelayTickBehaviour(Agent a, long tickTimeout) {
       super(a);
-      this.timeout = timeout;
+      this.timeout = tickTimeout;
    }
    
    @Override
    public void onStart() {
-      wakeupTime = System.currentTimeMillis() + timeout;
+      wakeupTime = GameClock.getInstance().getCurrentTick() + timeout;
    }
       
    @Override
    public void action() 
    {
-      long dt = wakeupTime - System.currentTimeMillis();
+      long dt = wakeupTime - GameClock.getInstance().getCurrentTick();
       if (dt <= 0) {
          finished = true;
          handleElapsedTimeout();

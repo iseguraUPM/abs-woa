@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
 import java.util.Stack;
-import java.util.logging.Logger;
 import javafx.util.Pair;
 
 // TODO: change docs
@@ -65,6 +64,7 @@ public class AgWorld extends Agent {
     public static final String WORLD = "WORLD";
 
     private static final int STARTING_UNIT_NUMBER = 3;
+    private static final int CREATE_UNIT_TICKS = 150;
     
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
@@ -192,7 +192,7 @@ public class AgWorld extends Agent {
             private void initiateUnitCreation(Tribe ownerTribe, ACLMessage message) {
 
                 DelayedTransactionalBehaviour activeTransaction
-                        = new DelayedTransactionalBehaviour(myAgent, 15000) {
+                        = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
 
                     boolean finished = false;
 

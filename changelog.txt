@@ -154,3 +154,10 @@
  2. [NOTE]
     We could serialize the GameMap of Agent Tribe and send it straight to the 
         agent units with a custom protocol.
+----------------------------------------------------------------------------------------------------------------
+ (16) {10/04/2019 12:00} The ticker : Inaki
+ 1. [NEW]
+    Created the world clock to function on ticks. The delayed behaviors now use the tick as a measure.
+        The speed of the game can change by the time between ticks.
+ 2. [TODO]
+    We need a configurator to store parameters like time between ticks.
