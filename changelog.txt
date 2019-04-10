@@ -161,3 +161,9 @@
         The speed of the game can change by the time between ticks.
  2. [TODO]
     We need a configurator to store parameters like time between ticks.
+----------------------------------------------------------------------------------------------------------------
+ (17) {10/04/2019 14:00} The ticker : Inaki
+ 1. [NEW]
+    Added the concept "Strategy". The idea is to encapsulate every Unit behaviour with a priority and a reaction to 
+        events. This events could be sent by the Tribe. It's still WIP but we can figure out what can be changed
+        or added.
