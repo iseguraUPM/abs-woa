@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
 import java.util.Stack;
+import java.util.logging.Logger;
 import javafx.util.Pair;
 
 // TODO: change docs
@@ -96,6 +97,65 @@ public class AgWorld extends Agent {
 
         startUnitCreationBehaviour();
         startMoveToCellBehaviour();
+    }
+    
+    private void initializeAgent() {
+        try {
+            // Creates its own description
+            DFAgentDescription dfd = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setName(this.getName());
+            sd.setType(WORLD);
+            dfd.addServices(sd);
+            // Registers its description in the DF
+            DFService.register(this, dfd);
+            log(Level.INFO, "registered in the DF");
+        } catch (FIPAException ex) {
+            log(Level.WARNING, "could not register in the DF (" + ex + ")");
+        }
+    }
+
+    private void initializeWorld() {
+        ontology = GameOntology.getInstance();
+        codec = new SLCodec();
+        getContentManager().registerLanguage(codec);
+        getContentManager().registerOntology(ontology);
+
+        worldMap = WorldMap.getInstance(3, 3);
+        tribeCollection = new HashSet<>();
+
+        activeTransactions = new ArrayList<>();
+
+        Tribe newTribe = launchAgentTribe("TribeA");
+        if (newTribe != null) {
+            handInitialTribeResources(newTribe);
+        }
+        
+        /*
+        newTribe = launchAgentTribe("TribeB");
+        if (newTribe != null) {
+            handInitialTribeResources(newTribe);
+        }
+        */
+    }
+    
+    @Override
+    protected void takeDown() {
+        finalizeAgent();
+        rollbackUnfinishedTransactions();
+    }
+    
+    private void rollbackUnfinishedTransactions() {
+        activeTransactions.forEach(t -> t.rollback());
+        activeTransactions.clear();
+    }
+    
+    private void finalizeAgent() {
+        try {
+            DFService.deregister(this);
+        } catch (FIPAException ex) {
+            log(Level.WARNING, "could not deregister in the DF (" + ex + ")");
+        }
     }
 
     private void startUnitCreationBehaviour() {
@@ -202,52 +262,6 @@ public class AgWorld extends Agent {
             }
             else return ((String)building.getType().get(0)).equals("TownHall");
         }
-    }
-    
-    private void initializeAgent() {
-        try {
-            // Creates its own description
-            DFAgentDescription dfd = new DFAgentDescription();
-            ServiceDescription sd = new ServiceDescription();
-            sd.setName(this.getName());
-            sd.setType(WORLD);
-            dfd.addServices(sd);
-            // Registers its description in the DF
-            DFService.register(this, dfd);
-            log(Level.INFO, "registered in the DF");
-        } catch (FIPAException ex) {
-            log(Level.WARNING, "could not register in the DF (" + ex + ")");
-        }
-    }
-
-    private void initializeWorld() {
-        ontology = GameOntology.getInstance();
-        codec = new SLCodec();
-        getContentManager().registerLanguage(codec);
-        getContentManager().registerOntology(ontology);
-
-        worldMap = WorldMap.getInstance(3, 3);
-        tribeCollection = new HashSet<>();
-
-        activeTransactions = new ArrayList<>();
-
-        Tribe newTribe = launchAgentTribe("TribeA");
-        if (newTribe != null) {
-            handInitialTribeResources(newTribe);
-        }
-        
-        /*
-        newTribe = launchAgentTribe("TribeB");
-        if (newTribe != null) {
-            handInitialTribeResources(newTribe);
-        }
-        */
-    }
-
-    // NOTE: will be used. Do not delete.
-    private void finalizeWorld() {
-        activeTransactions.forEach(t -> t.rollback());
-        activeTransactions.clear();
     }
 
     private Tribe launchAgentTribe(String tribeName) {
@@ -419,7 +433,6 @@ public class AgWorld extends Agent {
     }
     
     private void startMoveToCellBehaviour() {
-        // Behaviors
         //TODO The response ontology is not yet defined. It needs to be changed in the future. 
         Action createUnitAction = new Action(getAID(), new CreateUnit());
         addBehaviour(new Conversation(this, ontology, codec, createUnitAction, GameOntology.MOVETOCELL) {
@@ -491,6 +504,7 @@ public class AgWorld extends Agent {
                             respondMessage(message, ACLMessage.FAILURE);
                         }
                     });
+                    
                     respondMessage(message, ACLMessage.AGREE);
                     activeTransactions.add(moveTransaction);
                   

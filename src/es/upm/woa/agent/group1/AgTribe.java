@@ -48,7 +48,6 @@ public class AgTribe extends Agent {
     }
 
     private void startInformNewUnitBehaviour() {
-        // Behaviors
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
         addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
             @Override
@@ -88,7 +87,6 @@ public class AgTribe extends Agent {
     
     
     private void startInformNewCellDiscoveryBehaviour() {
-        // Behaviors
         Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
         addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
             @Override
