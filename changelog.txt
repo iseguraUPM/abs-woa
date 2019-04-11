@@ -167,3 +167,19 @@
     Added the concept "Strategy". The idea is to encapsulate every Unit behaviour with a priority and a reaction to 
         events. This events could be sent by the Tribe. It's still WIP but we can figure out what can be changed
         or added.
+----------------------------------------------------------------------------------------------------------------
+ (18) {11/04/2019 12:00} Graph map implementation : Inaki
+ 1. [NEW]
+    Changed the way tribe and unit store the map. Now is a complete directed graph. The graph is able to compute
+        Dijkstra to find the best path to the new cells as they are added.
+ 2. [NOTE]
+    The world still uses the set of cells and a much simpler implementation of the game map. That is because as 
+        the world there is no need to know the best paths between cells. And it will respond faster to requests.
+ 3. [REFACT]
+    Refactored the positioning of the units. After much thought I concluded that we must only alow square maps
+        with even length sides. This way the hexagon pattern can be naturally re-computed at the edges of the maps.
+ 4. [REMOVE]
+    Removed the TribeMap implementation. Even if we use relative positioning at the end, the graph map implementation
+        can be adapted.
+ 5. [FIX]
+    Added an easy way to filter log messages to system out form the agents.

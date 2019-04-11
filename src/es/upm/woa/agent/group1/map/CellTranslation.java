@@ -5,13 +5,11 @@
  */
 package es.upm.woa.agent.group1.map;
 
-import java.util.Arrays;
-
 /**
  *
  * @author ISU
  */
-class CellTraslation {
+class CellTranslation {
     
     public static final int [] DOWN = {2,0};
     public static final int [] UP = {-2,0};
@@ -25,7 +23,7 @@ class CellTraslation {
 
     private final int [] translationVector;
     
-    public CellTraslation(int [] translationVector) {
+    public CellTranslation(int [] translationVector) {
         this.translationVector = translationVector;
     }
     
@@ -38,4 +36,12 @@ class CellTraslation {
                 , cell.getYCoord() + translationVector[1]};
         
     }
+    
+    public CellTranslation generateInverse() {
+        int[] inverseVector = new int[]{translationVector[0] * -1
+                , translationVector[1] * -1};
+        
+        return new CellTranslation(inverseVector);
+    }
+    
 }

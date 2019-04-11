@@ -5,7 +5,6 @@
  */
 package es.upm.woa.agent.group1.map;
 
-import es.upm.woa.agent.group1.GameClock;
 import es.upm.woa.agent.group1.Unit;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
@@ -71,7 +70,8 @@ public class UnitCellPositioner {
      */
     public Transaction move(Agent agent, Unit unit, MapCell cell, UnitMovementHandler handler)
             throws IndexOutOfBoundsException {
-        if (!isCorrectPosition(unit.getCoordX(), unit.getCoordY())) {
+        if (!GameMapCoordinate.isCorrectPosition(worldMap.getWidth()
+                , worldMap.getHeight(), unit.getCoordX(), unit.getCoordY())) {
             throw new IndexOutOfBoundsException(unit.getId().getLocalName() +
                     " is at an incorrect position");
         }
@@ -130,14 +130,6 @@ public class UnitCellPositioner {
         movingUnits.remove(movingUnit);
     }
     
-    // This checks that a position is inside the borders and both coordinates are
-    // odd or both are even numbers.
-    private boolean isCorrectPosition(int x, int y) {
-        return x >= 1 && y >= 1
-                && x <= worldMap.getHeight() && y <= worldMap.getWidth()
-                && (x + y) % 2 == 0;
-    }
-    
     // NOTE: this assumes unit is in a correct position
     private boolean isAdjacent(Unit unit, MapCell cell) {
         int x1 = unit.getCoordX();
@@ -150,83 +142,21 @@ public class UnitCellPositioner {
         }
         
         for (int[] operator : POS_OPERATORS) {
-            int newX = x1 + operator[0];
-            int newY = y1 + operator[1];
+            int[] translatedPosition = GameMapCoordinate
+                    .applyTranslation(worldMap.getWidth(), worldMap.getHeight()
+                            , x1, y1, operator);
             
-            if (newX == x2 && newY == y2)
-                return true;
+            if (translatedPosition == null) {
+                // NOTE: should not reach
+                return false;
+            }
             
-            int[] correctedPos = correctPosition(newX, newY);
-            if (correctedPos[0] == x2 && correctedPos[1] == y2) {
+            if (translatedPosition[0] == x2 && translatedPosition[1] == y2) {
                 return true;
             }
         }
         
         return false;
-    }
-    
-    private int [] correctPosition(int x, int y) {
-        int[] pos = new int[] {x, y};
-        
-        if (x >= 1 && y >= 1
-                && x <= worldMap.getHeight() && y <= worldMap.getWidth()) {
-            return pos;
-        }
-        
-        // Case: position outside square map by the lower right corner
-        if (x > worldMap.getHeight() && y > worldMap.getWidth()) {
-            pos[0] = 1;
-            pos[1] = 1;
-            return pos;
-        }
-        
-        if (x < 1 && y % 2 == 0) {
-            pos[0] = closestLowerEven(worldMap.getHeight());
-        }
-        else if (x < 1) {
-            pos[0] = closestLowerOdd(worldMap.getHeight());
-        }
-        
-        if (x > worldMap.getHeight() && y % 2 == 0) {
-            pos[0] = 2;
-        }
-        if (x > worldMap.getHeight()) {
-            pos[0] = 1;
-        }
-        
-        if (y < 1 && x % 2 == 0) {
-            pos[1] = closestLowerEven(worldMap.getWidth());
-        }
-        else if (y < 1) {
-            pos[1] = closestLowerOdd(worldMap.getWidth());
-        }
-        
-        if (y > worldMap.getWidth() && x % 2 == 0) {
-            pos[1] = 2;
-        }
-        if (x > worldMap.getWidth()) {
-            pos[1] = 1;
-        }
-        
-        return pos;
-    }
-    
-    private int closestLowerEven(int number) {
-        if (number % 2 == 0) {
-            return number;
-        }
-        else {
-            return number - 1;
-        }
-    }
-    
-    private int closestLowerOdd(int number) {
-        if (number % 2 != 0) {
-            return number;
-        }
-        else {
-            return number - 1;
-        }
     }
     
     public interface UnitMovementHandler {

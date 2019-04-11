@@ -1,6 +1,7 @@
 package es.upm.woa.agent.group1;
  
 import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.GraphGameMap;
 
 import jade.core.AID;
 
@@ -25,7 +26,7 @@ public class Tribe {
     
     public Tribe(AID pId) {
         agentID = pId;
-        knownMap = new TribeMap();
+        knownMap = GraphGameMap.getInstance(6, 6);
         
         //TODO: define how many units of currentGold/food. By default 1000
         currentGold = 150;
