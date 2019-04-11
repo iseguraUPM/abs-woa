@@ -6,6 +6,7 @@ package es.upm.woa.agent.group1;
  * and open the template in the editor.
  */
 import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
@@ -25,7 +26,10 @@ import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 /**
  *
@@ -37,9 +41,13 @@ public class AgTribe extends Agent {
     private Codec codec;
     private Collection<Unit> units;
     private GameMap knownMap;
+    private Handler logHandler;
 
     @Override
-    protected void setup() {        
+    protected void setup() {       
+        logHandler = new ConsoleHandler();
+        logHandler.setLevel(Level.INFO);
+        
         initializeAgent();
         initializeTribe();
         
@@ -150,7 +158,7 @@ public class AgTribe extends Agent {
         getContentManager().registerOntology(ontology);
 
         units = new HashSet<>();
-        knownMap = new TribeMap();
+        knownMap = GraphGameMap.getInstance(3, 3);
     }
 
     public Ontology getOntology() {
@@ -171,7 +179,9 @@ public class AgTribe extends Agent {
     
     private void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
-        System.out.println(compMsg);
+        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
+            System.out.println(compMsg);
+        }
     }
 
 }

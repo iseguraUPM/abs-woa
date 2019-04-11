@@ -28,8 +28,11 @@ import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 
 /**
@@ -45,6 +48,8 @@ public class AgUnit extends Agent {
     private SLCodec codec;
     private DFAgentDescription worldAgentServiceDescription;
     
+    private Handler logHandler;
+
     /// NOTE: this methods must be package-private
     GameMap getKnownMap() {
         return knownMap;
@@ -65,6 +70,8 @@ public class AgUnit extends Agent {
 
     @Override
     protected void setup() {
+        logHandler = new ConsoleHandler();
+        logHandler.setLevel(Level.INFO);
         
         initializeAgent();
         initializeUnit();
@@ -282,7 +289,9 @@ public class AgUnit extends Agent {
     
     void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
-        System.out.println(compMsg);
+        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
+            System.out.println(compMsg);
+        }
     }
     
 }

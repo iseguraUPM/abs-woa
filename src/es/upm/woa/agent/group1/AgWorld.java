@@ -47,6 +47,9 @@ import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.NoSuchElementException;
 import java.util.Stack;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 import javafx.util.Pair;
 
 // TODO: change docs
@@ -78,9 +81,13 @@ public class AgWorld extends Agent {
     // TODO: temporal initial coordinates for testing purposes
     private Stack<Pair<Integer, Integer>> initialUnitCoordinates;
     
+    private Handler logHandler;
+    
     
     @Override
     protected void setup() {
+        logHandler = new ConsoleHandler();
+        logHandler.setLevel(Level.FINE);
         log(Level.INFO, "has entered the system");
 
         // TODO: temporal initial coordinates for testing purposes
@@ -521,6 +528,8 @@ public class AgWorld extends Agent {
     
     private void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
-        System.out.println(compMsg);
+        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
+            System.out.println(compMsg);
+        }
     }
 }

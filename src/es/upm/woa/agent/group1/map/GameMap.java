@@ -20,7 +20,8 @@ public interface GameMap {
     /**
      * Adds a map cell to the map
      * @param mapCell
-     * @return if the position was not occupied by an empty cell
+     * @return if the position was not occupied
+     * @throws IndexOutOfBoundsException if the coordinates exceed map bounds
      */
     public boolean addCell(MapCell mapCell);
     

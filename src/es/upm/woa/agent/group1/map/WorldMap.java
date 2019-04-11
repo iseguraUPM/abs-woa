@@ -5,11 +5,6 @@
  */
 package es.upm.woa.agent.group1.map;
 
-import es.upm.woa.ontology.Empty;
-
-import jade.content.Concept;
-import jade.core.AID;
-
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
@@ -43,11 +38,12 @@ public class WorldMap implements GameMap {
     
     /**
      * Generates a map structure with the coordinates of a matrix. The origin is
-     * at 1,1. The first coordinate raises DOWN of the origin. The second coordinate
-     * raises RIGHT of the origin. Both coordinates are always ODD or both EVEN.
+     * at [1,1] and the max coordinate is [height,width]. The first coordinate
+     * raises DOWN of the origin. The second coordinate raises RIGHT of the
+     * origin. Both coordinates are always ODD or both EVEN.
      * @param width of the map
      * @param height of the map
-     * @return 
+     * @return an instance
      */
     public static WorldMap getInstance(int width, int height) {
         if (width < 1 || height < 1) {
@@ -59,9 +55,15 @@ public class WorldMap implements GameMap {
         return newInstance;
     }
     
-    
     @Override
     public boolean addCell(MapCell mapCell) {
+        if (mapCell.getXCoord() < 1 || mapCell.getYCoord() < 1
+                || mapCell.getXCoord() > height || mapCell.getYCoord() > width) {
+            throw new IndexOutOfBoundsException("Coordinates ("
+                    + mapCell.getXCoord() + "," + mapCell.getYCoord()
+                    + ") exceed map dimensions");
+        }
+        
         int index = toAbsolutePosition(mapCell.getXCoord(), mapCell.getYCoord());
         
         if (mapCells.containsKey(index))
@@ -75,7 +77,7 @@ public class WorldMap implements GameMap {
     @Override
     public MapCell getCellAt(int x, int y) throws NoSuchElementException {
         if (x < 1 || y < 1 || x > height || y > width) {
-            throw new IndexOutOfBoundsException("Coordinates (" + x + "," + y
+            throw new NoSuchElementException("Coordinates (" + x + "," + y
                     + ") exceed map dimensions");
         }
         
@@ -97,37 +99,5 @@ public class WorldMap implements GameMap {
     public Iterable<MapCell> getKnownCellsIterable() {
         return mapCells.values();
     }
-    
-    private class EmptyMapCell implements MapCell {
-
-        private final int x;
-        private final int y;
-
-        public EmptyMapCell(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        public AID getOwner() {
-            return null;
-        }
-
-        @Override
-        public Concept getContent() {
-            return new Empty();
-        }
-
-        @Override
-        public int getXCoord() {
-            return x;
-        }
-
-        @Override
-        public int getYCoord() {
-            return y;
-        }
-        
-    }
-    
+   
 }
