@@ -6,6 +6,7 @@ package es.upm.woa.agent.group1;
  * and open the template in the editor.
  */
 import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
 import es.upm.woa.ontology.Cell;
@@ -43,7 +44,7 @@ public class AgUnit extends Agent {
 
     public static final String WORLD = "WORLD";
     
-    private GameMap knownMap;
+    private GraphGameMap knownMap;
     private Ontology ontology;
     private SLCodec codec;
     private DFAgentDescription worldAgentServiceDescription;
@@ -51,7 +52,7 @@ public class AgUnit extends Agent {
     private Handler logHandler;
 
     /// NOTE: this methods must be package-private
-    GameMap getKnownMap() {
+    GraphGameMap getKnownMap() {
         return knownMap;
     }
     

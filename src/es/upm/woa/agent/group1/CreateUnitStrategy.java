@@ -6,16 +6,19 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.strategy.Strategy;
 import es.upm.woa.agent.group1.strategy.StrategyEvent;
 import es.upm.woa.agent.group1.strategy.UnitEventDispatcher;
+import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -69,8 +72,22 @@ public class CreateUnitStrategy extends Strategy {
         
     }
     
-    private MapCell findNearestTownHall() {
-        GameMap knownMap = ((AgUnit) myAgent).getKnownMap();
+    private MapCell findNearestTownHall(MapCell source) {
+        GraphGameMap knownMap = ((AgUnit) myAgent).getKnownMap();
+        
+        knownMap.findShortestPathTo(source, new Predicate<MapCell>() {
+            @Override
+            public boolean test(MapCell t) {
+                if (t.getContent() instanceof Building) {
+                    Building building = (Building) t.getContent();
+                    
+                }
+                
+                return false;
+            }
+        });
+        
+        return null;
     }
     
     private void startCreateUnitBehaviour() {
