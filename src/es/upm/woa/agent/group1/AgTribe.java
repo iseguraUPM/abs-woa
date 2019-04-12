@@ -8,7 +8,11 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.map.MapCellFactory;
+import es.upm.woa.agent.group1.ontology.Group1Ontology;
+import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
+import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.Conversation;
+import es.upm.woa.ontology.Cell;
 
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewCellDiscovery;
@@ -21,6 +25,7 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
@@ -37,7 +42,8 @@ import java.util.logging.LogRecord;
  */
 public class AgTribe extends Agent {
     
-    private Ontology ontology;
+    private Ontology gameOntology;
+    private Ontology group1Ontology;
     private Codec codec;
     private Collection<Unit> units;
     private GameMap knownMap;
@@ -46,18 +52,19 @@ public class AgTribe extends Agent {
     @Override
     protected void setup() {       
         logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.INFO);
+        logHandler.setLevel(Level.FINE);
         
         initializeAgent();
         initializeTribe();
         
         startInformNewUnitBehaviour();
-        startInformNewCellDiscoveryBehaviour();
+        //startInformNewCellDiscoveryBehaviour();
+        //startWhereAmIBehaviour();
     }
 
     private void startInformNewUnitBehaviour() {
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
-        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
+        addBehaviour(new Conversation(this, gameOntology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -71,7 +78,7 @@ public class AgTribe extends Agent {
                                 Concept conc = agAction.getAction();
                                 
                                 if (conc instanceof NotifyNewUnit) {
-                                    log(Level.FINE, "receive NotifyNewUnit inform from "
+                                    log(Level.FINER, "receive NotifyNewUnit inform from "
                                         + response.getSender().getLocalName());
                                     NotifyNewUnit newUnitInfo = (NotifyNewUnit) conc;
                                     log(Level.FINE, "new unit created at " + 
@@ -93,10 +100,9 @@ public class AgTribe extends Agent {
         });
     }
     
-    
     private void startInformNewCellDiscoveryBehaviour() {
         Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
+        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -110,7 +116,7 @@ public class AgTribe extends Agent {
                                 Concept conc = agAction.getAction();
                                 
                                 if (conc instanceof NotifyNewCellDiscovery) {
-                                    log(Level.FINE, "received NotifyNewCellDiscovery inform from "
+                                    log(Level.FINER, "received NotifyNewCellDiscovery inform from "
                                         + response.getSender().getLocalName());
                                     NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
                                     
@@ -146,35 +152,80 @@ public class AgTribe extends Agent {
             }
         });
     }
+    
+    private void startWhereAmIBehaviour() {
+        final Action whereAmIAction = new Action(getAID(), new WhereAmI());
+        addBehaviour(new Conversation(this, group1Ontology, codec, whereAmIAction, Group1Ontology.WHEREAMI) {
+            @Override
+            public void onStart() {
+                listenMessages(new Conversation.ResponseHandler() {
+                    @Override
+                    public void onRequest(ACLMessage response) {
+                        log(Level.FINER, "received WhereAmI request from "
+                                        + response.getSender().getLocalName());
+                        
+                        
+                        AID senderAid = response.getSender();
+                        Unit requesterUnit = units.stream().filter(u -> u.getId()
+                                .equals(senderAid)).findAny().orElse(null);
+                        if (requesterUnit == null) {
+                            respondMessage(response, ACLMessage.REFUSE);
+                        }
+                        else {
+                            WhereAmI whereAmI = new WhereAmI();
+                            whereAmI.setXCoord(requesterUnit.getCoordX());
+                            whereAmI.setYCoord(requesterUnit.getCoordY());
+                            
+                            whereAmIAction.setAction(new WhereAmI());
+                            
+                            respondMessage(response, ACLMessage.INFORM);
+                        } 
+
+                    }
+
+                });
+            }
+        });
+    }
 
     private void initializeAgent() {
         
     }
 
     private void initializeTribe() {
-        ontology = GameOntology.getInstance();
+        gameOntology = GameOntology.getInstance();
+        group1Ontology = Group1Ontology.getInstance();
         codec = new SLCodec();
         getContentManager().registerLanguage(codec);
-        getContentManager().registerOntology(ontology);
+        getContentManager().registerOntology(gameOntology);
+        getContentManager().registerOntology(group1Ontology);
 
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance(3, 3);
     }
 
-    public Ontology getOntology() {
-        return ontology;
+    private void addUnit(NotifyNewUnit newUnitInfo) {
+        Unit newUnit = new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY());
+        units.add(newUnit);
+        informNewUnitOwnership(newUnit);
     }
-
-    public Codec getCodec() {
-        return codec;
-    }
-
-    public void addUnit(NotifyNewUnit newUnitInfo) {
-        units.add(new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY()));
-    }
-    
-    public GameMap getKnownMap() {        
-        return knownMap;
+        
+    private void informNewUnitOwnership(Unit unit) {
+        Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
+        addBehaviour(new Conversation(this, group1Ontology, codec, informOwnershipAction
+                , Group1Ontology.NOTIFYUNITOWNERSHIP) {
+            @Override
+            public void onStart() {
+                sendMessage(unit.getId(), ACLMessage.INFORM
+                        , new Conversation.SentMessageHandler() {
+                    @Override
+                    public void onSent(String conversationID) {
+                        log(Level.FINE, "Informed unit " + unit.getId().getLocalName() + " of ownership");
+                    }
+                    
+                });
+            }
+        });
     }
     
     private void log(Level logLevel, String message) {

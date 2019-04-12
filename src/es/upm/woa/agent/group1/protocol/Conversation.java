@@ -102,12 +102,11 @@ public abstract class Conversation extends SimpleBehaviour {
                 ACLMessage newMsg = message.createReply();
                 newMsg.setPerformative(performative);
 
-                // TODO: check if we need to setcontent on responses
-                /*try {
+                try {
                     myAgent.getContentManager().fillContent(newMsg, action);
                 } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(Conversation.class.getName()).log(Level.SEVERE, null, ex);
-                }*/
+                    Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
+                }
 
                 myAgent.send(newMsg);
             }

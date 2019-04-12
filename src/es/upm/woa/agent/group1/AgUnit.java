@@ -5,9 +5,11 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.ontology.Group1Ontology;
+import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
+import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
 import es.upm.woa.ontology.Cell;
@@ -30,6 +32,7 @@ import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
+import java.security.acl.Group;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 
@@ -46,10 +49,12 @@ public class AgUnit extends Agent {
     public static final String WORLD = "WORLD";
     
     private GraphGameMap knownMap;
-    private Ontology ontology;
+    private Ontology gameOntology;
+    private Ontology group1Ontology;
     private SLCodec codec;
     private DFAgentDescription worldAgentServiceDescription;
     private MapCell currentPosition;
+    private AID ownerTribe;
     
     private Handler logHandler;
 
@@ -59,7 +64,7 @@ public class AgUnit extends Agent {
     }
     
     Ontology getOntology() {
-        return ontology;
+        return gameOntology;
     }
     
     Codec getCodec() {
@@ -73,12 +78,17 @@ public class AgUnit extends Agent {
     MapCell currentPosition() {
         return currentPosition;
     }
+    
+    AID getOwnerAID() {
+        return ownerTribe;
+    }
+    
     /// !NOTE
 
     @Override
     protected void setup() {
         logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.INFO);
+        logHandler.setLevel(Level.FINE);
         
         initializeAgent();
         initializeUnit();
@@ -87,9 +97,10 @@ public class AgUnit extends Agent {
             return;
         }
         
-        startCreateUnitBehaviour();
-        startMoveToCellBehaviour();
-        startInformNewCellDiscoveryBehaviour();
+        startInformOwnershipBehaviour();
+        //startCreateUnitBehaviour();
+        //startMoveToCellBehaviour();
+        //startInformNewCellDiscoveryBehaviour();
     }
 
     private void initializeAgent() {
@@ -112,16 +123,18 @@ public class AgUnit extends Agent {
         }  
     }
 
-    private void initializeUnit()  {
-        ontology = GameOntology.getInstance();
+    private void initializeUnit() {
+        gameOntology = GameOntology.getInstance();
+        group1Ontology = Group1Ontology.getInstance();
         codec = new SLCodec();
         getContentManager().registerLanguage(codec);
-        getContentManager().registerOntology(ontology);
+        getContentManager().registerOntology(gameOntology);
+        getContentManager().registerOntology(group1Ontology);
     }
     
-    private void startCreateUnitBehaviour(){
+    private void startCreateUnitBehaviour() {
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, GameOntology.CREATEUNIT) {
+        addBehaviour(new Conversation(this, gameOntology, codec, createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
                 AID worldAID = (AID) worldAgentServiceDescription.getName();
@@ -136,7 +149,7 @@ public class AgUnit extends Agent {
 
                             @Override
                             public void onAgree(ACLMessage response) {
-                                log(Level.FINE, "received CreateUnit agree from "
+                                log(Level.FINER, "received CreateUnit agree from "
                                         + response.getSender().getLocalName());
 
                                 receiveResponse(conversationID, new Conversation.ResponseHandler() {
@@ -149,7 +162,7 @@ public class AgUnit extends Agent {
 
                                     @Override
                                     public void onInform(ACLMessage response) {
-                                        log(Level.FINE, "received CreateUnit inform from "
+                                        log(Level.FINER, "received CreateUnit inform from "
                                         + response.getSender().getLocalName());
                                     }
 
@@ -177,7 +190,7 @@ public class AgUnit extends Agent {
         });
     }
     
-    private void startMoveToCellBehaviour(){
+    private void startMoveToCellBehaviour() {
         
         Cell newCellPosition = new Cell();
         //TODO by default 0,0
@@ -188,7 +201,7 @@ public class AgUnit extends Agent {
         moveToCell.setTarget(newCellPosition);
         
         Action moveToCellAction = new Action(getAID(), moveToCell);
-        addBehaviour(new Conversation(this, ontology, codec, moveToCellAction, GameOntology.MOVETOCELL){
+        addBehaviour(new Conversation(this, gameOntology, codec, moveToCellAction, GameOntology.MOVETOCELL){
             
 
             @Override
@@ -207,7 +220,7 @@ public class AgUnit extends Agent {
 
                             @Override
                             public void onAgree(ACLMessage response) {
-                                log(Level.FINE, "receive MoveToCell agree from "
+                                log(Level.FINER, "receive MoveToCell agree from "
                                         + response.getSender().getLocalName());
 
                                 receiveResponse(conversationID, new Conversation.ResponseHandler() {
@@ -221,7 +234,7 @@ public class AgUnit extends Agent {
                                     @Override
                                     public void onInform(ACLMessage response) {
                                         
-                                        log(Level.FINE, "receive MoveToCell inform from "
+                                        log(Level.FINER, "receive MoveToCell inform from "
                                         + response.getSender().getLocalName());
                                         
                                         log(Level.FINE,  "moved to cell "
@@ -251,12 +264,10 @@ public class AgUnit extends Agent {
         });
     }
     
-    
-    
     private void startInformNewCellDiscoveryBehaviour() {
         // Behaviors
         Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
+        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -270,16 +281,16 @@ public class AgUnit extends Agent {
                                 Concept conc = agAction.getAction();
                                 
                                 if (conc instanceof NotifyNewCellDiscovery) {
-                                    log(Level.FINE, "receive NotifyNewCellDiscovery inform from "
+                                    log(Level.FINER, "receive NotifyNewCellDiscovery inform from "
                                         + response.getSender().getLocalName());
                                     
                                     NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
-                                    /*
+                                    
                                     log(Level.FINER, "cell discovery at "
                                             + newCellInfo.getNewCell().getX()
                                             + ","
                                             + newCellInfo.getNewCell().getY());
-                                    */
+                                    
                                 }
                             }
                         } catch (Codec.CodecException | OntologyException ex) {
@@ -289,6 +300,36 @@ public class AgUnit extends Agent {
 
                     }
 
+                });
+            }
+        });
+    }
+    
+    private void requestUnitPosition() {
+        final Action whereAmIAction = new Action(getAID(), new WhereAmI());
+        addBehaviour(new Conversation(this, group1Ontology, codec, whereAmIAction, Group1Ontology.WHEREAMI) {
+            @Override
+            public void onStart() {
+                sendMessage(new AID(), ACLMessage.REQUEST, new SentMessageHandler() {
+                    // TODO: complete
+                });
+            }
+        });
+    }
+    
+    private void startInformOwnershipBehaviour() {
+        Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
+        addBehaviour(new Conversation(this, group1Ontology, codec, informOwnershipAction
+                , Group1Ontology.NOTIFYUNITOWNERSHIP) {
+            @Override
+            public void onStart() {
+                listenMessages(new ResponseHandler() {
+                    @Override
+                    public void onInform(ACLMessage response) {
+                        log(Level.FINE, "Registered owner tribe: "
+                                + response.getSender().getLocalName());
+                        ownerTribe = response.getSender();
+                    }
                 });
             }
         });

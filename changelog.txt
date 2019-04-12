@@ -183,3 +183,17 @@
         can be adapted.
  5. [FIX]
     Added an easy way to filter log messages to system out form the agents.
+----------------------------------------------------------------------------------------------------------------
+ (19) {12/04/2019 14:00} Group 1 Ontology : Inaki
+ 1. [NEW]
+    Added new ontology for Group1. I needed a couple of new protocols between AgUnit and AgTribe.
+        I used protege 3.5 :  https://protege.stanford.edu/download/protege/3.5/installanywhere/Web_Installers/
+        TWhe protege files are in ./docs
+ 2. [NEW]
+    New protocol NotifyUnitOwnership so that the unit knows the tribe AID once its created.
+ 3. [NEW]
+    New protcol WhereAmI so that the unit can ask the tribe where is currently situated.
+ 4. [TODO]
+    The WhereAmI protocol implementation is not complete. Should be used on demand whenever the unit wants
+        to know the position.
+----------------------------------------------------------------------------------------------------------------
