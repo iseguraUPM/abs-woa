@@ -7,6 +7,7 @@ package es.upm.woa.agent.group1;
  */
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.GraphGameMap;
+import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
 import es.upm.woa.ontology.Cell;
@@ -48,6 +49,7 @@ public class AgUnit extends Agent {
     private Ontology ontology;
     private SLCodec codec;
     private DFAgentDescription worldAgentServiceDescription;
+    private MapCell currentPosition;
     
     private Handler logHandler;
 
@@ -66,6 +68,10 @@ public class AgUnit extends Agent {
     
     AID getWorldAID() {
         return worldAgentServiceDescription.getName();
+    }
+    
+    MapCell currentPosition() {
+        return currentPosition;
     }
     /// !NOTE
 
