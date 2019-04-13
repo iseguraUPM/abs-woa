@@ -1,4 +1,4 @@
-; Fri Apr 12 14:09:00 CEST 2019
+; Fri Apr 12 16:14:42 CEST 2019
 ; 
 ;+ (version "3.5")
 ;+ (build "Build 663")
@@ -19,10 +19,11 @@
 
 ([BROWSER_SLOT_NAMES] of  Property_List
 
-	(properties [group1_ontology_ProjectKB_Class268]))
+	(properties [group1_ontology_ProjectKB_Class269]))
 
 ([CLSES_TAB] of  Widget
 
+	(is_hidden FALSE)
 	(widget_class_name "edu.stanford.smi.protege.widget.ClsesTab"))
 
 ([CREATION_TIMESTAMP_WIDGET] of  Widget
@@ -35,6 +36,7 @@
 
 ([FORMS_TAB] of  Widget
 
+	(is_hidden FALSE)
 	(widget_class_name "edu.stanford.smi.protege.widget.FormsTab"))
 
 ([group1_ontology_ProjectKB_Class103] of  String
@@ -142,7 +144,7 @@
 
 ([group1_ontology_ProjectKB_Class214] of  Widget
 
-	(is_hidden TRUE)
+	(is_hidden FALSE)
 	(property_list [group1_ontology_ProjectKB_Class215])
 	(widget_class_name "nl.uva.psy.swi.beangenerator.OntologyBeanGeneratorTab"))
 
@@ -383,7 +385,7 @@
 ([group1_ontology_ProjectKB_Class267] of  Property_List
 )
 
-([group1_ontology_ProjectKB_Class268] of  String
+([group1_ontology_ProjectKB_Class269] of  String
 
 	(name ":INSTANCE-ANNOTATION")
 	(string_value "%3AANNOTATION-TEXT"))
@@ -409,6 +411,7 @@
 
 ([INSTANCES_TAB] of  Widget
 
+	(is_hidden FALSE)
 	(widget_class_name "edu.stanford.smi.protege.widget.InstancesTab"))
 
 ([KB_991889_Class188] of  Map
@@ -551,6 +554,7 @@
 	(display_hidden_classes TRUE)
 	(display_multi_parent_class_icon TRUE)
 	(is_readonly FALSE)
+	(tabbed_instance_form_layout FALSE)
 	(undo_enabled TRUE)
 	(update_modification_slots FALSE))
 
@@ -631,6 +635,7 @@
 	(default_instance_widget_class_name "edu.stanford.smi.protege.widget.FormWidget")
 	(default_slot_metaclass ":STANDARD-SLOT")
 	(included_projects "SimpleJADEAbstractOntology/SimpleJADEAbstractOntology.pprj")
+	(journaling_enabled FALSE)
 	(next_frame_number 0)
 	(options [option_instance])
 	(property_map [KB_992458_Class1])
@@ -640,15 +645,55 @@
 		[SLOTS_TAB]
 		[FORMS_TAB]
 		[INSTANCES_TAB]
-		[QUERIES_TAB]))
+		[QUERIES_TAB]
+		[group1_ontology_ProjectKB_Class250]
+		[group1_ontology_ProjectKB_Class232]
+		[group1_ontology_ProjectKB_Class208]
+		[group1_ontology_ProjectKB_Class264]
+		[group1_ontology_ProjectKB_Class228]
+		[group1_ontology_ProjectKB_Class260]
+		[group1_ontology_ProjectKB_Class242]
+		[group1_ontology_ProjectKB_Class230]
+		[group1_ontology_ProjectKB_Class248]
+		[group1_ontology_ProjectKB_Class210]
+		[group1_ontology_ProjectKB_Class212]
+		[group1_ontology_ProjectKB_Class206]
+		[group1_ontology_ProjectKB_Class244]
+		[group1_ontology_ProjectKB_Class214]
+		[group1_ontology_ProjectKB_Class200]
+		[group1_ontology_ProjectKB_Class240]
+		[group1_ontology_ProjectKB_Class192]
+		[group1_ontology_ProjectKB_Class220]
+		[group1_ontology_ProjectKB_Class218]
+		[group1_ontology_ProjectKB_Class196]
+		[group1_ontology_ProjectKB_Class256]
+		[group1_ontology_ProjectKB_Class216]
+		[group1_ontology_ProjectKB_Class236]
+		[group1_ontology_ProjectKB_Class262]
+		[group1_ontology_ProjectKB_Class234]
+		[group1_ontology_ProjectKB_Class246]
+		[group1_ontology_ProjectKB_Class254]
+		[group1_ontology_ProjectKB_Class258]
+		[group1_ontology_ProjectKB_Class266]
+		[group1_ontology_ProjectKB_Class194]
+		[group1_ontology_ProjectKB_Class202]
+		[group1_ontology_ProjectKB_Class226]
+		[group1_ontology_ProjectKB_Class222]
+		[group1_ontology_ProjectKB_Class238]
+		[group1_ontology_ProjectKB_Class252]
+		[group1_ontology_ProjectKB_Class198]
+		[group1_ontology_ProjectKB_Class224]
+		[group1_ontology_ProjectKB_Class204]))
 
 ([QUERIES_TAB] of  Widget
 
+	(is_hidden FALSE)
 	(property_list [KB_992458_Class100])
 	(widget_class_name "edu.stanford.smi.protegex.queries_tab.QueriesTab"))
 
 ([SLOTS_TAB] of  Widget
 
+	(is_hidden FALSE)
 	(widget_class_name "edu.stanford.smi.protege.widget.SlotsTab"))
 
 ([SOURCES] of  Property_List
