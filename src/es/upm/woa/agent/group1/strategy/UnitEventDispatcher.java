@@ -14,14 +14,14 @@ import java.util.Collection;
  */
 public class UnitEventDispatcher implements StrategyEventDispatcher {
     
-    private final Collection<Strategy> subscribers;
+    private final Collection<StrategyEventListener> subscribers;
     
     public UnitEventDispatcher() {
         subscribers = new ArrayList<>();
     }
     
     @Override
-    public void subscribe(Strategy subscriber) {
+    public void subscribe(StrategyEventListener subscriber) {
         subscribers.add(subscriber);
     }
     

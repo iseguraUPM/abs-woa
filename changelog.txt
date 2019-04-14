@@ -197,3 +197,18 @@
     The WhereAmI protocol implementation is not complete. Should be used on demand whenever the unit wants
         to know the position.
 ----------------------------------------------------------------------------------------------------------------
+ (20) {14/04/2019 12:30} Create unit strategy : Inaki
+ 1. [COMPLETE]
+    Completed the create unit strategy. The strategy first follows the shortest path to the closest town hall
+        and then requests a new unit. When complete, it lowers priority to the minimum so the WaitStrategy takes
+        its place. This can be changed in the future to work with something else than priorities for
+         "one-shot" strategies, maybe this strategies can be triggered and then they are deleted.
+ 2. [BUG]
+    When creating a second unit with some uncovered map, the unit does not know about previously discovered map.
+        Maybe the solution is to stream the tribe map to the new units. Or, to delegate the map just to the tribe, thus
+        the units will have to ask every time for directions.
+ 3. [TODO]
+    The building ontology must be fixed to allow only one type of building.
+ 4. [TODO]
+    The Unit structure in AgWorld and AgTribe could use a MapCell reference instead of a 
+        coordinate position.

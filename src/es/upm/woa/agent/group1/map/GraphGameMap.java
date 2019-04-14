@@ -82,7 +82,7 @@ public class GraphGameMap implements GameMap {
         
         if (targetCell == null) {
             throw new NoSuchElementException("Cell " + x + "," + y + " is not located"
-                    + "in the map");
+                    + " in the map");
         }
         
         return targetCell;

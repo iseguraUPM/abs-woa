@@ -37,8 +37,12 @@ public abstract class FollowPathBehaviour extends Behaviour {
 
     @Override
     public final void onStart() {
-        if (path.isEmpty() || path.size() == 1) {
+        if (path.isEmpty()) {
+            
             onMoveErrorImpl("Path is empty");
+            finished = true;
+        } else if (path.size() == 1) {
+            onArrived(path.get(0));
             finished = true;
         } else {
             currentCell = path.get(0);
@@ -48,18 +52,21 @@ public abstract class FollowPathBehaviour extends Behaviour {
 
     @Override
     public final void action() {
-        step();
+        if (!finished) {
+            step();
+        }
+        block();
     }
 
     private void step() {
         next++;
-        if (next >= path.size()) {
-            finished = true;
-            onArrived(currentCell);
-        }
-        else {
+        if (next < path.size()) {
             MapCell targetCell = path.get(next);
             launchMoveConversation(targetCell);
+        }
+        else {
+            finished = true;
+            onArrived(currentCell);
         }
     }
 
@@ -102,7 +109,9 @@ public abstract class FollowPathBehaviour extends Behaviour {
                                                 + targetCell.getXCoord() + ","
                                                 + targetCell.getYCoord());
 
-                                        if (currentCell != path.get(path.size()-1)) {
+                                        currentCell = targetCell;
+                                        if (!path.isEmpty()
+                                                && currentCell != path.get(path.size()-1)) {
                                             onStep(currentCell);
                                         }
                                         

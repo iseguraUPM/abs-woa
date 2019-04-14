@@ -18,15 +18,14 @@ import java.util.List;
  *
  * @author ISU
  */
-public class StrategicUnitBehaviour extends SerialBehaviour {
- 
-    private final static int LOW_PRIORITY = 9999;
+public final class StrategicUnitBehaviour extends SerialBehaviour {
     
     private final List<Strategy> strategyList;
     
     public StrategicUnitBehaviour(AgUnit agentUnit) {
         super(agentUnit);
         strategyList = new ArrayList<>();
+        strategyList.add(new WaitStrategy(myAgent));
     }
     
     public void addStrategy(Strategy strategy) {
@@ -41,7 +40,7 @@ public class StrategicUnitBehaviour extends SerialBehaviour {
     @Override
     protected void scheduleNext(boolean currentDone, int currentResult) {
         if (currentDone) {
-            getCurrent().reset();
+            getCurrentStrategy().reset();
             strategyList.sort(new StrategyComparator());
         }
     }
@@ -50,14 +49,14 @@ public class StrategicUnitBehaviour extends SerialBehaviour {
     protected boolean checkTermination(boolean currentDone, int currentResult) {
         return false;
     }
+    
+    private Strategy getCurrentStrategy() {
+        return strategyList.get(0);
+    }
 
     @Override
     protected Behaviour getCurrent() {
-        if (strategyList.isEmpty()) {
-            strategyList.add(new WaitStrategy(myAgent));
-        }
-        
-        return strategyList.get(0);
+        return getCurrentStrategy();
     }
 
     @Override

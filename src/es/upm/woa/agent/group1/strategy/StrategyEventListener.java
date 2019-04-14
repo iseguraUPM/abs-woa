@@ -9,10 +9,8 @@ package es.upm.woa.agent.group1.strategy;
  *
  * @author ISU
  */
-public interface StrategyEventDispatcher {
+public interface StrategyEventListener {
     
-    void subscribe(StrategyEventListener subscriber);
-    
-    void dispatch(StrategyEvent event);
+    void onEvent(StrategyEvent event);
     
 }

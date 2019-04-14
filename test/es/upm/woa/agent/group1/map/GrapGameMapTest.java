@@ -45,6 +45,17 @@ public class GrapGameMapTest {
     }
     
     @Test
+    public void findSameShortestPathTest() {
+        MapCell source = new EmptyMapCell(1, 1);
+        
+        gameMap.addCell(source);
+        
+        List<MapCell> shortestPath = gameMap.findShortestPath(source, source);
+        
+        assertEquals(shortestPath, Arrays.asList(new MapCell[]{source}));
+    }
+    
+    @Test
     public void findSimpleShortestPathTest() {
         MapCell source = new EmptyMapCell(1, 1);
         MapCell target = new EmptyMapCell(2, 2);

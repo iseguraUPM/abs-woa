@@ -12,11 +12,13 @@ import jade.core.Agent;
  * @author ISU
  */
 class WaitStrategy extends Strategy {
+    
+    private static final int WAIT_PRIORITY = LOW_PRIORITY - 10;
 
     public WaitStrategy(Agent agent) {
         super(agent, new StrategyEventDispatcher() {
             @Override
-            public void subscribe(Strategy subscriber) {
+            public void subscribe(StrategyEventListener subscriber) {
 
             }
 
@@ -25,6 +27,7 @@ class WaitStrategy extends Strategy {
 
             }
         });
+     
     }
 
     @Override
@@ -34,12 +37,12 @@ class WaitStrategy extends Strategy {
 
     @Override
     public boolean done() {
-        return false;
+        return true;
     }
 
     @Override
     public int getPriority() {
-        return LOW_PRIORITY;
+        return WAIT_PRIORITY;
     }
 
     @Override
@@ -47,13 +50,13 @@ class WaitStrategy extends Strategy {
     }
 
     @Override
-    public void onStart() {
-
+    protected void resetStrategy() {
+        
     }
 
     @Override
-    public int onEnd() {
-        return 0;
+    public void onStart() {
+        
     }
 
 }

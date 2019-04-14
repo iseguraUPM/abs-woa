@@ -12,7 +12,6 @@ import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.Conversation;
-import es.upm.woa.ontology.Cell;
 
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewCellDiscovery;
@@ -52,14 +51,14 @@ public class AgTribe extends Agent {
     @Override
     protected void setup() {       
         logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.FINE);
+        logHandler.setLevel(Level.FINER);
         
         initializeAgent();
         initializeTribe();
         
         startInformNewUnitBehaviour();
-        //startInformNewCellDiscoveryBehaviour();
-        //startWhereAmIBehaviour();
+        startInformNewCellDiscoveryBehaviour();
+        startWhereAmIBehaviour();
     }
 
     private void startInformNewUnitBehaviour() {
@@ -176,7 +175,7 @@ public class AgTribe extends Agent {
                             whereAmI.setXCoord(requesterUnit.getCoordX());
                             whereAmI.setYCoord(requesterUnit.getCoordY());
                             
-                            whereAmIAction.setAction(new WhereAmI());
+                            whereAmIAction.setAction(whereAmI);
                             
                             respondMessage(response, ACLMessage.INFORM);
                         } 

@@ -9,6 +9,7 @@ package es.upm.woa.agent.group1;
  */
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
 import es.upm.woa.agent.group1.map.WorldMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -38,6 +39,7 @@ import jade.wrapper.StaleProxyException;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.OntologyException;
+import jade.util.leap.List;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -66,7 +68,7 @@ public class AgWorld extends Agent {
 
     public static final String WORLD = "WORLD";
 
-    private static final int STARTING_UNIT_NUMBER = 3;
+    private static final int STARTING_UNIT_NUMBER = 1;
     private static final int CREATE_UNIT_TICKS = 150;
     
     private static final long serialVersionUID = 1L;
@@ -134,6 +136,36 @@ public class AgWorld extends Agent {
         activeTransactions = new ArrayList<>();
 
         Tribe newTribe = launchAgentTribe("TribeA");
+
+        
+        // TODO: temp
+        final Building building = new Building();
+        building.setOwner(newTribe.getAID());
+        building.addType("TownHall");
+        
+        // TODO: temp
+        worldMap.addCell(new MapCell() {
+            @Override
+            public AID getOwner() {
+                return new AID();
+            }
+
+            @Override
+            public Concept getContent() {
+                return building;
+            }
+
+            @Override
+            public int getXCoord() {
+                return 3;
+            }
+
+            @Override
+            public int getYCoord() {
+                return 3;
+            }
+        });
+        
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
@@ -267,6 +299,7 @@ public class AgWorld extends Agent {
             else if (!building.getOwner().equals(tribe.getAID())) {
                 return false;
             }
+            // TODO: fix ontology
             else return ((String)building.getType().get(0)).equals("TownHall");
         }
     }
@@ -359,7 +392,6 @@ public class AgWorld extends Agent {
         
         
         //TODO this shouldn't be mandatory
-        cell.setOwner(this.getAID());
         notifyNewUnit.setLocation(cell);
         notifyNewUnit.setNewUnit(newUnit.getId());
 
@@ -368,11 +400,19 @@ public class AgWorld extends Agent {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
+                    
                 });
             }
         });
-        
-        processTribeKnownCell(ownerTribe, cell);
+       
+        try {
+            MapCell discoveredCell = worldMap.getCellAt(cell.getX(), cell.getY());
+            cell.setContent(discoveredCell.getContent());
+            processTribeKnownCell(ownerTribe, cell);
+        }
+        catch (NoSuchElementException ex) {
+            log(Level.WARNING, "Unit in unknown starting position (" + ex + ")");
+        }
     }
 
     private void processTribeKnownCell(Tribe ownerTribe, Cell cell) {
@@ -499,6 +539,7 @@ public class AgWorld extends Agent {
                             Cell newCell = new Cell();
                             newCell.setX(mapCell.getXCoord());
                             newCell.setY(mapCell.getYCoord());
+                            newCell.setContent(mapCell.getContent());
 
                             
                             respondMessage(message, ACLMessage.INFORM);
