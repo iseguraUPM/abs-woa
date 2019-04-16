@@ -282,9 +282,9 @@ public class AgWorld extends Agent {
         try {
             MapCell mapCell = worldMap.getCellAt(requester.getCoordX(),
                                     requester.getCoordY());
-            return thereIsATownHall(mapCell, tribe);
+            return tribe.canAffordUnit() && thereIsATownHall(mapCell, tribe);
         }
-        catch (IndexOutOfBoundsException ex) {
+        catch (NoSuchElementException ex) {
             return false;
         }                   
     }

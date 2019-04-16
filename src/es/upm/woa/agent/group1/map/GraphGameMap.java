@@ -102,7 +102,7 @@ public class GraphGameMap implements GameMap {
      */
     public List<MapCell> findShortestPath(MapCell source, MapCell target) {
         if (dijkstraShortestPath == null) {
-            return new ArrayList<>();
+            updateDijskstraPath();
         }
         
         GraphPath<MapCell, CellTranslation> shortestPath
@@ -129,6 +129,10 @@ public class GraphGameMap implements GameMap {
         
         if (availableCells.isEmpty()) {
             return new ArrayList<>();
+        }
+        
+        if (dijkstraShortestPath == null) {
+            updateDijskstraPath();
         }
         
         ShortestPathAlgorithm.SingleSourcePaths<MapCell, CellTranslation> paths

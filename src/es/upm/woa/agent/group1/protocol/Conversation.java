@@ -51,7 +51,7 @@ public abstract class Conversation extends SimpleBehaviour {
      */
     protected void sendMessage(AID[] receivers, int performative, SentMessageHandler handler) {
 
-        myAgent.addBehaviour(new OneShotBehaviour() {
+        myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
             @Override
             public void action() {
 
@@ -95,7 +95,7 @@ public abstract class Conversation extends SimpleBehaviour {
      * @param performative 
      */
     protected void respondMessage(ACLMessage message, int performative) {
-        myAgent.addBehaviour(new OneShotBehaviour() {
+        myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
             @Override
             public void action() {
 

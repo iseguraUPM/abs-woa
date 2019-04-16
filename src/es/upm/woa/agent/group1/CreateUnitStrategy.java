@@ -54,7 +54,7 @@ public class CreateUnitStrategy extends Strategy {
 
     @Override
     public void action() {
-        
+        block();
     }
     
      private void createUnit() {
@@ -89,6 +89,9 @@ public class CreateUnitStrategy extends Strategy {
     
     @Override
     public void onStart() {
+        AgUnit myAgUnit = (AgUnit) myAgent;
+        myAgUnit.log(Level.FINE, 
+                "starting create unit strategy");
         moveToNearestTownHall(new OnArrivedToTownHallHandler() {
             @Override
             public void onArrivedToTownHall() {

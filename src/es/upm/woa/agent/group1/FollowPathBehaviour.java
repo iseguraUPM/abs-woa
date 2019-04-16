@@ -12,7 +12,7 @@ import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 
 import jade.content.onto.basic.Action;
-import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-public abstract class FollowPathBehaviour extends Behaviour {
+public abstract class FollowPathBehaviour extends SimpleBehaviour {
 
     private final List<MapCell> path;
     private MapCell currentCell;
@@ -38,23 +38,19 @@ public abstract class FollowPathBehaviour extends Behaviour {
     @Override
     public final void onStart() {
         if (path.isEmpty()) {
-            
             onMoveErrorImpl("Path is empty");
-            finished = true;
         } else if (path.size() == 1) {
-            onArrived(path.get(0));
             finished = true;
+            onArrived(path.get(0));
         } else {
             currentCell = path.get(0);
             next = 0;
-        }
-    }
-
-    @Override
-    public final void action() {
-        if (!finished) {
             step();
         }
+    }
+    
+    @Override
+    public void action() {
         block();
     }
 
