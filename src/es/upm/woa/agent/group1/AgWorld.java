@@ -9,7 +9,6 @@ package es.upm.woa.agent.group1;
  */
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
 import es.upm.woa.agent.group1.map.WorldMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -39,7 +38,6 @@ import jade.wrapper.StaleProxyException;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.OntologyException;
-import jade.util.leap.List;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -234,6 +232,11 @@ public class AgWorld extends Agent {
                         = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
 
                     boolean finished = false;
+                    
+                    @Override
+                    public boolean done() {
+                        return finished;
+                    }
 
                     @Override
                     public void commit() {
@@ -525,6 +528,7 @@ public class AgWorld extends Agent {
                     log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " already moving. Cannot move again");
                     respondMessage(message, ACLMessage.REFUSE);
+                    return;
                 }
                                 
                 try {

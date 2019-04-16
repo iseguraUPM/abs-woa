@@ -6,6 +6,7 @@
 package es.upm.woa.agent.group1.map;
 
 import es.upm.woa.agent.group1.Unit;
+import static es.upm.woa.agent.group1.map.CellTranslation.POS_OPERATORS;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
 
@@ -26,9 +27,6 @@ public class UnitCellPositioner {
     
     private final WorldMap worldMap;
     private final Set<Unit> movingUnits;
-    
-    private final static int[][] POS_OPERATORS =
-    {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {2, 0}, {0, 2}};
     
     private UnitCellPositioner(WorldMap worldMap) {
         this.worldMap = worldMap;
@@ -98,6 +96,11 @@ public class UnitCellPositioner {
                 new DelayedTransactionalBehaviour(agent, UNIT_MOVE_TICKS) {
             
             boolean finished;
+            
+            @Override
+            public boolean done() {
+                return finished;
+            }
             
             @Override
             public void commit() {
