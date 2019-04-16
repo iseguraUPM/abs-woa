@@ -212,3 +212,10 @@
  4. [TODO]
     The Unit structure in AgWorld and AgTribe could use a MapCell reference instead of a 
         coordinate position.
+----------------------------------------------------------------------------------------------------------------
+ (21) {16/04/2019 18:40} Tribe known cell informing new units : Inaki
+ 1. [NEW]
+    Now the tribe informs the newly created unit of all the cells known to the
+        tribe. For now it reuses the NotifyNewlyDiscoveredCell protocol.
+ 2. [NOTE] ref [NEW 21.1]
+    This potentially sends a lot of messages. One for every known cell.
