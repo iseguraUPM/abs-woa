@@ -7,11 +7,13 @@ package es.upm.woa.agent.group1;
  */
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.GraphGameMap;
+import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.Conversation;
+import es.upm.woa.ontology.Cell;
 
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewCellDiscovery;
@@ -84,7 +86,7 @@ public class AgTribe extends Agent {
                                             + newUnitInfo.getLocation().getX()
                                             + ", "
                                             + newUnitInfo.getLocation().getY());
-                                    addUnit(newUnitInfo);
+                                    registerNewUnit(newUnitInfo);
                                 }
                             }
                         } catch (Codec.CodecException | OntologyException ex) {
@@ -203,10 +205,11 @@ public class AgTribe extends Agent {
         knownMap = GraphGameMap.getInstance(3, 3);
     }
 
-    private void addUnit(NotifyNewUnit newUnitInfo) {
+    private void registerNewUnit(NotifyNewUnit newUnitInfo) {
         Unit newUnit = new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY());
         units.add(newUnit);
         informNewUnitOwnership(newUnit);
+        informKnownMap(newUnit);
     }
         
     private void informNewUnitOwnership(Unit unit) {
@@ -233,5 +236,47 @@ public class AgTribe extends Agent {
             System.out.println(compMsg);
         }
     }
+
+    private void informKnownMap(Unit newUnit) {
+        for (MapCell knownCell : knownMap.getKnownCellsIterable()) {
+            if (knownCell.getXCoord() != newUnit.getCoordX()
+                    || knownCell.getYCoord() != newUnit.getCoordY()) {
+                informOfKnownMapCell(newUnit, knownCell);
+            }
+        }
+    }
+    
+    private void informOfKnownMapCell(Unit newUnit, MapCell cell) {
+        Cell knownCell = new Cell();
+        knownCell.setX(cell.getXCoord());
+        knownCell.setY(cell.getYCoord());
+        knownCell.setContent(cell.getContent());
+        
+        NotifyNewCellDiscovery newCellDiscovery = new NotifyNewCellDiscovery();
+        newCellDiscovery.setNewCell(knownCell);
+        
+        Action informCellDiscoveryAction = new Action(getAID(), newCellDiscovery);
+        addBehaviour(new Conversation(this, gameOntology, codec, informCellDiscoveryAction
+            , GameOntology.NOTIFYNEWCELLDISCOVERY) {
+                
+                @Override
+                public void onStart() {
+                    
+                    sendMessage(newUnit.getId(), ACLMessage.INFORM, new SentMessageHandler() {
+                        @Override
+                        public void onSent(String conversationID) {
+                            log(Level.FINER, "Informed unit "
+                                    + newUnit.getId().getLocalName()
+                                    + " of location " + cell.getXCoord()
+                                    + "," + cell.getYCoord());
+                        }
+                        
+                    });
+                    
+                }
+                
+            });
+    }
+
 
 }
