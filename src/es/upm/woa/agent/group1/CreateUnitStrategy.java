@@ -26,7 +26,7 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-public class CreateUnitStrategy extends Strategy {
+class CreateUnitStrategy extends Strategy {
     
     private int priority;
     private boolean finished;
@@ -117,6 +117,7 @@ public class CreateUnitStrategy extends Strategy {
         myAgUnit.addBehaviour(new FollowPathBehaviour(myAgUnit, pathToTownHall) {
             @Override
             protected void onArrived(MapCell destination) {
+                myAgUnit.setCurrentCell(destination);
                 myAgUnit.log(Level.FINE, "Arrived to town hall at: "
                         + destination.getXCoord() + "," + destination.getYCoord());
                 handler.onArrivedToTownHall();
@@ -124,6 +125,7 @@ public class CreateUnitStrategy extends Strategy {
             
             @Override
             protected void onStep(MapCell currentCell) {
+                myAgUnit.setCurrentCell(currentCell);
                 myAgUnit.log(Level.FINER, "Moving towards town hall from: "
                         + currentCell.getXCoord() + "," + currentCell.getYCoord());
             }
