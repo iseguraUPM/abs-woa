@@ -219,3 +219,14 @@
         tribe. For now it reuses the NotifyNewlyDiscoveredCell protocol.
  2. [NOTE] ref [NEW 21.1]
     This potentially sends a lot of messages. One for every known cell.
+----------------------------------------------------------------------------------------------------------------
+ (22) {17/04/2019 12:00} Free Explore Strategy : Inaki
+ 1. [NEW]
+    Added the free explore strategy. The unit performing this strategy tries to run around the whole map. It finds
+        the shortest route to unexplored cells. It eventually stops when all the missing cells are explored.
+ 2. [FIX]
+    There were several mistakes on the positioning of units. From the unit cell positioner and from the units
+        themselves. Units were not updating the current position when traveling.
+ 3. [COMPLETE]
+    Added missing target cell information when receiving an INFORM from the MoveToCell protocol. Now the units
+        take note of the target cell information if not already notified by the tribe.
