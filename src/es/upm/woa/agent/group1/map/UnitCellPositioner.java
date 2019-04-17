@@ -135,7 +135,7 @@ public class UnitCellPositioner {
     // NOTE: this assumes unit is in a correct position
     private boolean isAdjacent(Unit unit, MapCell cell) {
         int x1 = unit.getCoordX();
-        int y1 = unit.getCoordX();
+        int y1 = unit.getCoordY();
         int x2 = cell.getXCoord();
         int y2 = cell.getYCoord();
         
