@@ -68,7 +68,9 @@ public abstract class Conversation extends SimpleBehaviour {
                 }
 
                 try {
-                    myAgent.getContentManager().fillContent(newMsg, action);
+                    if (action.getAction() != null) {
+                        myAgent.getContentManager().fillContent(newMsg, action);
+                    }
                     myAgent.send(newMsg);
                     handler.onSent(conversationID);
                 } catch (Codec.CodecException | OntologyException ex) {
@@ -103,7 +105,9 @@ public abstract class Conversation extends SimpleBehaviour {
                 newMsg.setPerformative(performative);
 
                 try {
-                    myAgent.getContentManager().fillContent(newMsg, action);
+                    if (action.getAction() != null) {
+                        myAgent.getContentManager().fillContent(newMsg, action);
+                    }
                 } catch (Codec.CodecException | OntologyException ex) {
                     Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
                 }
