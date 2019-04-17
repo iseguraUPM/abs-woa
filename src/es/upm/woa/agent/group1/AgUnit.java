@@ -428,7 +428,8 @@ public class AgUnit extends Agent {
 
     private void startStrategy() {
         StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
-        unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
+        //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
+        unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
         addBehaviour(unitBehaviour);
     }
 

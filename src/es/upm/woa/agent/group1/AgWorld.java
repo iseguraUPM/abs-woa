@@ -128,7 +128,7 @@ public class AgWorld extends Agent {
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
 
-        worldMap = WorldMap.getInstance(3, 3);
+        worldMap = WorldMap.getInstance(6, 6);
         tribeCollection = new HashSet<>();
 
         activeTransactions = new ArrayList<>();

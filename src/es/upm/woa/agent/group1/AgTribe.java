@@ -212,7 +212,7 @@ public class AgTribe extends Agent {
         getContentManager().registerOntology(group1Ontology);
 
         units = new HashSet<>();
-        knownMap = GraphGameMap.getInstance(3, 3);
+        knownMap = GraphGameMap.getInstance(6, 6);
     }
 
     private void registerNewUnit(NotifyNewUnit newUnitInfo) {

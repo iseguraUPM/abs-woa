@@ -11,7 +11,7 @@ package es.upm.woa.agent.group1;
  */
 public class GameClock implements Ticker {
     
-    private static final int TICK_DELTA_MILLIS = 1000;
+    private static final int TICK_DELTA_MILLIS = 100;
     
     private static GameClock instance;
     
