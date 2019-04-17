@@ -132,21 +132,31 @@ public class AgTribe extends Agent {
                     }
 
                     private void processNewCell(NotifyNewCellDiscovery newCellInfo) {
-                        boolean cellAdded = knownMap.addCell(MapCellFactory
+                        try {
+                            boolean cellAdded = knownMap.addCell(MapCellFactory
                                 .getInstance().buildCell(newCellInfo.getNewCell()));
-                        if (cellAdded) {
-                            log(Level.FINER, "cell discovery at "
-                                    + newCellInfo.getNewCell().getX()
-                                    + ","
-                                    + newCellInfo.getNewCell().getY());
+                            if (cellAdded) {
+                                log(Level.FINER, "cell discovery at "
+                                        + newCellInfo.getNewCell().getX()
+                                        + ","
+                                        + newCellInfo.getNewCell().getY());
+                            }
+                            else {
+                                // Should not happen
+                                log(Level.WARNING, "already knew cell at "
+                                        + newCellInfo.getNewCell().getX()
+                                        + ","
+                                        + newCellInfo.getNewCell().getY());
+                            }
                         }
-                        else {
-                            // Should not happen
-                            log(Level.WARNING, "already knew cell at "
-                                    + newCellInfo.getNewCell().getX()
-                                    + ","
-                                    + newCellInfo.getNewCell().getY());
+                        catch (IndexOutOfBoundsException ex) {
+                            log(Level.WARNING, "cannot add cell cell at "
+                                        + newCellInfo.getNewCell().getX()
+                                        + ","
+                                        + newCellInfo.getNewCell().getY()
+                                    + "(" + ex + ")");
                         }
+                        
                     }
 
                 });
