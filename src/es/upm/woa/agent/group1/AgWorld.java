@@ -196,8 +196,7 @@ public class AgWorld extends Agent {
     }
 
     private void startUnitCreationBehaviour() {
-        // Behaviors
-        Action createUnitAction = new Action(getAID(), new CreateUnit());
+        final Action createUnitAction = new Action(getAID(), null);
         addBehaviour(new Conversation(this, ontology, codec, createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
@@ -483,12 +482,10 @@ public class AgWorld extends Agent {
     }
     
     private void startMoveToCellBehaviour() {
-        //TODO The response ontology is not yet defined. It needs to be changed in the future. 
-        Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, ontology, codec, createUnitAction, GameOntology.MOVETOCELL) {
+        final Action moveToCellAction = new Action(getAID(), null);
+        addBehaviour(new Conversation(this, ontology, codec, moveToCellAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
-                Action action = new Action();
 
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
@@ -509,11 +506,14 @@ public class AgWorld extends Agent {
                                 Action agAction = (Action) ce;
                                 Concept conc = agAction.getAction();
                                 MoveToCell targetCell= (MoveToCell) conc;
-                                MapCell mapCell = worldMap.getCellAt(targetCell
-                                        .getTarget().getX(), targetCell.getTarget().getY());
                                 
-                                initiateMoveToCell(requesterUnit, mapCell, message);
-
+                                try {
+                                    MapCell mapCell = worldMap.getCellAt(targetCell
+                                            .getTarget().getX(), targetCell.getTarget().getY());
+                                    initiateMoveToCell(requesterUnit, mapCell, moveToCellAction, message);
+                                } catch (NoSuchElementException ex) {
+                                    respondMessage(message, ACLMessage.REFUSE);
+                                }
                             } catch (Codec.CodecException | OntologyException ex) {
                                 log(Level.WARNING, "could not receive message (" + ex + ")");
                             }
@@ -522,7 +522,7 @@ public class AgWorld extends Agent {
                 });
             }
 
-            private void initiateMoveToCell(Unit requesterUnit, MapCell mapCell, ACLMessage message) {
+            private void initiateMoveToCell(Unit requesterUnit, MapCell mapCell, Action action, ACLMessage message) {
                 UnitCellPositioner unitPositioner = UnitCellPositioner.getInstance(worldMap);
                 if (unitPositioner.isMoving(requesterUnit)) {
                     log(Level.FINE, requesterUnit.getId().getLocalName()
@@ -545,6 +545,10 @@ public class AgWorld extends Agent {
                             newCell.setY(mapCell.getYCoord());
                             newCell.setContent(mapCell.getContent());
 
+                            MoveToCell moveToCellAction = new MoveToCell();
+                            moveToCellAction.setTarget(newCell);
+                            
+                            action.setAction(moveToCellAction);
                             
                             respondMessage(message, ACLMessage.INFORM);
                             
