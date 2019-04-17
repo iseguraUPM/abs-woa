@@ -18,8 +18,6 @@ class CellTranslation {
     public static final int [] LDOWN = {1,-1};
     public static final int [] RDOWN = {1,1};
     
-    public static final int [][] POS_OPERATORS = {UP, RUP, RDOWN, DOWN, LDOWN
-            , LUP};
 
     private final int [] translationVector;
     

@@ -5,7 +5,6 @@
  */
 package es.upm.woa.agent.group1.map;
 
-import static es.upm.woa.agent.group1.map.CellTranslation.POS_OPERATORS;
 
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
@@ -180,7 +179,7 @@ public class GraphGameMap implements GameMap {
     }
     
     private void connectToNeighbours(MapCell cell) {
-        for (int[] translationVector : POS_OPERATORS) {
+        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
             int[] neighbourPosition = generateNeighbourPosition(cell, translationVector);
             
             try {

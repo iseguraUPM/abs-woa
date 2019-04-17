@@ -10,6 +10,10 @@ package es.upm.woa.agent.group1.map;
  * @author ISU
  */
 public class GameMapCoordinate {
+
+    public static final int[][] POS_OPERATORS = {CellTranslation.UP
+            , CellTranslation.RUP, CellTranslation.RDOWN, CellTranslation.DOWN
+            , CellTranslation.LDOWN, CellTranslation.LUP};
     
     /**
      * 

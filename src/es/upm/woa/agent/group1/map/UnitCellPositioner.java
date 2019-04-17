@@ -6,7 +6,6 @@
 package es.upm.woa.agent.group1.map;
 
 import es.upm.woa.agent.group1.Unit;
-import static es.upm.woa.agent.group1.map.CellTranslation.POS_OPERATORS;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
 
@@ -144,7 +143,7 @@ public class UnitCellPositioner {
             return false;
         }
         
-        for (int[] operator : POS_OPERATORS) {
+        for (int[] operator : GameMapCoordinate.POS_OPERATORS) {
             int[] translatedPosition = GameMapCoordinate
                     .applyTranslation(worldMap.getWidth(), worldMap.getHeight()
                             , x1, y1, operator);
