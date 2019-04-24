@@ -129,6 +129,11 @@ public class AgWorld extends Agent {
         getContentManager().registerOntology(ontology);
 
         worldMap = WorldMap.getInstance();
+        if (worldMap == null) {
+            log(Level.SEVERE, "The world could not be initialized");
+            return;
+        }
+        
         tribeCollection = new HashSet<>();
 
         activeTransactions = new ArrayList<>();
