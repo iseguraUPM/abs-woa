@@ -5,6 +5,8 @@
  */
 package es.upm.woa.agent.group1.map;
 
+import es.upm.woa.agent.group1.WoaDefinitions;
+
 import jade.util.Logger;
 
 import org.apache.commons.configuration2.JSONConfiguration;
@@ -23,8 +25,6 @@ import java.util.logging.Level;
  * @author ISU
  */
 public class WorldMap implements GameMap {
-    
-    private final static String CONFIG_FILENAME = "woa.properties";
     
     private final int width;
     private final int height;
@@ -58,7 +58,8 @@ public class WorldMap implements GameMap {
         Configurations config = new Configurations();
         
         try {
-            PropertiesConfiguration woaConfig = config.properties(new File(CONFIG_FILENAME));
+            PropertiesConfiguration woaConfig
+                    = config.properties(new File(WoaDefinitions.CONFIG_FILENAME));
             
             String mapConfigPath = woaConfig.getString("woa.map_directory");
             String mapConfigFilename = woaConfig.getString("woa.map_filename");

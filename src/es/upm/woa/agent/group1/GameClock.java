@@ -18,7 +18,6 @@ import java.util.logging.Logger;
  */
 public class GameClock implements Ticker {
     
-    private static final String CONFIG_FILENAME = "woa.properties";
     private static final int DEFAULT_TICK_DELTA_MILLIS = 500;
     
     private static GameClock instance;
@@ -36,7 +35,8 @@ public class GameClock implements Ticker {
             Configurations config = new Configurations();
             int tickDeltaMillis = 0;
             try {
-                PropertiesConfiguration woaConfig = config.properties(new File(CONFIG_FILENAME));
+                PropertiesConfiguration woaConfig = config.properties(
+                        new File(WoaDefinitions.CONFIG_FILENAME));
                 
                 tickDeltaMillis = woaConfig.getInt("woa.tick_millis");
             } catch (ConfigurationException ex) {

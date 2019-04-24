@@ -1,5 +1,5 @@
 package es.upm.woa.agent.group1;
- 
+
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.GraphGameMap;
 
@@ -14,9 +14,6 @@ import java.util.NoSuchElementException;
  * @author Martin Zumarraga Uribe
  */
 public class Tribe {
-    
-    private final static int UNIT_FOOD_COST = 50;
-    private final static int UNIT_GOLD_COST = 150;
     
     private final AID agentID;
     private final Collection<Unit> unitCollection = new HashSet<>();
@@ -92,7 +89,8 @@ public class Tribe {
      * @return the tribe can afford creation of a new unit
      */
     public boolean canAffordUnit() {
-        return currentGold >= UNIT_GOLD_COST && currentFood >= UNIT_FOOD_COST;
+        return currentGold >= WoaDefinitions.UNIT_GOLD_COST
+                && currentFood >= WoaDefinitions.UNIT_FOOD_COST;
     }
     
     /**
@@ -103,8 +101,8 @@ public class Tribe {
         if (!canAffordUnit()) {
             return false;
         }
-        currentGold -= UNIT_GOLD_COST;
-        currentFood -= UNIT_FOOD_COST;
+        currentGold -= WoaDefinitions.UNIT_GOLD_COST;
+        currentFood -= WoaDefinitions.UNIT_FOOD_COST;
         return true;
     }
     
@@ -112,8 +110,8 @@ public class Tribe {
      * Return resources spent for a new unit creation
      */
     public void refundUnit() {
-        currentGold += UNIT_GOLD_COST;
-        currentFood += UNIT_FOOD_COST;
+        currentGold += WoaDefinitions.UNIT_GOLD_COST;
+        currentFood += WoaDefinitions.UNIT_FOOD_COST;
     }
         
 }
