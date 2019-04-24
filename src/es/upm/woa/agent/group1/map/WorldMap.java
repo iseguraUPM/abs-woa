@@ -5,15 +5,26 @@
  */
 package es.upm.woa.agent.group1.map;
 
+import jade.util.Logger;
+
+import org.apache.commons.configuration2.JSONConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+
+import java.io.File;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import java.util.logging.Level;
 
 /**
  *
  * @author ISU
  */
 public class WorldMap implements GameMap {
+    
+    private final static String CONFIG_FILENAME = "woa.properties";
     
     private final int width;
     private final int height;
@@ -41,18 +52,31 @@ public class WorldMap implements GameMap {
      * at [1,1] and the max coordinate is [height,width]. The first coordinate
      * raises DOWN of the origin. The second coordinate raises RIGHT of the
      * origin. Both coordinates are always ODD or both EVEN.
-     * @param width of the map
-     * @param height of the map
-     * @return an instance
+     * @return an instance or null if configuration was not correct
      */
-    public static WorldMap getInstance(int width, int height) {
-        if (width < 1 || height < 1) {
+    public static WorldMap getInstance() {
+        Configurations config = new Configurations();
+        
+        try {
+            PropertiesConfiguration woaConfig = config.properties(new File(CONFIG_FILENAME));
+            
+            String mapConfigPath = woaConfig.getString("woa.map_directory");
+            String mapConfigFilename = woaConfig.getString("woa.map_filename");
+            
+            JSONConfiguration mapConfig = config.fileBased(JSONConfiguration.class, new File(mapConfigPath + mapConfigFilename));
+            
+            int mapWidth = mapConfig.getInt("mapWidth");
+            int mapHeight = mapConfig.getInt("mapHeight");
+            
+            WorldMap newInstance = new WorldMap(mapWidth, mapHeight);
+        
+            return newInstance;
+            
+        } catch (ConfigurationException ex) {
+            Logger.getGlobal().log(Level.SEVERE, "Could not load map data ({0})", ex);
             return null;
         }
-        
-        WorldMap newInstance = new WorldMap(width, height);
-        
-        return newInstance;
+
     }
     
     @Override

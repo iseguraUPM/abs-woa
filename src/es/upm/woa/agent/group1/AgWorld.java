@@ -128,7 +128,7 @@ public class AgWorld extends Agent {
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
 
-        worldMap = WorldMap.getInstance(6, 6);
+        worldMap = WorldMap.getInstance();
         tribeCollection = new HashSet<>();
 
         activeTransactions = new ArrayList<>();
@@ -165,7 +165,7 @@ public class AgWorld extends Agent {
         });
         
         if (newTribe != null) {
-            handInitialTribeResources(newTribe);
+            //handInitialTribeResources(newTribe);
         }
         
         /*

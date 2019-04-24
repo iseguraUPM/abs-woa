@@ -230,3 +230,24 @@
  3. [COMPLETE]
     Added missing target cell information when receiving an INFORM from the MoveToCell protocol. Now the units
         take note of the target cell information if not already notified by the tribe.
+----------------------------------------------------------------------------------------------------------------
+ (23) {24/04/2019 12:00} Configurator : Inaki
+ 1. [NEW]
+    Added configuration properties and MapGenerator JSON support. The WorldMap reads parameters from MapGenerator's
+      output file. This file can be specified in the properties.
+ 2. [NOTE]
+    The following libraries were added.
+    Apache Commons configuration library:
+        https://commons.apache.org/proper/commons-configuration/download_configuration.cgi
+    Dependencies:
+        https://commons.apache.org/proper/commons-logging/download_logging.cgi
+        https://commons.apache.org/proper/commons-lang/download_lang.cgi
+        http://commons.apache.org/proper/commons-beanutils/download_beanutils.cgi
+        https://commons.apache.org/proper/commons-text/download_text.cgi
+        http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.9.8/
+        http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.9.8/
+        http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.9.8/
+ 3. [TODO]
+    We have to discuss whether the tribe knows the maximum map size or not. Implementations will vary depending on 
+      this decission. Also, some map sizes do not make sense (e.g. width 5 and height 5 do not stack well)
+      in the "hexagonal tiling" scenario, we must adress this issue.
