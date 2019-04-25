@@ -251,3 +251,19 @@
     We have to discuss whether the tribe knows the maximum map size or not. Implementations will vary depending on 
       this decission. Also, some map sizes do not make sense (e.g. width 5 and height 5 do not stack well)
       in the "hexagonal tiling" scenario, we must adress this issue.
+----------------------------------------------------------------------------------------------------------------
+ (24) {25/04/2019 12:00} Web GUI Endpoint : Inaki
+ 1. [COMPLETE]
+    Completed implementation of web GUI and added the corresponding reactions to unit creation and unit movement.
+    The AgWorld uses a wrapper class to use the GUI. The wrapper avoids unnecessary errors when there is no 
+    connection to the endpoint so it works without it.
+ 2. [NOTE]
+    To start the GUI follow the instructions located in docs/ folder. The ./woa.properties file contains the file paths
+    and the address needed for the program to start properly.
+ 3. [TODO]
+    We need to use the map data starting positions and resources. For now only the size of the map is used.
+ 4. [TODO]
+    Setup an actual end game, so the agents and the GUI end properly. Maybe with a timer for now.
+ 4. [TODO] ref [TODO 23.3]
+    The map size for AgTribe, AgUnit and Tribe is set manually (hard-coded integers). We need to decide where we 
+    define this or if is needed at all.

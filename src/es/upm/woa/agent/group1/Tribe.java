@@ -23,7 +23,7 @@ public class Tribe {
     
     public Tribe(AID pId) {
         agentID = pId;
-        knownMap = GraphGameMap.getInstance(6, 6);
+        knownMap = GraphGameMap.getInstance(4, 4);
         
         //TODO: define how many units of currentGold/food. By default 1000
         currentGold = 150;

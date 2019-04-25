@@ -15,6 +15,9 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
@@ -28,6 +31,7 @@ public class WorldMap implements GameMap {
     
     private final int width;
     private final int height;
+    private String mapConfiguration;
     
     private final Map<Integer, MapCell> mapCells;
     
@@ -35,6 +39,10 @@ public class WorldMap implements GameMap {
         this.width = width;
         this.height = height;
         mapCells = new TreeMap<>();
+    }
+    
+    public String getConfigurationFileContents() {
+        return mapConfiguration;
     }
     
     @Override
@@ -57,6 +65,7 @@ public class WorldMap implements GameMap {
     public static WorldMap getInstance() {
         Configurations config = new Configurations();
         
+        FileInputStream fis = null;
         try {
             PropertiesConfiguration woaConfig
                     = config.properties(new File(WoaDefinitions.CONFIG_FILENAME));
@@ -64,20 +73,34 @@ public class WorldMap implements GameMap {
             String mapConfigPath = woaConfig.getString("woa.map_directory");
             String mapConfigFilename = woaConfig.getString("woa.map_filename");
             
-            JSONConfiguration mapConfig = config.fileBased(JSONConfiguration.class, new File(mapConfigPath + mapConfigFilename));
+            File mapConfigurationFile = new File(mapConfigPath + mapConfigFilename);
+            fis = new FileInputStream(mapConfigurationFile);
+            byte[] data = new byte[(int) mapConfigurationFile.length()];
+            fis.read(data);
+            fis.close();
+            
+            JSONConfiguration mapConfig = config.fileBased(JSONConfiguration.class, mapConfigurationFile);
             
             int mapWidth = mapConfig.getInt("mapWidth");
             int mapHeight = mapConfig.getInt("mapHeight");
             
             WorldMap newInstance = new WorldMap(mapWidth, mapHeight);
+            newInstance.mapConfiguration = new String(data, StandardCharsets.UTF_8);
         
             return newInstance;
-            
-        } catch (ConfigurationException ex) {
+        } catch (ConfigurationException | IOException ex) {
             Logger.getGlobal().log(Level.SEVERE, "Could not load map data ({0})", ex);
-            return null;
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException ex) {
+                    Logger.getGlobal().log(Level.SEVERE, "Could not close stream ({0})", ex);
+                }
+            }
         }
-
+        
+        return null;
     }
     
     @Override

@@ -14,7 +14,6 @@ import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
-
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewCellDiscovery;
 import es.upm.woa.ontology.NotifyNewUnit;
@@ -212,7 +211,7 @@ public class AgTribe extends Agent {
         getContentManager().registerOntology(group1Ontology);
 
         units = new HashSet<>();
-        knownMap = GraphGameMap.getInstance(6, 6);
+        knownMap = GraphGameMap.getInstance(4, 4);
     }
 
     private void registerNewUnit(NotifyNewUnit newUnitInfo) {

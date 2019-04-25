@@ -136,7 +136,7 @@ public class AgUnit extends Agent {
         getContentManager().registerOntology(gameOntology);
         getContentManager().registerOntology(group1Ontology);
         
-        knownMap = GraphGameMap.getInstance(6, 6);
+        knownMap = GraphGameMap.getInstance(4, 4);
 
         startInformNewCellDiscoveryBehaviour();
         startInformOwnershipBehaviour(() -> {

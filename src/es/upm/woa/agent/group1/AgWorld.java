@@ -7,6 +7,8 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
+import es.upm.woa.agent.group1.gui.WoaGUI;
+import es.upm.woa.agent.group1.gui.WoaGUIFactory;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
@@ -39,6 +41,7 @@ import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.OntologyException;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -75,6 +78,7 @@ public class AgWorld extends Agent {
 
     private Collection<Tribe> tribeCollection;
     private WorldMap worldMap;
+    private WoaGUIWrapper guiEndpoint;
 
     private Collection<Transaction> activeTransactions;
 
@@ -134,12 +138,24 @@ public class AgWorld extends Agent {
             return;
         }
         
+        guiEndpoint = new WoaGUIWrapper();
+        try {
+            WoaGUI woaGUI = WoaGUIFactory.getInstance().getGUI();
+            guiEndpoint.setGUIEndpoint(woaGUI);
+        } catch (IOException ex) {
+            log(Level.WARNING, "Could not connect to GUI endpoint");
+        }
+        
         tribeCollection = new HashSet<>();
 
         activeTransactions = new ArrayList<>();
 
         Tribe newTribe = launchAgentTribe("TribeA");
 
+        // TODO: not the right way to initiate the game. Should be after registering
+        // all tribes and giving the resources.
+        guiEndpoint.apiStartGame(new String[]{"TribeA"}
+                , worldMap.getConfigurationFileContents());
         
         // TODO: temp
         final Building building = new Building();
@@ -173,12 +189,12 @@ public class AgWorld extends Agent {
             //handInitialTribeResources(newTribe);
         }
         
-        /*
+        
         newTribe = launchAgentTribe("TribeB");
         if (newTribe != null) {
             handInitialTribeResources(newTribe);
         }
-        */
+        
     }
     
     @Override
@@ -376,6 +392,9 @@ public class AgWorld extends Agent {
                 return false;
             } else {
                 informTribeAboutNewUnit(ownerTribe, newUnitRef);
+                guiEndpoint.apiCreateAgent(ownerTribe.getAID().getLocalName()
+                        , newUnitRef.getId().getLocalName(), newUnitRef.getCoordX()
+                        , newUnitRef.getCoordY());
                 return true;
             }
 
@@ -556,6 +575,9 @@ public class AgWorld extends Agent {
                             action.setAction(moveToCellAction);
                             
                             respondMessage(message, ACLMessage.INFORM);
+                            guiEndpoint.apiMoveAgent(requesterUnit.getId()
+                                    .getLocalName(), mapCell.getXCoord()
+                                    , mapCell.getYCoord());
                             
                             processTribeKnownCell(ownerTribe, newCell);
                         }
