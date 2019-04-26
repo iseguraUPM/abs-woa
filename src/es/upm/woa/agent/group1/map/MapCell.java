@@ -21,5 +21,7 @@ public interface MapCell {
     public int getXCoord();
     
     public int getYCoord();
+    
+    public void setContent(Concept content);
   
 }

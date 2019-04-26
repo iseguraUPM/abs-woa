@@ -5,23 +5,9 @@
  */
 package es.upm.woa.agent.group1.map;
 
-import es.upm.woa.agent.group1.WoaDefinitions;
-
-import jade.util.Logger;
-
-import org.apache.commons.configuration2.JSONConfiguration;
-import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
-import java.util.logging.Level;
 
 /**
  *
@@ -60,47 +46,12 @@ public class WorldMap implements GameMap {
      * at [1,1] and the max coordinate is [height,width]. The first coordinate
      * raises DOWN of the origin. The second coordinate raises RIGHT of the
      * origin. Both coordinates are always ODD or both EVEN.
+     * @param width of the map
+     * @param height of the map
      * @return an instance or null if configuration was not correct
      */
-    public static WorldMap getInstance() {
-        Configurations config = new Configurations();
-        
-        FileInputStream fis = null;
-        try {
-            PropertiesConfiguration woaConfig
-                    = config.properties(new File(WoaDefinitions.CONFIG_FILENAME));
-            
-            String mapConfigPath = woaConfig.getString("woa.map_directory");
-            String mapConfigFilename = woaConfig.getString("woa.map_filename");
-            
-            File mapConfigurationFile = new File(mapConfigPath + mapConfigFilename);
-            fis = new FileInputStream(mapConfigurationFile);
-            byte[] data = new byte[(int) mapConfigurationFile.length()];
-            fis.read(data);
-            fis.close();
-            
-            JSONConfiguration mapConfig = config.fileBased(JSONConfiguration.class, mapConfigurationFile);
-            
-            int mapWidth = mapConfig.getInt("mapWidth");
-            int mapHeight = mapConfig.getInt("mapHeight");
-            
-            WorldMap newInstance = new WorldMap(mapWidth, mapHeight);
-            newInstance.mapConfiguration = new String(data, StandardCharsets.UTF_8);
-        
-            return newInstance;
-        } catch (ConfigurationException | IOException ex) {
-            Logger.getGlobal().log(Level.SEVERE, "Could not load map data ({0})", ex);
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException ex) {
-                    Logger.getGlobal().log(Level.SEVERE, "Could not close stream ({0})", ex);
-                }
-            }
-        }
-        
-        return null;
+    public static WorldMap getInstance(int width, int height) {
+        return new WorldMap(width, height);
     }
     
     @Override
@@ -133,7 +84,8 @@ public class WorldMap implements GameMap {
         
         MapCell targetCell = mapCells.get(index);
         if (targetCell == null) {
-            targetCell = new EmptyMapCell(x, y);
+            throw new NoSuchElementException("Coordinates (" + x + "," + y
+                    + ") do not have a cell");
         }
         
         return targetCell;

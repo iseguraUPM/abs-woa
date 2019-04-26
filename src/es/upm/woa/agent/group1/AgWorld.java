@@ -12,7 +12,6 @@ import es.upm.woa.agent.group1.gui.WoaGUIFactory;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
-import es.upm.woa.agent.group1.map.WorldMap;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
@@ -41,6 +40,8 @@ import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.onto.OntologyException;
 
+import org.apache.commons.configuration2.ex.ConfigurationException;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,11 +49,12 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
+import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Stack;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import javafx.util.Pair;
 
 // TODO: change docs
@@ -77,34 +79,40 @@ public class AgWorld extends Agent {
     private Codec codec;
 
     private Collection<Tribe> tribeCollection;
-    private WorldMap worldMap;
+    private GameMap worldMap;
     private WoaGUIWrapper guiEndpoint;
+    
+    // TODO: temporal solution before registration
+    private List<String> startingTribeNames;
 
     private Collection<Transaction> activeTransactions;
-
-    // TODO: temporal initial coordinates for testing purposes
-    private Stack<Pair<Integer, Integer>> initialUnitCoordinates;
     
     private Handler logHandler;
-    
     
     @Override
     protected void setup() {
         logHandler = new ConsoleHandler();
         logHandler.setLevel(Level.FINE);
         log(Level.INFO, "has entered the system");
-
-        // TODO: temporal initial coordinates for testing purposes
-        initialUnitCoordinates = new Stack<>();
-        initialUnitCoordinates.add(new Pair(1, 1));
-        initialUnitCoordinates.add(new Pair(2, 2));
-        initialUnitCoordinates.add(new Pair(3, 3));
-        initialUnitCoordinates.add(new Pair(1, 1));
-        initialUnitCoordinates.add(new Pair(2, 2));
-        initialUnitCoordinates.add(new Pair(3, 3));
+        
+        // TODO: temp
+        startingTribeNames = new ArrayList<>();
+        startingTribeNames.add("TribeA");
+        startingTribeNames.add("TribeB");
+        startingTribeNames.add("TribeC");
+        startingTribeNames.add("TribeD");
+        startingTribeNames.add("TribeE");
+        startingTribeNames.add("TribeF");
         
         initializeAgent();
-        initializeWorld();
+        if (!initializeWorld()) {
+            try {
+                getContainerController().kill();
+            } catch (StaleProxyException ex) {
+                log(Level.SEVERE, "Could not shut down agent properly");
+            }
+            return;
+        }
 
         startUnitCreationBehaviour();
         startMoveToCellBehaviour();
@@ -126,17 +134,11 @@ public class AgWorld extends Agent {
         }
     }
 
-    private void initializeWorld() {
+    private boolean initializeWorld() {
         ontology = GameOntology.getInstance();
         codec = new SLCodec();
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
-
-        worldMap = WorldMap.getInstance();
-        if (worldMap == null) {
-            log(Level.SEVERE, "The world could not be initialized");
-            return;
-        }
         
         guiEndpoint = new WoaGUIWrapper();
         try {
@@ -146,55 +148,55 @@ public class AgWorld extends Agent {
             log(Level.WARNING, "Could not connect to GUI endpoint");
         }
         
+        WorldMapConfigurator configurator;
+        try {
+            configurator = WorldMapConfigurator
+                    .getInstance();
+            
+            worldMap = configurator.generateWorldMap();
+        } catch (ConfigurationException ex) {
+            log(Level.SEVERE, "Could not load the configuration");
+            return false;
+        }
+        
         tribeCollection = new HashSet<>();
-
         activeTransactions = new ArrayList<>();
+        
+        
+        
+        // TODO: temp
+        final int MAX_TRIBES = 2;
+        for (int i = 0; i < MAX_TRIBES; i++) {
+            String tribeName = startingTribeNames.get(i);
+            Tribe newTribe = launchAgentTribe(tribeName);
+            if (newTribe != null) {
+                try {
+                    MapCell townHallCell = configurator.addNewTribe(worldMap
+                            , newTribe.getAID());
+                    handInitialTribeResources(townHallCell, newTribe);
+                } catch (ConfigurationException ex) {
+                    log(Level.SEVERE, "Could not add new tribe: "
+                            + newTribe.getAID().getLocalName() + " (" + ex + ")");
+                    return false;
+                }
+            }
+        }
+        
 
-        Tribe newTribe = launchAgentTribe("TribeA");
 
         // TODO: not the right way to initiate the game. Should be after registering
         // all tribes and giving the resources.
-        guiEndpoint.apiStartGame(new String[]{"TribeA"}
-                , worldMap.getConfigurationFileContents());
+        String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES-1).toArray(new String[MAX_TRIBES]);
         
-        // TODO: temp
-        final Building building = new Building();
-        building.setOwner(newTribe.getAID());
-        building.addType("TownHall");
-        
-        // TODO: temp
-        worldMap.addCell(new MapCell() {
-            @Override
-            public AID getOwner() {
-                return new AID();
-            }
-
-            @Override
-            public Concept getContent() {
-                return building;
-            }
-
-            @Override
-            public int getXCoord() {
-                return 3;
-            }
-
-            @Override
-            public int getYCoord() {
-                return 3;
-            }
-        });
-        
-        if (newTribe != null) {
-            //handInitialTribeResources(newTribe);
+        try {
+            guiEndpoint.apiStartGame(tribeNames
+                    , configurator.getMapConfigurationContents());
+        } catch (IOException ex) {
+            log(Level.SEVERE, "Could not load the map configuration");
+            return false;
         }
         
-        
-        newTribe = launchAgentTribe("TribeB");
-        if (newTribe != null) {
-            handInitialTribeResources(newTribe);
-        }
-        
+        return true;
     }
     
     @Override
@@ -231,22 +233,36 @@ public class AgWorld extends Agent {
 
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
-
-                        if (ownerTribe == null || requesterUnit == null) {
+                        
+                        try {
+                            MapCell unitPosition = worldMap.getCellAt(requesterUnit
+                                    .getCoordX(), requesterUnit.getCoordY());
+                            
+                            if (ownerTribe == null || requesterUnit == null) {
+                                respondMessage(message, ACLMessage.REFUSE);
+                            } else if (!canCreateUnit(ownerTribe, requesterUnit
+                                    , unitPosition)) {
+                                respondMessage(message, ACLMessage.REFUSE);
+                            } else {
+                                ownerTribe.purchaseUnit();
+                                respondMessage(message, ACLMessage.AGREE);
+                                initiateUnitCreation(ownerTribe, unitPosition, message);
+                            }
+                            
+                        } catch (NoSuchElementException ex) {
+                            log(Level.WARNING, "Unit "
+                                    + requesterUnit.getId().getLocalName() + " is at an unknown position");
                             respondMessage(message, ACLMessage.REFUSE);
-                        } else if (!canCreateUnit(ownerTribe, requesterUnit)) {
-                            respondMessage(message, ACLMessage.REFUSE);
-                        } else {
-                            ownerTribe.purchaseUnit();
-                            respondMessage(message, ACLMessage.AGREE);
-                            initiateUnitCreation(ownerTribe, message);
                         }
+                        
+
+                        
 
                     }
                 });
             }
 
-            private void initiateUnitCreation(Tribe ownerTribe, ACLMessage message) {
+            private void initiateUnitCreation(Tribe ownerTribe, MapCell unitPosition, ACLMessage message) {
 
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
@@ -261,7 +277,7 @@ public class AgWorld extends Agent {
                     @Override
                     public void commit() {
                         if (!finished) {
-                            boolean success = launchNewAgentUnit(ownerTribe);
+                            boolean success = launchNewAgentUnit(unitPosition, ownerTribe);
                             if (!success) {
                                 ownerTribe.refundUnit();
                                 
@@ -293,20 +309,14 @@ public class AgWorld extends Agent {
         });
     }
     
-    private boolean canCreateUnit(Tribe tribe, Unit requester) {
+    private boolean canCreateUnit(Tribe tribe, Unit requester, MapCell requesterPosition) {
         
         if(UnitCellPositioner.getInstance(worldMap).isMoving(requester)){
             return false;
         }
         
-        try {
-            MapCell mapCell = worldMap.getCellAt(requester.getCoordX(),
-                                    requester.getCoordY());
-            return tribe.canAffordUnit() && thereIsATownHall(mapCell, tribe);
-        }
-        catch (NoSuchElementException ex) {
-            return false;
-        }                   
+
+        return tribe.canAffordUnit() && thereIsATownHall(requesterPosition, tribe);    
     }
 
     private boolean thereIsATownHall(MapCell position, Tribe tribe) {
@@ -349,9 +359,9 @@ public class AgWorld extends Agent {
         }
     }
 
-    private void handInitialTribeResources(Tribe tribe) {
+    private void handInitialTribeResources(MapCell townHallCell, Tribe tribe) {
         for (int i = 0; i < STARTING_UNIT_NUMBER; i++) {
-            launchNewAgentUnit(tribe);
+            launchNewAgentUnit(townHallCell, tribe);
         }
     }
 
@@ -369,22 +379,15 @@ public class AgWorld extends Agent {
         return ownerTribe.getUnit(unitAID);
     }
 
-    private boolean launchNewAgentUnit(Tribe ownerTribe) {
+    private boolean launchNewAgentUnit(MapCell startingPosition, Tribe ownerTribe) {
         try {
             ContainerController cc = getContainerController();
             AgUnit newUnit = new AgUnit();
             AgentController ac = cc.acceptNewAgent(generateNewUnitName(ownerTribe), newUnit);
             ac.start();
 
-            // TODO: temporal initial positions for testing purposes
-            Pair<Integer, Integer> position;
-            try {
-                position = initialUnitCoordinates.pop();
-            } catch (EmptyStackException ex) {
-                position = new Pair<>(0, 0);
-            }
-            Unit newUnitRef = new Unit(newUnit.getAID(), position.getKey(),
-                     position.getValue());
+            Unit newUnitRef = new Unit(newUnit.getAID()
+                    , startingPosition.getXCoord(), startingPosition.getYCoord());
             
             
             if (!ownerTribe.createUnit(newUnitRef)) {

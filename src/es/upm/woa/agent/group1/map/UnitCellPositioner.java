@@ -24,22 +24,22 @@ public class UnitCellPositioner {
     
     private static UnitCellPositioner instance;
     
-    private final WorldMap worldMap;
+    private final GameMap worldMap;
     private final Set<Unit> movingUnits;
     
-    private UnitCellPositioner(WorldMap worldMap) {
-        this.worldMap = worldMap;
+    private UnitCellPositioner(GameMap gameMap) {
+        this.worldMap = gameMap;
         this.movingUnits = new HashSet<>();
     }
     
     /**
      * 
-     * @param worldMap
+     * @param gameMap
      * @return instance of the positioner
      */
-    public static UnitCellPositioner getInstance(WorldMap worldMap) {
+    public static UnitCellPositioner getInstance(GameMap gameMap) {
         if (instance == null) {
-            instance = new UnitCellPositioner(worldMap);
+            instance = new UnitCellPositioner(gameMap);
         }
         
         return instance;

@@ -30,7 +30,7 @@ public interface GameMap {
      * @param x coordinate
      * @param y coordinate
      * @return the requested cell
-     * @throws IndexOutOfBoundsException when the was not found
+     * @throws NoSuchElementException when the was not found
      */
     public MapCell getCellAt(int x, int y) throws NoSuchElementException;
     
