@@ -20,7 +20,7 @@ import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
-import es.upm.woa.ontology.NotifyNewCellDiscovery;
+import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
 
 import jade.content.lang.Codec;
@@ -322,15 +322,10 @@ public class AgWorld extends Agent {
         }
         else {
             Building building = (Building) position.getContent();
-            if (building.getType().size() == 0
-                    || !(building.getType().get(0) instanceof String)) {
+            if (!building.getOwner().equals(tribe.getAID())) {
                 return false;
             }
-            else if (!building.getOwner().equals(tribe.getAID())) {
-                return false;
-            }
-            // TODO: fix ontology
-            else return ((String)building.getType().get(0)).equals("TownHall");
+            else return building.getType().equals(WoaDefinitions.TOWN_HALL);
         }
     }
 
@@ -476,12 +471,12 @@ public class AgWorld extends Agent {
     
     private void informTribeAboutDiscoveredCell(Tribe ownerTribe, Cell newCell) {
 
-        NotifyNewCellDiscovery notifyNewCellDiscovery = new NotifyNewCellDiscovery();
+        NotifyCellDetail notifyNewCellDiscovery = new NotifyCellDetail();
         
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerTribe.getAID(), notifyNewCellDiscovery);
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
@@ -491,12 +486,12 @@ public class AgWorld extends Agent {
     }
     
     private void informUnitAboutDiscoveredCell(Unit ownerUnit, Cell newCell) {
-        NotifyNewCellDiscovery notifyNewCellDiscovery = new NotifyNewCellDiscovery();
+        NotifyCellDetail notifyNewCellDiscovery = new NotifyCellDetail();
         
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerUnit.getId(), notifyNewCellDiscovery);
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
+        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
                 sendMessage(ownerUnit.getId(), ACLMessage.INFORM, new SentMessageHandler() {

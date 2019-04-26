@@ -6,8 +6,8 @@
 package es.upm.woa.agent.group1.map;
 
 import es.upm.woa.ontology.Empty;
+
 import jade.content.Concept;
-import jade.core.AID;
 
 /**
  *
@@ -15,7 +15,7 @@ import jade.core.AID;
  */
 class EmptyMapCell implements MapCell {
     
-    private Concept content;
+    private final Concept content;
     
     private final int x;
     private final int y;
@@ -24,11 +24,6 @@ class EmptyMapCell implements MapCell {
         this.x = x;
         this.y = y;
         this.content = new Empty();
-    }
-
-    @Override
-    public AID getOwner() {
-        return null;
     }
 
     @Override

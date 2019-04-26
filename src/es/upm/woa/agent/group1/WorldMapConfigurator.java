@@ -172,9 +172,7 @@ public class WorldMapConfigurator {
         }
         Building tribeTownHall = new Building();
         tribeTownHall.setOwner(tribeAID);
-        ArrayList typeList = new ArrayList();
-        typeList.add("Town Hall");
-        tribeTownHall.setType(typeList);
+        tribeTownHall.setType(WoaDefinitions.TOWN_HALL);
         targetCell.setContent(tribeTownHall);
         
         return targetCell;

@@ -19,7 +19,7 @@ import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
-import es.upm.woa.ontology.NotifyNewCellDiscovery;
+import es.upm.woa.ontology.NotifyCellDetail;
 
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
@@ -276,8 +276,8 @@ public class AgUnit extends Agent {
     }
 
     private void startInformNewCellDiscoveryBehaviour() {
-        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
-        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
+        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyCellDetail());
+        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -290,11 +290,11 @@ public class AgUnit extends Agent {
                                 Action agAction = (Action) ce;
                                 Concept conc = agAction.getAction();
 
-                                if (conc instanceof NotifyNewCellDiscovery) {
+                                if (conc instanceof NotifyCellDetail) {
                                     log(Level.FINER, "receive NotifyNewCellDiscovery inform from "
                                             + response.getSender().getLocalName());
 
-                                    NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery) conc;
+                                    NotifyCellDetail newCellInfo = (NotifyCellDetail) conc;
 
                                     
 

@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: GameOntology.java
  * @author ontology bean generator
- * @version 2019/04/8, 12:20:37
+ * @version 2019/04/26, 13:38:37
  */
 public class GameOntology extends jade.content.onto.Ontology  {
   //NAME
@@ -23,24 +23,28 @@ public class GameOntology extends jade.content.onto.Ontology  {
 
 
    // VOCABULARY
-    public static final String NOTIFYNEWCELLDISCOVERY_NEWCELL="newCell";
-    public static final String NOTIFYNEWCELLDISCOVERY="NotifyNewCellDiscovery";
-    public static final String NOTIFYNEWUNIT_NEWUNIT="newUnit";
-    public static final String NOTIFYNEWUNIT_LOCATION="location";
-    public static final String NOTIFYNEWUNIT="NotifyNewUnit";
     public static final String MOVETOCELL_TARGET="target";
     public static final String MOVETOCELL="MoveToCell";
+    public static final String NOTIFYCELLDETAIL_NEWCELL="newCell";
+    public static final String NOTIFYCELLDETAIL="NotifyCellDetail";
     public static final String CREATEUNIT="CreateUnit";
+    public static final String CREATEBUILDING_BUILDINGTYPE="buildingType";
+    public static final String CREATEBUILDING="CreateBuilding";
+    public static final String NOTIFYNEWUNIT_LOCATION="location";
+    public static final String NOTIFYNEWUNIT_NEWUNIT="newUnit";
+    public static final String NOTIFYNEWUNIT="NotifyNewUnit";
+    public static final String NOTIFYUNITPOSITION_CELL="cell";
+    public static final String NOTIFYUNITPOSITION_TRIBEID="tribeId";
+    public static final String NOTIFYUNITPOSITION="NotifyUnitPosition";
     public static final String RESOURCE="Resource";
-    public static final String BUILDING_OWNER="owner";
     public static final String BUILDING_TYPE="type";
+    public static final String BUILDING_OWNER="owner";
     public static final String BUILDING="Building";
-    public static final String EMPTY="Empty";
-    public static final String CELL_OWNER="owner";
-    public static final String CELL_CONTENT="content";
-    public static final String CELL_Y="y";
     public static final String CELL_X="x";
+    public static final String CELL_Y="y";
+    public static final String CELL_CONTENT="content";
     public static final String CELL="Cell";
+    public static final String EMPTY="Empty";
 
   /**
    * Constructor
@@ -50,24 +54,28 @@ public class GameOntology extends jade.content.onto.Ontology  {
     try { 
 
     // adding Concept(s)
-    ConceptSchema cellSchema = new ConceptSchema(CELL);
-    add(cellSchema, es.upm.woa.ontology.Cell.class);
     ConceptSchema emptySchema = new ConceptSchema(EMPTY);
     add(emptySchema, es.upm.woa.ontology.Empty.class);
+    ConceptSchema cellSchema = new ConceptSchema(CELL);
+    add(cellSchema, es.upm.woa.ontology.Cell.class);
     ConceptSchema buildingSchema = new ConceptSchema(BUILDING);
     add(buildingSchema, es.upm.woa.ontology.Building.class);
     ConceptSchema resourceSchema = new ConceptSchema(RESOURCE);
     add(resourceSchema, es.upm.woa.ontology.Resource.class);
 
     // adding AgentAction(s)
-    AgentActionSchema createUnitSchema = new AgentActionSchema(CREATEUNIT);
-    add(createUnitSchema, es.upm.woa.ontology.CreateUnit.class);
-    AgentActionSchema moveToCellSchema = new AgentActionSchema(MOVETOCELL);
-    add(moveToCellSchema, es.upm.woa.ontology.MoveToCell.class);
+    AgentActionSchema notifyUnitPositionSchema = new AgentActionSchema(NOTIFYUNITPOSITION);
+    add(notifyUnitPositionSchema, es.upm.woa.ontology.NotifyUnitPosition.class);
     AgentActionSchema notifyNewUnitSchema = new AgentActionSchema(NOTIFYNEWUNIT);
     add(notifyNewUnitSchema, es.upm.woa.ontology.NotifyNewUnit.class);
-    AgentActionSchema notifyNewCellDiscoverySchema = new AgentActionSchema(NOTIFYNEWCELLDISCOVERY);
-    add(notifyNewCellDiscoverySchema, es.upm.woa.ontology.NotifyNewCellDiscovery.class);
+    AgentActionSchema createBuildingSchema = new AgentActionSchema(CREATEBUILDING);
+    add(createBuildingSchema, es.upm.woa.ontology.CreateBuilding.class);
+    AgentActionSchema createUnitSchema = new AgentActionSchema(CREATEUNIT);
+    add(createUnitSchema, es.upm.woa.ontology.CreateUnit.class);
+    AgentActionSchema notifyCellDetailSchema = new AgentActionSchema(NOTIFYCELLDETAIL);
+    add(notifyCellDetailSchema, es.upm.woa.ontology.NotifyCellDetail.class);
+    AgentActionSchema moveToCellSchema = new AgentActionSchema(MOVETOCELL);
+    add(moveToCellSchema, es.upm.woa.ontology.MoveToCell.class);
 
     // adding AID(s)
 
@@ -75,16 +83,18 @@ public class GameOntology extends jade.content.onto.Ontology  {
 
 
     // adding fields
-    cellSchema.add(CELL_X, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
-    cellSchema.add(CELL_Y, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     cellSchema.add(CELL_CONTENT, new ConceptSchema("Concept"), ObjectSchema.OPTIONAL);
-    cellSchema.add(CELL_OWNER, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.OPTIONAL);
-    buildingSchema.add(BUILDING_TYPE, (TermSchema)getSchema(BasicOntology.STRING), 0, ObjectSchema.UNLIMITED);
+    cellSchema.add(CELL_Y, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
+    cellSchema.add(CELL_X, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     buildingSchema.add(BUILDING_OWNER, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);
-    moveToCellSchema.add(MOVETOCELL_TARGET, cellSchema, ObjectSchema.MANDATORY);
-    notifyNewUnitSchema.add(NOTIFYNEWUNIT_LOCATION, cellSchema, ObjectSchema.MANDATORY);
+    buildingSchema.add(BUILDING_TYPE, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
+    notifyUnitPositionSchema.add(NOTIFYUNITPOSITION_TRIBEID, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
+    notifyUnitPositionSchema.add(NOTIFYUNITPOSITION_CELL, cellSchema, ObjectSchema.MANDATORY);
     notifyNewUnitSchema.add(NOTIFYNEWUNIT_NEWUNIT, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);
-    notifyNewCellDiscoverySchema.add(NOTIFYNEWCELLDISCOVERY_NEWCELL, cellSchema, ObjectSchema.MANDATORY);
+    notifyNewUnitSchema.add(NOTIFYNEWUNIT_LOCATION, cellSchema, ObjectSchema.MANDATORY);
+    createBuildingSchema.add(CREATEBUILDING_BUILDINGTYPE, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
+    notifyCellDetailSchema.add(NOTIFYCELLDETAIL_NEWCELL, cellSchema, ObjectSchema.MANDATORY);
+    moveToCellSchema.add(MOVETOCELL_TARGET, cellSchema, ObjectSchema.MANDATORY);
 
     // adding name mappings
 

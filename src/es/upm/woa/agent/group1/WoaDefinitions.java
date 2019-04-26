@@ -15,4 +15,6 @@ public class WoaDefinitions {
     public final static int UNIT_FOOD_COST = 50;
     public final static int UNIT_GOLD_COST = 150;
     
+    public final static String TOWN_HALL = "Town Hall";
+    
 }

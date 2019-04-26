@@ -6,15 +6,12 @@
 package es.upm.woa.agent.group1.map;
 
 import jade.content.Concept;
-import jade.core.AID;
 
 /**
  *
  * @author ISU
  */
 public interface MapCell {
-    
-    public AID getOwner();
     
     public Concept getContent();
     

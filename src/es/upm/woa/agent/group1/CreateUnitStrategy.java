@@ -162,7 +162,7 @@ class CreateUnitStrategy extends Strategy {
                 else {
                     // TODO: fix Town hall type hard coded
                     return building.getOwner().equals(myAgUnit.getOwnerAID())
-                            && building.getType().get(0).equals("TownHall");
+                            && building.getType().equals(WoaDefinitions.TOWN_HALL);
                 }
             }
             

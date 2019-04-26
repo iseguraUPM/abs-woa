@@ -15,7 +15,7 @@ import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
-import es.upm.woa.ontology.NotifyNewCellDiscovery;
+import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
 
 import jade.content.Concept;
@@ -101,8 +101,8 @@ public class AgTribe extends Agent {
     }
     
     private void startInformNewCellDiscoveryBehaviour() {
-        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyNewCellDiscovery());
-        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYNEWCELLDISCOVERY) {
+        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyCellDetail());
+        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -115,10 +115,10 @@ public class AgTribe extends Agent {
                                 Action agAction = (Action) ce;
                                 Concept conc = agAction.getAction();
                                 
-                                if (conc instanceof NotifyNewCellDiscovery) {
-                                    log(Level.FINER, "received NotifyNewCellDiscovery inform from "
+                                if (conc instanceof NotifyCellDetail) {
+                                    log(Level.FINER, "received NotifyCellDetail inform from "
                                         + response.getSender().getLocalName());
-                                    NotifyNewCellDiscovery newCellInfo = (NotifyNewCellDiscovery)conc;
+                                    NotifyCellDetail newCellInfo = (NotifyCellDetail)conc;
                                     
                                     processNewCell(newCellInfo);
                                     
@@ -130,7 +130,7 @@ public class AgTribe extends Agent {
 
                     }
 
-                    private void processNewCell(NotifyNewCellDiscovery newCellInfo) {
+                    private void processNewCell(NotifyCellDetail newCellInfo) {
                         try {
                             boolean cellAdded = knownMap.addCell(MapCellFactory
                                 .getInstance().buildCell(newCellInfo.getNewCell()));
@@ -261,12 +261,12 @@ public class AgTribe extends Agent {
         knownCell.setY(cell.getYCoord());
         knownCell.setContent(cell.getContent());
         
-        NotifyNewCellDiscovery newCellDiscovery = new NotifyNewCellDiscovery();
+        NotifyCellDetail newCellDiscovery = new NotifyCellDetail();
         newCellDiscovery.setNewCell(knownCell);
         
         Action informCellDiscoveryAction = new Action(getAID(), newCellDiscovery);
         addBehaviour(new Conversation(this, gameOntology, codec, informCellDiscoveryAction
-            , GameOntology.NOTIFYNEWCELLDISCOVERY) {
+            , GameOntology.NOTIFYCELLDETAIL) {
                 
                 @Override
                 public void onStart() {
