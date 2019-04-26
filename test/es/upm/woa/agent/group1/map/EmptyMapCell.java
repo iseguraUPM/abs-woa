@@ -15,12 +15,15 @@ import jade.core.AID;
  */
 class EmptyMapCell implements MapCell {
     
+    private Concept content;
+    
     private final int x;
     private final int y;
 
     public EmptyMapCell(int x, int y) {
         this.x = x;
         this.y = y;
+        this.content = new Empty();
     }
 
     @Override
@@ -30,7 +33,7 @@ class EmptyMapCell implements MapCell {
 
     @Override
     public Concept getContent() {
-        return new Empty();
+        return content;
     }
 
     @Override
@@ -60,6 +63,11 @@ class EmptyMapCell implements MapCell {
         hash = 61 * hash + this.x;
         hash = 61 * hash + this.y;
         return hash;
+    }
+
+    @Override
+    public void setContent(Concept content) {
+        
     }
     
 }
