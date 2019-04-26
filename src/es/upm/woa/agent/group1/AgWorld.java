@@ -48,14 +48,11 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.ArrayList;
-import java.util.EmptyStackException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import javafx.util.Pair;
 
 // TODO: change docs
 /**

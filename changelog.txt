@@ -264,6 +264,14 @@
     We need to use the map data starting positions and resources. For now only the size of the map is used.
  4. [TODO]
     Setup an actual end game, so the agents and the GUI end properly. Maybe with a timer for now.
- 4. [TODO] ref [TODO 23.3]
+ 5. [TODO] ref [TODO 23.3]
     The map size for AgTribe, AgUnit and Tribe is set manually (hard-coded integers). We need to decide where we 
     define this or if is needed at all.
+----------------------------------------------------------------------------------------------------------------
+ (25) {26/04/2019 18:00} Map tile configuration : Inaki
+ 1. [COMPLETE] ref [TODO 24.3]
+    Added WorldMapConfigurator to load the map resource data and the starting positions. The configurator can 
+    add the townhall of new tribes using this data.
+ 2. [NOTE]
+    The MapCell now can be modified by its contents. This is because no cells can be substitued in the GameMap
+     but they can be modified when building a Town Hall for example.

@@ -5,18 +5,13 @@
  */
 package es.upm.woa.agent.group1.map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.Empty;
+import es.upm.woa.ontology.Resource;
 
 import jade.content.Concept;
 import jade.core.AID;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import es.upm.woa.ontology.Empty;
-import es.upm.woa.ontology.Resource;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 
