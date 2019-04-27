@@ -159,10 +159,23 @@ public class AgWorld extends Agent {
         tribeCollection = new HashSet<>();
         activeTransactions = new ArrayList<>();
         
-        
-        
+        log(Level.INFO, "Starting game...");
+
         // TODO: temp
         final int MAX_TRIBES = 2;
+        
+        // TODO: not the right way to initiate the game. Should be after registering
+        // all tribes and giving the resources.
+        String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES).toArray(new String[MAX_TRIBES]);
+        
+        try {
+            guiEndpoint.apiStartGame(tribeNames
+                    , configurator.getMapConfigurationContents());
+        } catch (IOException ex) {
+            log(Level.SEVERE, "Could not load the map configuration");
+            return false;
+        }
+        
         for (int i = 0; i < MAX_TRIBES; i++) {
             String tribeName = startingTribeNames.get(i);
             Tribe newTribe = launchAgentTribe(tribeName);
@@ -177,20 +190,6 @@ public class AgWorld extends Agent {
                     return false;
                 }
             }
-        }
-        
-
-
-        // TODO: not the right way to initiate the game. Should be after registering
-        // all tribes and giving the resources.
-        String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES-1).toArray(new String[MAX_TRIBES]);
-        
-        try {
-            guiEndpoint.apiStartGame(tribeNames
-                    , configurator.getMapConfigurationContents());
-        } catch (IOException ex) {
-            log(Level.SEVERE, "Could not load the map configuration");
-            return false;
         }
         
         return true;
@@ -230,12 +229,16 @@ public class AgWorld extends Agent {
 
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
+                        if (requesterUnit == null) {
+                            respondMessage(message, ACLMessage.REFUSE);
+                            return;
+                        }
                         
                         try {
                             MapCell unitPosition = worldMap.getCellAt(requesterUnit
                                     .getCoordX(), requesterUnit.getCoordY());
                             
-                            if (ownerTribe == null || requesterUnit == null) {
+                            if (ownerTribe == null) {
                                 respondMessage(message, ACLMessage.REFUSE);
                             } else if (!canCreateUnit(ownerTribe, requesterUnit
                                     , unitPosition)) {
@@ -251,9 +254,6 @@ public class AgWorld extends Agent {
                                     + requesterUnit.getId().getLocalName() + " is at an unknown position");
                             respondMessage(message, ACLMessage.REFUSE);
                         }
-                        
-
-                        
 
                     }
                 });

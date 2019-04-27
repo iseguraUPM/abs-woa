@@ -68,17 +68,29 @@ class HttpWoaGUI implements WoaGUI {
             port = woaConfig.getInt("woa.interface_port");
             
         } catch (ConfigurationException ex) {
-            Logger.getGlobal().log(Level.WARNING, "Could not read configuration data ({0})", ex);
+            Logger.getGlobal().log(Level.WARNING, "Could not read configuration"
+                    + " file: {0}", WoaDefinitions.CONFIG_FILENAME);
         }
         
         try {
             URL serverUrl = new URL("http://" + address + ":" + port);
+            testConnection(serverUrl);
             return new HttpWoaGUI(serverUrl);
         } catch (MalformedURLException ex) {
-            Logger.getGlobal().log(Level.SEVERE, "Invalid server address ({0})", ex);
+            Logger.getGlobal().log(Level.SEVERE, "Invalid server address: {0}"
+                    , "http://" + address + ":" + port);
+        } catch (IOException ex) {
+            Logger.getGlobal().log(Level.SEVERE, "Could not connect to server: {0}"
+                    , "http://" + address + ":" + port);
         }
         
         return null;
+    }
+
+    private static void testConnection(URL serverUrl1) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) serverUrl1.openConnection();
+        conn.connect();
+        conn.disconnect();
     }
     
     private HttpURLConnection connectTo(String resourceURI)
@@ -124,7 +136,7 @@ class HttpWoaGUI implements WoaGUI {
             
         } catch (IOException ex) {
             Logger.getGlobal().log(Level.WARNING
-                    , "Could not parse json map data ({0})", ex);
+                    , "Could not parse json map data");
             return;
         }
         
@@ -140,7 +152,7 @@ class HttpWoaGUI implements WoaGUI {
                     , "Could not form URL ({0})", ex);
         } catch (IOException ex) {
             Logger.getGlobal().log(Level.WARNING
-                    , "Could not send data to GUI endpoint ({0})", ex);
+                    , "Could not send data to GUI endpoint");
         }
     }
 
