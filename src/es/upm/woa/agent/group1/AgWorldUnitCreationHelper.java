@@ -76,7 +76,7 @@ class AgWorldUnitCreationHelper {
             }
 
             private void initiateUnitCreation(Unit requesterUnit, Tribe ownerTribe, MapCell unitPosition, ACLMessage message) {
-                if (UnitCellPositioner.getInstance(agWorld.getWorldMap())
+                if (UnitCellPositioner.getInstance()
                         .isMoving(requesterUnit)) {
                     agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " already moving. Cannot create unit");
@@ -137,7 +137,7 @@ class AgWorldUnitCreationHelper {
     
     private boolean canCreateUnit(Tribe tribe, Unit requester, MapCell requesterPosition) {
 
-        if (UnitCellPositioner.getInstance(agWorld.getWorldMap()).isMoving(requester)) {
+        if (UnitCellPositioner.getInstance().isMoving(requester)) {
             return false;
         }
 

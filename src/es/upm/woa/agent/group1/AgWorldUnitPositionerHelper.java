@@ -89,7 +89,7 @@ public class AgWorldUnitPositionerHelper {
 
             private void initiateMoveToCell(Unit requesterUnit, MapCell mapCell, Action action, ACLMessage message) {
                 UnitCellPositioner unitPositioner = UnitCellPositioner
-                        .getInstance(agWorld.getWorldMap());
+                        .getInstance();
                 if (unitPositioner.isMoving(requesterUnit)) {
                     agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " already moving. Cannot move again");
@@ -108,7 +108,7 @@ public class AgWorldUnitPositionerHelper {
                 }
 
                 try {
-                    Transaction moveTransaction = unitPositioner.move(myAgent,
+                    Transaction moveTransaction = unitPositioner.move(myAgent, agWorld.getWorldMap(),
                              requesterUnit, mapCell, new UnitCellPositioner.UnitMovementHandler() {
                         @Override
                         public void onMove() {

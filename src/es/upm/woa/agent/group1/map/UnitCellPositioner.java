@@ -24,22 +24,19 @@ public class UnitCellPositioner {
     
     private static UnitCellPositioner instance;
     
-    private final GameMap worldMap;
     private final Set<Unit> movingUnits;
     
-    private UnitCellPositioner(GameMap gameMap) {
-        this.worldMap = gameMap;
+    private UnitCellPositioner() {
         this.movingUnits = new HashSet<>();
     }
     
     /**
      * 
-     * @param gameMap
      * @return instance of the positioner
      */
-    public static UnitCellPositioner getInstance(GameMap gameMap) {
+    public static UnitCellPositioner getInstance() {
         if (instance == null) {
-            instance = new UnitCellPositioner(gameMap);
+            instance = new UnitCellPositioner();
         }
         
         return instance;
@@ -57,6 +54,7 @@ public class UnitCellPositioner {
     /**
      * Moves the target unit to the new cell
      * @param agent to execute movement
+     * @param gameMap where to perform movement
      * @param unit to move
      * @param cell to position the unit
      * @param handler
@@ -65,15 +63,15 @@ public class UnitCellPositioner {
      * target cell. This is usually because is not adjacent to its current
      * position. It can also mean that the unit is in an incorrect position.
      */
-    public Transaction move(Agent agent, Unit unit, MapCell cell, UnitMovementHandler handler)
+    public Transaction move(Agent agent, GameMap gameMap, Unit unit, MapCell cell, UnitMovementHandler handler)
             throws IndexOutOfBoundsException {
-        if (!GameMapCoordinate.isCorrectPosition(worldMap.getWidth()
-                , worldMap.getHeight(), unit.getCoordX(), unit.getCoordY())) {
+        if (!GameMapCoordinate.isCorrectPosition(gameMap.getWidth()
+                , gameMap.getHeight(), unit.getCoordX(), unit.getCoordY())) {
             throw new IndexOutOfBoundsException(unit.getId().getLocalName() +
                     " is at an incorrect position");
         }
         
-        if (!isAdjacent(unit, cell)) {
+        if (!isAdjacent(unit, cell, gameMap)) {
             throw new IndexOutOfBoundsException(unit.getId().getLocalName() +
                     " is not adjacent to cell [" + cell.getXCoord()
                     + "," + cell.getYCoord() + "]");
@@ -133,7 +131,7 @@ public class UnitCellPositioner {
     }
     
     // NOTE: this assumes unit is in a correct position
-    private boolean isAdjacent(Unit unit, MapCell cell) {
+    private boolean isAdjacent(Unit unit, MapCell cell, GameMap gameMap) {
         int x1 = unit.getCoordX();
         int y1 = unit.getCoordY();
         int x2 = cell.getXCoord();
@@ -145,7 +143,7 @@ public class UnitCellPositioner {
         
         for (int[] operator : GameMapCoordinate.POS_OPERATORS) {
             int[] translatedPosition = GameMapCoordinate
-                    .applyTranslation(worldMap.getWidth(), worldMap.getHeight()
+                    .applyTranslation(gameMap.getWidth(), gameMap.getHeight()
                             , x1, y1, operator);
             
             if (translatedPosition == null) {

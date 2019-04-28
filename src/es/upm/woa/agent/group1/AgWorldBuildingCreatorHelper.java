@@ -142,7 +142,7 @@ public class AgWorldBuildingCreatorHelper {
     
     
     private boolean canCreateBuilding(String buildingType, Tribe tribe, Unit requester) {
-        if (UnitCellPositioner.getInstance(agWorld.getWorldMap()).isMoving(requester)) {
+        if (UnitCellPositioner.getInstance().isMoving(requester)) {
             agWorld.log(Level.FINE, requester.getId().getLocalName()
                             + " cannot build while moving");
             return false;
