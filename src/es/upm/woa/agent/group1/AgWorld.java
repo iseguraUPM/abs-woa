@@ -9,6 +9,7 @@ package es.upm.woa.agent.group1;
  */
 import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.gui.WoaGUIFactory;
+import es.upm.woa.agent.group1.map.CellBuildingConstructor;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
@@ -19,7 +20,6 @@ import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.CreateUnit;
-import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 import es.upm.woa.ontology.NotifyCellDetail;
@@ -71,9 +71,8 @@ public class AgWorld extends Agent {
     public static final String WORLD = "WORLD";
 
     private static final int STARTING_UNIT_NUMBER = 1;
-    private static final int CREATE_TOWN_HALL_TICKS = 240;
     private static final int CREATE_UNIT_TICKS = 150;
-    
+
     private static final long serialVersionUID = 1L;
     private Ontology ontology;
     private Codec codec;
@@ -81,20 +80,20 @@ public class AgWorld extends Agent {
     private Collection<Tribe> tribeCollection;
     private GameMap worldMap;
     private WoaGUIWrapper guiEndpoint;
-    
+
     // TODO: temporal solution before registration
     private List<String> startingTribeNames;
 
     private Collection<Transaction> activeTransactions;
-    
+
     private Handler logHandler;
-    
+
     @Override
     protected void setup() {
         logHandler = new ConsoleHandler();
         logHandler.setLevel(Level.FINE);
         log(Level.INFO, "has entered the system");
-        
+
         // TODO: temp
         startingTribeNames = new ArrayList<>();
         startingTribeNames.add("TribeA");
@@ -103,7 +102,7 @@ public class AgWorld extends Agent {
         startingTribeNames.add("TribeD");
         startingTribeNames.add("TribeE");
         startingTribeNames.add("TribeF");
-        
+
         initializeAgent();
         if (!initializeWorld()) {
             try {
@@ -118,7 +117,7 @@ public class AgWorld extends Agent {
         startMoveToCellBehaviour();
         startTownHallCreationBehaviour();
     }
-    
+
     private void initializeAgent() {
         try {
             // Creates its own description
@@ -140,7 +139,7 @@ public class AgWorld extends Agent {
         codec = new SLCodec();
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(ontology);
-        
+
         guiEndpoint = new WoaGUIWrapper();
         try {
             WoaGUI woaGUI = WoaGUIFactory.getInstance().getGUI();
@@ -148,45 +147,45 @@ public class AgWorld extends Agent {
         } catch (IOException ex) {
             log(Level.WARNING, "Could not connect to GUI endpoint");
         }
-        
+
         WorldMapConfigurator configurator;
         try {
             configurator = WorldMapConfigurator
                     .getInstance();
-            
+
             worldMap = configurator.generateWorldMap();
         } catch (ConfigurationException ex) {
             log(Level.SEVERE, "Could not load the configuration");
             return false;
         }
-        
+
         tribeCollection = new HashSet<>();
         activeTransactions = new ArrayList<>();
-        
+
         log(Level.INFO, "Starting game...");
 
         // TODO: temp
         final int MAX_TRIBES = 1;
-        
+
         // TODO: not the right way to initiate the game. Should be after registering
         // all tribes and giving the resources.
         String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES).toArray(new String[MAX_TRIBES]);
-        
+
         try {
-            guiEndpoint.apiStartGame(tribeNames
-                    , configurator.getMapConfigurationContents());
+            guiEndpoint.apiStartGame(tribeNames,
+                     configurator.getMapConfigurationContents());
         } catch (IOException ex) {
             log(Level.SEVERE, "Could not load the map configuration");
             return false;
         }
-        
+
         for (int i = 0; i < MAX_TRIBES; i++) {
             String tribeName = startingTribeNames.get(i);
             Tribe newTribe = launchAgentTribe(tribeName);
             if (newTribe != null) {
                 try {
-                    MapCell townHallCell = configurator.addNewTribe(worldMap
-                            , newTribe.getAID());
+                    MapCell townHallCell = configurator.addNewTribe(worldMap,
+                             newTribe.getAID());
                     handInitialTribeResources(townHallCell, newTribe);
                 } catch (ConfigurationException ex) {
                     log(Level.SEVERE, "Could not add new tribe: "
@@ -195,21 +194,21 @@ public class AgWorld extends Agent {
                 }
             }
         }
-        
+
         return true;
     }
-    
+
     @Override
     protected void takeDown() {
         finalizeAgent();
         rollbackUnfinishedTransactions();
     }
-    
+
     private void rollbackUnfinishedTransactions() {
         activeTransactions.forEach(t -> t.rollback());
         activeTransactions.clear();
     }
-    
+
     private void finalizeAgent() {
         try {
             DFService.deregister(this);
@@ -233,29 +232,22 @@ public class AgWorld extends Agent {
 
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
-                        if (requesterUnit == null) {
+                        if (ownerTribe == null || requesterUnit == null) {
                             respondMessage(message, ACLMessage.REFUSE);
                             return;
                         }
-                        
+
                         try {
                             MapCell unitPosition = worldMap.getCellAt(requesterUnit
                                     .getCoordX(), requesterUnit.getCoordY());
-                            
-                            if (ownerTribe == null) {
-                                respondMessage(message, ACLMessage.REFUSE);
-                            } else if (!canCreateUnit(ownerTribe, requesterUnit
-                                    , unitPosition)) {
+
+                            if (!canCreateUnit(ownerTribe, requesterUnit,
+                                     unitPosition)) {
                                 respondMessage(message, ACLMessage.REFUSE);
                             } else {
-                                if(requesterUnit.getIsBuilding()){
-                                    requesterUnit.refundUnitTransaction();
-                                }
-                                ownerTribe.purchaseUnit();
-                                respondMessage(message, ACLMessage.AGREE);
-                                initiateUnitCreation(ownerTribe, unitPosition, message);
+                                initiateUnitCreation(requesterUnit, ownerTribe, unitPosition, message);
                             }
-                            
+
                         } catch (NoSuchElementException ex) {
                             log(Level.WARNING, "Unit "
                                     + requesterUnit.getId().getLocalName() + " is at an unknown position");
@@ -266,13 +258,25 @@ public class AgWorld extends Agent {
                 });
             }
 
-            private void initiateUnitCreation(Tribe ownerTribe, MapCell unitPosition, ACLMessage message) {
-
+            private void initiateUnitCreation(Unit requesterUnit, Tribe ownerTribe, MapCell unitPosition, ACLMessage message) {
+                if (UnitCellPositioner.getInstance(worldMap).isMoving(requesterUnit)) {
+                    log(Level.FINE, requesterUnit.getId().getLocalName()
+                            + " already moving. Cannot create unit");
+                    respondMessage(message, ACLMessage.REFUSE);
+                    return;
+                }
+                
+                // NOTE: if the unit were building it means there is not a town
+                // hall. Thus, the request would already be refused later and
+                // checking whether is building or not is unnecessary.
+                
+                ownerTribe.purchaseUnit();
+                respondMessage(message, ACLMessage.AGREE);
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
 
                     boolean finished = false;
-                    
+
                     @Override
                     public boolean done() {
                         return finished;
@@ -284,7 +288,7 @@ public class AgWorld extends Agent {
                             boolean success = launchNewAgentUnit(unitPosition, ownerTribe);
                             if (!success) {
                                 ownerTribe.refundUnit();
-                                
+
                                 respondMessage(message, ACLMessage.FAILURE);
 
                             } else {
@@ -299,7 +303,7 @@ public class AgWorld extends Agent {
                     public void rollback() {
                         if (!finished) {
                             log(Level.INFO, "refunded unit to "
-                                        + ownerTribe.getAID().getLocalName());
+                                    + ownerTribe.getAID().getLocalName());
                             ownerTribe.refundUnit();
                             respondMessage(message, ACLMessage.FAILURE);
                         }
@@ -312,26 +316,26 @@ public class AgWorld extends Agent {
             }
         });
     }
-    
+
     private boolean canCreateUnit(Tribe tribe, Unit requester, MapCell requesterPosition) {
-        
-        if(UnitCellPositioner.getInstance(worldMap).isMoving(requester)){
+
+        if (UnitCellPositioner.getInstance(worldMap).isMoving(requester)) {
             return false;
         }
 
-        return tribe.canAffordUnit() && thereIsATownHall(requesterPosition, tribe);    
+        return tribe.canAffordUnit() && thereIsATownHall(requesterPosition, tribe);
     }
 
     private boolean thereIsATownHall(MapCell position, Tribe tribe) {
         if (!(position.getContent() instanceof Building)) {
             return false;
-        }
-        else {
+        } else {
             Building building = (Building) position.getContent();
             if (!building.getOwner().equals(tribe.getAID())) {
                 return false;
+            } else {
+                return building.getType().equals(WoaDefinitions.TOWN_HALL);
             }
-            else return building.getType().equals(WoaDefinitions.TOWN_HALL);
         }
     }
 
@@ -384,18 +388,17 @@ public class AgWorld extends Agent {
             AgentController ac = cc.acceptNewAgent(generateNewUnitName(ownerTribe), newUnit);
             ac.start();
 
-            Unit newUnitRef = new Unit(newUnit.getAID()
-                    , startingPosition.getXCoord(), startingPosition.getYCoord());
-            
-            
+            Unit newUnitRef = new Unit(newUnit.getAID(),
+                     startingPosition.getXCoord(), startingPosition.getYCoord());
+
             if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
                 return false;
             } else {
                 informTribeAboutNewUnit(ownerTribe, newUnitRef);
-                guiEndpoint.apiCreateAgent(ownerTribe.getAID().getLocalName()
-                        , newUnitRef.getId().getLocalName(), newUnitRef.getCoordX()
-                        , newUnitRef.getCoordY());
+                guiEndpoint.apiCreateAgent(ownerTribe.getAID().getLocalName(),
+                         newUnitRef.getId().getLocalName(), newUnitRef.getCoordX(),
+                         newUnitRef.getCoordY());
                 return true;
             }
 
@@ -416,8 +419,7 @@ public class AgWorld extends Agent {
         Cell cell = new Cell();
         cell.setX(newUnit.getCoordX());
         cell.setY(newUnit.getCoordY());
-        
-        
+
         //TODO this shouldn't be mandatory
         notifyNewUnit.setLocation(cell);
         notifyNewUnit.setNewUnit(newUnit.getId());
@@ -427,17 +429,16 @@ public class AgWorld extends Agent {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
-                    
+
                 });
             }
         });
-       
+
         try {
             MapCell discoveredCell = worldMap.getCellAt(cell.getX(), cell.getY());
             cell.setContent(discoveredCell.getContent());
             processTribeKnownCell(ownerTribe, cell);
-        }
-        catch (NoSuchElementException ex) {
+        } catch (NoSuchElementException ex) {
             log(Level.WARNING, "Unit in unknown starting position (" + ex + ")");
         }
     }
@@ -445,13 +446,12 @@ public class AgWorld extends Agent {
     private void processTribeKnownCell(Tribe ownerTribe, Cell cell) {
         GameMap exploredTribeCells = ownerTribe.getKnownMap();
         try {
-            exploredTribeCells.getCellAt(cell.getX()
-                    , cell.getY());
+            exploredTribeCells.getCellAt(cell.getX(),
+                     cell.getY());
             log(Level.FINER, ownerTribe.getAID().getLocalName()
                     + " already knows cell "
                     + cell.getX() + "," + cell.getY());
-        }
-        catch (NoSuchElementException ex) {
+        } catch (NoSuchElementException ex) {
             log(Level.FINER, ownerTribe.getAID().getLocalName()
                     + " discovered cell "
                     + cell.getX() + "," + cell.getY());
@@ -464,21 +464,20 @@ public class AgWorld extends Agent {
             MapCell exploredCell = worldMap.getCellAt(cell.getX(), cell.getY());
             exploredTribeCells.addCell(exploredCell);
             informTribeAboutDiscoveredCell(ownerTribe, cell);
-            for(Unit tribeUnit : ownerTribe.getUnitsIterable()){
+            for (Unit tribeUnit : ownerTribe.getUnitsIterable()) {
                 log(Level.FINER, tribeUnit.getId().getLocalName()
                         + " was informed of cell "
                         + cell.getX() + "," + cell.getY());
                 informUnitAboutDiscoveredCell(tribeUnit, cell);
             }
-        }
-        catch (NoSuchElementException e) {
+        } catch (NoSuchElementException e) {
         }
     }
-    
+
     private void informTribeAboutDiscoveredCell(Tribe ownerTribe, Cell newCell) {
 
         NotifyCellDetail notifyNewCellDiscovery = new NotifyCellDetail();
-        
+
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerTribe.getAID(), notifyNewCellDiscovery);
@@ -490,10 +489,10 @@ public class AgWorld extends Agent {
             }
         });
     }
-    
+
     private void informUnitAboutDiscoveredCell(Unit ownerUnit, Cell newCell) {
         NotifyCellDetail notifyNewCellDiscovery = new NotifyCellDetail();
-        
+
         notifyNewCellDiscovery.setNewCell(newCell);
 
         Action informNewCellDiscoveryAction = new Action(ownerUnit.getId(), notifyNewCellDiscovery);
@@ -505,7 +504,7 @@ public class AgWorld extends Agent {
             }
         });
     }
-    
+
     private void startMoveToCellBehaviour() {
         final Action moveToCellAction = new Action(getAID(), null);
         addBehaviour(new Conversation(this, ontology, codec, moveToCellAction, GameOntology.MOVETOCELL) {
@@ -521,31 +520,34 @@ public class AgWorld extends Agent {
 
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
-                        
+
                         if (ownerTribe == null || requesterUnit == null) {
                             respondMessage(message, ACLMessage.REFUSE);
-                        }else{
-
-                            try {
-                                ContentElement ce = getContentManager().extractContent(message);
-                                Action agAction = (Action) ce;
-                                Concept conc = agAction.getAction();
-                                MoveToCell targetCell= (MoveToCell) conc;
-                                
-                                try {
-                                    MapCell mapCell = worldMap.getCellAt(targetCell
-                                            .getTarget().getX(), targetCell.getTarget().getY());
-                                    if(requesterUnit.getIsBuilding()){
-                                        requesterUnit.refundUnitTransaction();
-                                    }
-                                    initiateMoveToCell(requesterUnit, mapCell, moveToCellAction, message);
-                                } catch (NoSuchElementException ex) {
-                                    respondMessage(message, ACLMessage.REFUSE);
-                                }
-                            } catch (Codec.CodecException | OntologyException ex) {
-                                log(Level.WARNING, "could not receive message (" + ex + ")");
-                            }
+                            return;
                         }
+                        
+                        
+
+                        try {
+                            ContentElement ce = getContentManager().extractContent(message);
+                            Action agAction = (Action) ce;
+                            Concept conc = agAction.getAction();
+                            MoveToCell targetCell = (MoveToCell) conc;
+
+                            MapCell mapCell = worldMap.getCellAt(targetCell
+                                    .getTarget().getX(), targetCell.getTarget().getY());
+                            
+                            initiateMoveToCell(requesterUnit, mapCell, moveToCellAction, message);
+
+                        } catch (NoSuchElementException ex) {
+                            log(Level.WARNING, "Unit "
+                                    + requesterUnit.getId().getLocalName() + " is at an unknown position");
+                            respondMessage(message, ACLMessage.REFUSE);
+                        } catch (Codec.CodecException | OntologyException ex) {
+                            log(Level.WARNING, "could not receive message (" + ex + ")");
+                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
+                        }
+
                     }
                 });
             }
@@ -558,16 +560,24 @@ public class AgWorld extends Agent {
                     respondMessage(message, ACLMessage.REFUSE);
                     return;
                 }
-                                
+                
+                if (CellBuildingConstructor.getInstance()
+                        .isBuilding(requesterUnit)) {
+                    log(Level.FINE, requesterUnit.getId().getLocalName()
+                            + " is currently building. Current construction"
+                                    + " will be cancelled");
+                    requesterUnit.rollbackCurrentTransaction();
+                    respondMessage(message, ACLMessage.REFUSE);
+                    return;
+                }
+
                 try {
-                    //TODO message content must be updated
-                    Transaction moveTransaction = unitPositioner.move(myAgent
-                            , requesterUnit, mapCell, new UnitCellPositioner
-                                    .UnitMovementHandler() {
+                    Transaction moveTransaction = unitPositioner.move(myAgent,
+                             requesterUnit, mapCell, new UnitCellPositioner.UnitMovementHandler() {
                         @Override
                         public void onMove() {
                             Tribe ownerTribe = findOwnerTribe(requesterUnit.getId());
-                            
+
                             Cell newCell = new Cell();
                             newCell.setX(mapCell.getXCoord());
                             newCell.setY(mapCell.getYCoord());
@@ -575,14 +585,14 @@ public class AgWorld extends Agent {
 
                             MoveToCell moveToCellAction = new MoveToCell();
                             moveToCellAction.setTarget(newCell);
-                            
+
                             action.setAction(moveToCellAction);
-                            
+
                             respondMessage(message, ACLMessage.INFORM);
                             guiEndpoint.apiMoveAgent(requesterUnit.getId()
-                                    .getLocalName(), mapCell.getXCoord()
-                                    , mapCell.getYCoord());
-                            
+                                    .getLocalName(), mapCell.getXCoord(),
+                                     mapCell.getYCoord());
+
                             processTribeKnownCell(ownerTribe, newCell);
                         }
 
@@ -591,31 +601,24 @@ public class AgWorld extends Agent {
                             respondMessage(message, ACLMessage.FAILURE);
                         }
                     });
-                    
+
                     respondMessage(message, ACLMessage.AGREE);
                     activeTransactions.add(moveTransaction);
-                  
-            }
-            catch (IndexOutOfBoundsException ex) {
-                log(Level.FINE, requesterUnit.getId().getLocalName()
+
+                } catch (IndexOutOfBoundsException ex) {
+                    log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot move to cell " + mapCell.getXCoord()
-                        + ", " + mapCell.getYCoord() + "(" + ex + ")");
-                respondMessage(message, ACLMessage.REFUSE);
+                            + ", " + mapCell.getYCoord() + "(" + ex + ")");
+                    respondMessage(message, ACLMessage.REFUSE);
+                }
             }
-        }
         });
     }
-    
-    private void log(Level logLevel, String message) {
-        String compMsg = getLocalName() + ": " + message;
-        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
-            System.out.println(compMsg);
-        }
-    }
-    
+
+
     private void startTownHallCreationBehaviour() {
-        final Action createTownHallAction = new Action(getAID(), null);
-        addBehaviour(new Conversation(this, ontology, codec, createTownHallAction, GameOntology.CREATEBUILDING) {
+        final Action createBuildingAction = new Action(getAID(), null);
+        addBehaviour(new Conversation(this, ontology, codec, createBuildingAction, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
                 Action action = new Action(getAID(), new CreateBuilding());
@@ -623,120 +626,137 @@ public class AgWorld extends Agent {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        log(Level.FINE, "received CreateTownHall request from"
+                        log(Level.FINE, "received CreateBuilding request from"
                                 + message.getSender().getLocalName());
 
                         final Tribe ownerTribe = findOwnerTribe(message.getSender());
                         Unit requesterUnit = findUnit(ownerTribe, message.getSender());
-                        if (requesterUnit == null) {
+                        if (ownerTribe == null || requesterUnit == null) {
                             respondMessage(message, ACLMessage.REFUSE);
                             return;
                         }
-                        
+
                         try {
+                            ContentElement ce = getContentManager().extractContent(message);
+                            Action agAction = (Action) ce;
+                            Concept conc = agAction.getAction();
+                            CreateBuilding createBuilding = (CreateBuilding) conc;
+
+                            String buildingType = createBuilding.getBuildingType();
+
                             MapCell unitPosition = worldMap.getCellAt(requesterUnit
                                     .getCoordX(), requesterUnit.getCoordY());
-                            
-                            if(requesterUnit.getIsBuilding()){
-                                requesterUnit.refundUnitTransaction();
-                            }
-                            if (ownerTribe == null) {
-                                respondMessage(message, ACLMessage.REFUSE);
-                            } else if (!canCreateTownHall(ownerTribe, requesterUnit
-                                    , unitPosition)) {
+
+                            if (!canCreateBuilding(buildingType
+                                    , ownerTribe, requesterUnit)) {
                                 respondMessage(message, ACLMessage.REFUSE);
                             } else {
-                                ownerTribe.purchaseTownHall();
-                                respondMessage(message, ACLMessage.AGREE);
-                                unitPosition.setSomeoneIsBuilding(true);
-                                requesterUnit.setIsBuilding(true);
-                                initiateTownHallCreation(ownerTribe, requesterUnit, unitPosition, message);
+                                initiateBuildingCreation(buildingType,
+                                         ownerTribe, requesterUnit,
+                                         unitPosition, message);
                             }
-                            
+
                         } catch (NoSuchElementException ex) {
                             log(Level.WARNING, "Unit "
-                                    + requesterUnit.getId().getLocalName() + " is at an unknown position");
+                                    + requesterUnit.getId().getLocalName()
+                                    + " is at an unknown position");
                             respondMessage(message, ACLMessage.REFUSE);
+                        } catch (Codec.CodecException | OntologyException ex) {
+                            log(Level.WARNING, "could not receive message (" + ex + ")");
+                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
                         }
 
                     }
                 });
             }
 
-            private void initiateTownHallCreation(Tribe ownerTribe, Unit requesterUnit, MapCell unitPosition, ACLMessage message) {
-
-                DelayedTransactionalBehaviour activeTransaction
-                        = new DelayedTransactionalBehaviour(myAgent, CREATE_TOWN_HALL_TICKS) {
-                            
-                    boolean finished = false;
-                    
-                    @Override
-                    public boolean done() {
-                        return finished;
-                    }
-
-                    @Override
-                    public void commit() {
-                        if (!finished) {
-                            unitPosition.setSomeoneIsBuilding(false);
-                            requesterUnit.setIsBuilding(false);
-                            boolean success = launchTownHall(unitPosition, ownerTribe);
-                            if (!success) {
-                                ownerTribe.refundTownHall();
-                                
-                                respondMessage(message, ACLMessage.FAILURE);
-
-                            } else {
-                                respondMessage(message, ACLMessage.INFORM);
-                            }
+            private void initiateBuildingCreation(String buildingType, Tribe ownerTribe,
+                     Unit requesterUnit, MapCell unitPosition, ACLMessage message) {
+                CellBuildingConstructor buildingConstructor = CellBuildingConstructor.getInstance();
+                
+                if (buildingConstructor.isBuilding(requesterUnit)) {
+                    log(Level.FINE, requesterUnit.getId().getLocalName()
+                            + " is currently building. Current construction"
+                                    + " will be cancelled");
+                    requesterUnit.rollbackCurrentTransaction();
+                    respondMessage(message, ACLMessage.REFUSE);
+                    return;
+                }
+                
+                try {
+                    Transaction buildTransaction = buildingConstructor.build(myAgent, ownerTribe, requesterUnit,
+                             buildingType, unitPosition, new CellBuildingConstructor.BuildingConstructionHandler() {
+                        @Override
+                        public void onBuilt() {
+                            guiEndpoint.apiCreateBuilding(ownerTribe.getAID()
+                                    .getLocalName(), buildingType);
+                            respondMessage(message, ACLMessage.INFORM);
                         }
 
-                        finished = true;
-                    }
-
-                    @Override
-                    public void rollback() {
-                        if (!finished) {
-                            log(Level.INFO, "refunded unit to create town hall"
-                                        + ownerTribe.getAID().getLocalName());
-                            unitPosition.setSomeoneIsBuilding(false);
-                            requesterUnit.setIsBuilding(false);
-                            ownerTribe.refundTownHall();
+                        @Override
+                        public void onCancel() {
+                            refundBuilding(buildingType, ownerTribe);
                             respondMessage(message, ACLMessage.FAILURE);
                         }
-                        finished = true;
-                    }
-                   
-                };
-                
-                requesterUnit.setCurrentTransaction(activeTransaction);
-                activeTransactions.add(activeTransaction);
-                addBehaviour(activeTransaction);
+
+                       
+                    });
+
+                    ownerTribe.purchaseTownHall();
+                    respondMessage(message, ACLMessage.AGREE);
+                    requesterUnit.setCurrentTransaction(buildTransaction);
+                    activeTransactions.add(buildTransaction);
+                } catch (CellBuildingConstructor.CellOccupiedException ex) {
+                    log(Level.FINE, requesterUnit.getId().getLocalName()
+                            + " cannot build on cell " + unitPosition.getXCoord()
+                            + ", " + unitPosition.getYCoord() + "(" + ex + ")");
+                    respondMessage(message, ACLMessage.REFUSE);
+                } catch (CellBuildingConstructor.UnknownBuildingTypeException ex) {
+                    log(Level.FINE, requesterUnit.getId().getLocalName()
+                            + " cannot build on cell " + unitPosition.getXCoord()
+                            + ", " + unitPosition.getYCoord() + "(" + ex + ")");
+                    respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
+                }
             }
         });
     }
-    
-    private boolean canCreateTownHall(Tribe tribe, Unit requester, MapCell requesterPosition) {
-        
-        if(UnitCellPositioner.getInstance(worldMap).isMoving(requester) 
-                || (requesterPosition.getSomeoneIsBuilding() && !requester.getIsBuilding())
-                || !(requesterPosition.getContent() instanceof Empty)){
+
+    private boolean canCreateBuilding(String buildingType, Tribe tribe, Unit requester) {
+        if (UnitCellPositioner.getInstance(worldMap).isMoving(requester)) {
+            log(Level.FINE, requester.getId().getLocalName()
+                            + " cannot build while moving");
             return false;
         }
 
-        return tribe.canAffordTownHall();    
+        return canAffordBuilding(buildingType, tribe);
     }
     
-    private boolean launchTownHall(MapCell newTownHallPosition, Tribe ownerTribe){
-        try {
-            Building tribeTownHall = new Building();
-            tribeTownHall.setOwner(ownerTribe.getAID());
-            tribeTownHall.setType(WoaDefinitions.TOWN_HALL);
-            newTownHallPosition.setContent(tribeTownHall);
-            return true;
-        } catch (Exception e) {
-            log(Level.INFO, "Cannot create town hall");
-            return false;
+    private boolean canAffordBuilding(String buildingType, Tribe ownerTribe) {
+        switch (buildingType) {
+            case WoaDefinitions.TOWN_HALL:
+                return ownerTribe.canAffordTownHall();
+            default:
+                log(Level.WARNING, "Unknown building type: " + buildingType);
+                return false;
         }
-    }    
+    }
+    
+    private void refundBuilding(String buildingType, Tribe ownerTribe) {
+        switch (buildingType) {
+            case WoaDefinitions.TOWN_HALL:
+                ownerTribe.refundTownHall();
+                break;
+            default:
+                log(Level.WARNING, "Unknown building type: " + buildingType);
+        }
+    }
+    
+    
+    private void log(Level logLevel, String message) {
+        String compMsg = getLocalName() + ": " + message;
+        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
+            System.out.println(compMsg);
+        }
+    }
+
 }

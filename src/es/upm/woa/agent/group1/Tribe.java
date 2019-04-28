@@ -27,7 +27,7 @@ public class Tribe {
         agentID = pId;
         knownMap = GraphGameMap.getInstance(4, 4);
         
-        //TODO: define how many units of currentGold/food/stone/wood. By default 1000
+        //TODO: define how many units of currentGold/food/stone/wood
         currentGold = 250;
         currentFood = 250;
         currentStone = 250;
@@ -139,8 +139,8 @@ public class Tribe {
      */
     public boolean canAffordTownHall() {
         return currentGold >= WoaDefinitions.TOWN_HALL_GOLD_COST
-                && currentFood >= WoaDefinitions.TOWN_HALL_STONE_COST
-                && currentFood >= WoaDefinitions.TOWN_HALL_WOOD_COST;
+                && currentStone >= WoaDefinitions.TOWN_HALL_STONE_COST
+                && currentWood >= WoaDefinitions.TOWN_HALL_WOOD_COST;
     }
     
     /**
@@ -149,7 +149,7 @@ public class Tribe {
     public void refundTownHall() {
         currentGold += WoaDefinitions.TOWN_HALL_GOLD_COST;
         currentStone += WoaDefinitions.TOWN_HALL_STONE_COST;
-        currentFood += WoaDefinitions.TOWN_HALL_WOOD_COST;
+        currentWood += WoaDefinitions.TOWN_HALL_WOOD_COST;
     }
         
 }

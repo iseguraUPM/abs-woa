@@ -14,21 +14,10 @@ import jade.core.AID;
  */
 public class Unit extends WorldEntity {
     
-    private boolean isBuilding;
-    
     private Transaction currentTransaction;
     
     public Unit(AID pId, int pCoordX, int pCoordY) {
         super(pId, pCoordX, pCoordY);
-        isBuilding = false;
-    }
-    
-    public void setIsBuilding(boolean building) {
-        this.isBuilding = building;
-    }
-
-    public boolean getIsBuilding() {
-        return isBuilding;
     }
     
     /**
@@ -43,7 +32,7 @@ public class Unit extends WorldEntity {
      * rollback current transaction and set it to null
      * 
      */
-    public void refundUnitTransaction(){
+    public void rollbackCurrentTransaction() {
         if(currentTransaction != null){
             currentTransaction.rollback();  
         }

@@ -20,9 +20,5 @@ public interface MapCell {
     public int getYCoord();
     
     public void setContent(Concept content);
-    
-    public boolean getSomeoneIsBuilding();
-    
-    public void setSomeoneIsBuilding(boolean building);
       
 }

@@ -36,10 +36,10 @@ import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
+
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
-
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
@@ -453,6 +453,9 @@ public class AgUnit extends Agent {
                                     public void onInform(ACLMessage response) {
                                         log(Level.FINER, "received CreateTownHall inform from "
                                                 + response.getSender().getLocalName());
+                                        log(Level.FINE, "created town hall at "
+                                                +  currentPosition.getXCoord()
+                                                + "," + currentPosition.getYCoord());
                                     }
 
                                 });
@@ -487,11 +490,10 @@ public class AgUnit extends Agent {
     }
 
     private void startStrategy() {
-        //startCreateTownHallBehaviour();
-        //startCreateTownHallBehaviour();
+        startCreateTownHallBehaviour();
         StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
         //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
-        unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
+        //unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
         addBehaviour(unitBehaviour);
     }
 
