@@ -89,6 +89,25 @@ public class MapCellFactory {
         public void setContent(Concept content) {
             this.content = content;
         }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof SimpleMapCell) {
+                SimpleMapCell smc = (SimpleMapCell) o;
+                return x == smc.x && y == smc.y;
+            }
+            else {
+                return super.equals(o);
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 53 * hash + this.x;
+            hash = 53 * hash + this.y;
+            return hash;
+        }
 
     }
 }

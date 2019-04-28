@@ -311,7 +311,6 @@ public class AgWorld extends Agent {
         cell.setX(newUnit.getCoordX());
         cell.setY(newUnit.getCoordY());
 
-        //TODO this shouldn't be mandatory
         notifyNewUnit.setLocation(cell);
         notifyNewUnit.setNewUnit(newUnit.getId());
 
@@ -346,55 +345,77 @@ public class AgWorld extends Agent {
             log(Level.FINER, ownerTribe.getAID().getLocalName()
                     + " discovered cell "
                     + cell.getX() + "," + cell.getY());
-            addNewlyExploredCell(cell, exploredTribeCells, ownerTribe);
+            addNewlyExploredCell(cell, exploredTribeCells);
         }
     }
 
-    private void addNewlyExploredCell(Cell cell, GameMap exploredTribeCells, Tribe ownerTribe) {
+    private void addNewlyExploredCell(Cell cell, GameMap exploredTribeCells) {
         try {
             MapCell exploredCell = worldMap.getCellAt(cell.getX(), cell.getY());
-            exploredTribeCells.addCell(exploredCell);
-            informTribeAboutDiscoveredCell(ownerTribe, cell);
-            for (Unit tribeUnit : ownerTribe.getUnitsIterable()) {
-                log(Level.FINER, tribeUnit.getId().getLocalName()
-                        + " was informed of cell "
-                        + cell.getX() + "," + cell.getY());
-                informUnitAboutDiscoveredCell(tribeUnit, cell);
-            }
-        } catch (NoSuchElementException e) {
+
+            Cell ontologyCell = new Cell();
+            ontologyCell.setX(exploredCell.getXCoord());
+            ontologyCell.setY(exploredCell.getYCoord());
+            ontologyCell.setContent(exploredCell.getContent());
+
+            List<AID> receipts = new ArrayList<>();
+            tribeCollection.forEach((targetTribe) -> {
+                try {
+                    targetTribe.getKnownMap().getCellAt(exploredCell.getXCoord()
+                            , exploredCell.getYCoord());
+                    // Already knows cell
+                }
+                catch (NoSuchElementException ex) {
+                    exploredTribeCells.addCell(exploredCell);
+                    receipts.add(targetTribe.getAID());
+                    targetTribe.getUnitsIterable()
+                            .forEach(u -> receipts.add(u.getId()));
+                    broadcastNotifyCellDetail(receipts
+                            .toArray(new AID[receipts.size()]), ontologyCell);
+                }
+            });
+        } catch (NoSuchElementException ex) {
+            log(Level.WARNING, "Unknown cell at " + cell.getX() +"," + cell.getY());
         }
     }
-
-    private void informTribeAboutDiscoveredCell(Tribe ownerTribe, Cell newCell) {
-
+    
+    void informAboutKnownCellDetail(MapCell updatedCell) {
+        Cell ontologyCell = new Cell();
+        ontologyCell.setX(updatedCell.getXCoord());
+        ontologyCell.setY(updatedCell.getYCoord());
+        ontologyCell.setContent(updatedCell.getContent());
+        
+        List<AID> receipts = new ArrayList<>();
+        tribeCollection.forEach((targetTribe) -> {
+            try {
+                targetTribe.getKnownMap().getCellAt(updatedCell.getXCoord()
+                        , updatedCell.getYCoord());
+                receipts.add(targetTribe.getAID());
+                targetTribe.getUnitsIterable()
+                        .forEach(u -> receipts.add(u.getId()));
+                broadcastNotifyCellDetail(receipts
+                        .toArray(new AID[receipts.size()]), ontologyCell);
+            }
+            catch (NoSuchElementException ex) {
+                // Tribe does not know cell
+            }
+        });
+    }
+    
+    private void broadcastNotifyCellDetail(AID[] receipts, Cell cell) {
         NotifyCellDetail notifyNewCellDiscovery = new NotifyCellDetail();
 
-        notifyNewCellDiscovery.setNewCell(newCell);
+        notifyNewCellDiscovery.setNewCell(cell);
 
-        Action informNewCellDiscoveryAction = new Action(ownerTribe.getAID(), notifyNewCellDiscovery);
+        Action informNewCellDiscoveryAction = new Action(getAID(), notifyNewCellDiscovery);
         addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
-                sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
+                sendMessage(receipts, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
                 });
             }
         });
     }
-
-    private void informUnitAboutDiscoveredCell(Unit ownerUnit, Cell newCell) {
-        NotifyCellDetail notifyNewCellDiscovery = new NotifyCellDetail();
-
-        notifyNewCellDiscovery.setNewCell(newCell);
-
-        Action informNewCellDiscoveryAction = new Action(ownerUnit.getId(), notifyNewCellDiscovery);
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
-            @Override
-            public void onStart() {
-                sendMessage(ownerUnit.getId(), ACLMessage.INFORM, new SentMessageHandler() {
-                });
-            }
-        });
-    }    
     
     void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;

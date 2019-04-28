@@ -110,6 +110,7 @@ public class AgWorldBuildingCreatorHelper {
                             agWorld.getGUIEndpoint().apiCreateBuilding(ownerTribe.getAID()
                                     .getLocalName(), buildingType);
                             respondMessage(message, ACLMessage.INFORM);
+                            agWorld.informAboutKnownCellDetail(unitPosition);
                         }
 
                         @Override

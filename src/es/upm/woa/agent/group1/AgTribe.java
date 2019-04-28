@@ -8,7 +8,6 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
@@ -26,7 +25,6 @@ import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
-import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
@@ -40,7 +38,7 @@ import java.util.logging.LogRecord;
  *
  * @author ISU
  */
-public class AgTribe extends Agent {
+public class AgTribe extends GroupAgent {
     
     private Ontology gameOntology;
     private Ontology group1Ontology;
@@ -48,6 +46,21 @@ public class AgTribe extends Agent {
     private Collection<Unit> units;
     private GameMap knownMap;
     private Handler logHandler;
+    
+    @Override
+    Ontology getOntology() {
+        return gameOntology;
+    }
+
+    @Override
+    Codec getCodec() {
+        return codec;
+    }
+
+    @Override
+    GameMap getKnownMap() {
+        return knownMap;
+    }
 
     @Override
     protected void setup() {       
@@ -58,10 +71,11 @@ public class AgTribe extends Agent {
         initializeTribe();
         
         startInformNewUnitBehaviour();
-        startInformNewCellDiscoveryBehaviour();
+        new GroupAgentInformCellDetailHelper(this).startInformCellDetailBehaviour();
         startWhereAmIBehaviour();
     }
-
+    
+    
     private void startInformNewUnitBehaviour() {
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
         addBehaviour(new Conversation(this, gameOntology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
@@ -100,67 +114,11 @@ public class AgTribe extends Agent {
         });
     }
     
-    private void startInformNewCellDiscoveryBehaviour() {
-        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyCellDetail());
-        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
-            @Override
-            public void onStart() {
-                listenMessages(new ResponseHandler() {
-                    @Override
-                    public void onInform(ACLMessage response) {
-                        try {
-                            ContentElement ce = getContentManager().extractContent(response);
-                            if (ce instanceof Action) {
-                                
-                                Action agAction = (Action) ce;
-                                Concept conc = agAction.getAction();
-                                
-                                if (conc instanceof NotifyCellDetail) {
-                                    log(Level.FINER, "received NotifyCellDetail inform from "
-                                        + response.getSender().getLocalName());
-                                    NotifyCellDetail newCellInfo = (NotifyCellDetail)conc;
-                                    
-                                    processNewCell(newCellInfo);
-                                    
-                                }
-                            }
-                        } catch (Codec.CodecException | OntologyException ex) {
-                            log(Level.WARNING, "could not receive message (" + ex + ")");
-                        }
-
-                    }
-
-                    private void processNewCell(NotifyCellDetail newCellInfo) {
-                        try {
-                            boolean cellAdded = knownMap.addCell(MapCellFactory
-                                .getInstance().buildCell(newCellInfo.getNewCell()));
-                            if (cellAdded) {
-                                log(Level.FINER, "cell discovery at "
-                                        + newCellInfo.getNewCell().getX()
-                                        + ","
-                                        + newCellInfo.getNewCell().getY());
-                            }
-                            else {
-                                // Should not happen
-                                log(Level.WARNING, "already knew cell at "
-                                        + newCellInfo.getNewCell().getX()
-                                        + ","
-                                        + newCellInfo.getNewCell().getY());
-                            }
-                        }
-                        catch (IndexOutOfBoundsException ex) {
-                            log(Level.WARNING, "cannot add cell cell at "
-                                        + newCellInfo.getNewCell().getX()
-                                        + ","
-                                        + newCellInfo.getNewCell().getY()
-                                    + "(" + ex + ")");
-                        }
-                        
-                    }
-
-                });
-            }
-        });
+    private void registerNewUnit(NotifyNewUnit newUnitInfo) {
+        Unit newUnit = new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY());
+        units.add(newUnit);
+        informNewUnitOwnership(newUnit);
+        informNewUnitOfKnownMap(newUnit);
     }
     
     private void startWhereAmIBehaviour() {
@@ -213,13 +171,6 @@ public class AgTribe extends Agent {
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance(4, 4);
     }
-
-    private void registerNewUnit(NotifyNewUnit newUnitInfo) {
-        Unit newUnit = new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY());
-        units.add(newUnit);
-        informNewUnitOwnership(newUnit);
-        informKnownMap(newUnit);
-    }
         
     private void informNewUnitOwnership(Unit unit) {
         Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
@@ -238,15 +189,8 @@ public class AgTribe extends Agent {
             }
         });
     }
-    
-    private void log(Level logLevel, String message) {
-        String compMsg = getLocalName() + ": " + message;
-        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
-            System.out.println(compMsg);
-        }
-    }
 
-    private void informKnownMap(Unit newUnit) {
+    private void informNewUnitOfKnownMap(Unit newUnit) {
         for (MapCell knownCell : knownMap.getKnownCellsIterable()) {
             if (knownCell.getXCoord() != newUnit.getCoordX()
                     || knownCell.getYCoord() != newUnit.getCoordY()) {
@@ -285,6 +229,13 @@ public class AgTribe extends Agent {
                 }
                 
             });
+    }
+    
+    void log(Level logLevel, String message) {
+        String compMsg = getLocalName() + ": " + message;
+        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
+            System.out.println(compMsg);
+        }
     }
 
 

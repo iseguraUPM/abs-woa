@@ -7,7 +7,6 @@ package es.upm.woa.agent.group1;
  */
 import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
@@ -20,13 +19,11 @@ import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
-import es.upm.woa.ontology.NotifyCellDetail;
 
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
-import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -47,7 +44,7 @@ import java.util.logging.LogRecord;
  *
  * @author ISU
  */
-public class AgUnit extends Agent {
+public class AgUnit extends GroupAgent {
 
     public static final String WORLD = "WORLD";
 
@@ -66,14 +63,17 @@ public class AgUnit extends Agent {
     private Handler logHandler;
 
     /// NOTE: this methods must be package-private
+    @Override
     GraphGameMap getKnownMap() {
         return knownMap;
     }
 
+    @Override
     Ontology getOntology() {
         return gameOntology;
     }
 
+    @Override
     Codec getCodec() {
         return codec;
     }
@@ -85,7 +85,7 @@ public class AgUnit extends Agent {
     MapCell getCurrentCell() {
         return currentPosition;
     }
-    
+
     void setCurrentCell(MapCell currentPosition) {
         this.currentPosition = currentPosition;
     }
@@ -95,8 +95,6 @@ public class AgUnit extends Agent {
     }
 
     /// !NOTE
-    
-    
     @Override
     protected void setup() {
         logHandler = new ConsoleHandler();
@@ -138,10 +136,10 @@ public class AgUnit extends Agent {
         getContentManager().registerLanguage(codec);
         getContentManager().registerOntology(gameOntology);
         getContentManager().registerOntology(group1Ontology);
-        
+
         knownMap = GraphGameMap.getInstance(4, 4);
 
-        startInformNewCellDiscoveryBehaviour();
+        new GroupAgentInformCellDetailHelper(this).startInformCellDetailBehaviour();
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
                 handler.onUnitInitialized();
@@ -149,6 +147,7 @@ public class AgUnit extends Agent {
         });
     }
 
+    // TODO: remove. Do not copy code
     private void startCreateUnitBehaviour() {
         Action createUnitAction = new Action(getAID(), new CreateUnit());
         addBehaviour(new Conversation(this, gameOntology, codec, createUnitAction, GameOntology.CREATEUNIT) {
@@ -206,6 +205,7 @@ public class AgUnit extends Agent {
         });
     }
 
+    // TODO: remove. Do not copy code
     private void startMoveToCellBehaviour() {
 
         Cell newCellPosition = new Cell();
@@ -273,58 +273,6 @@ public class AgUnit extends Agent {
 
                         });
                     }
-                });
-            }
-        });
-    }
-
-    private void startInformNewCellDiscoveryBehaviour() {
-        Action informNewCellDiscoveryAction = new Action(getAID(), new NotifyCellDetail());
-        addBehaviour(new Conversation(this, gameOntology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
-            @Override
-            public void onStart() {
-                listenMessages(new ResponseHandler() {
-                    @Override
-                    public void onInform(ACLMessage response) {
-                        try {
-                            ContentElement ce = getContentManager().extractContent(response);
-                            if (ce instanceof Action) {
-
-                                Action agAction = (Action) ce;
-                                Concept conc = agAction.getAction();
-
-                                if (conc instanceof NotifyCellDetail) {
-                                    log(Level.FINER, "receive NotifyNewCellDiscovery inform from "
-                                            + response.getSender().getLocalName());
-
-                                    NotifyCellDetail newCellInfo = (NotifyCellDetail) conc;
-
-                                    
-
-                                    boolean success = knownMap
-                                            .addCell(MapCellFactory.getInstance()
-                                            .buildCell(newCellInfo.getNewCell()));
-                                    if (success) {
-                                        log(Level.FINER, "Cell discovery at "
-                                            + newCellInfo.getNewCell().getX()
-                                            + ","
-                                            + newCellInfo.getNewCell().getY());
-                                    }
-                                    else {
-                                        log(Level.FINER, "Already knew cell at "
-                                            + newCellInfo.getNewCell().getX()
-                                            + ","
-                                            + newCellInfo.getNewCell().getY());
-                                    }
-                                }
-                            }
-                        } catch (Codec.CodecException | OntologyException ex) {
-                            log(Level.WARNING, "could not receive message"
-                                    + " (" + ex + ")");
-                        }
-
-                    }
-
                 });
             }
         });
@@ -400,17 +348,17 @@ public class AgUnit extends Agent {
                                             + " (" + ex + ")");
                                 }
                             }
-                            
+
                             @Override
                             public void onRefuse(ACLMessage message) {
                                 log(Level.WARNING, "Received WhereAmI refuse from "
-                                            + message.getSender().getLocalName());
+                                        + message.getSender().getLocalName());
                             }
 
                         });
 
                     }
-                    
+
                     @Override
                     public void onSentMessageError() {
                         block(BETWEEN_REQUEST_POSITION_TRIES_TIME_MILLIS);
@@ -456,7 +404,7 @@ public class AgUnit extends Agent {
                                         log(Level.FINER, "received CreateTownHall inform from "
                                                 + response.getSender().getLocalName());
                                         log(Level.FINE, "created town hall at "
-                                                +  currentPosition.getXCoord()
+                                                + currentPosition.getXCoord()
                                                 + "," + currentPosition.getYCoord());
                                     }
 
@@ -483,13 +431,6 @@ public class AgUnit extends Agent {
 
         });
     }
-    
-    void log(Level logLevel, String message) {
-        String compMsg = getLocalName() + ": " + message;
-        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
-            System.out.println(compMsg);
-        }
-    }
 
     private void startStrategy() {
         startCreateTownHallBehaviour();
@@ -498,7 +439,14 @@ public class AgUnit extends Agent {
         //unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
         addBehaviour(unitBehaviour);
     }
-
+    
+    void log(Level logLevel, String message) {
+        String compMsg = getLocalName() + ": " + message;
+        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
+            System.out.println(compMsg);
+        }
+    }
+    
     private interface OnReceivedOwnershipHandler {
 
         void onReceivedOwnership();
