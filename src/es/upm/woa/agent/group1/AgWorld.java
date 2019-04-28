@@ -17,7 +17,9 @@ import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.CreateUnit;
+import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 import es.upm.woa.ontology.NotifyCellDetail;
@@ -69,6 +71,7 @@ public class AgWorld extends Agent {
     public static final String WORLD = "WORLD";
 
     private static final int STARTING_UNIT_NUMBER = 1;
+    private static final int CREATE_TOWN_HALL_TICKS = 240;
     private static final int CREATE_UNIT_TICKS = 150;
     
     private static final long serialVersionUID = 1L;
@@ -113,6 +116,7 @@ public class AgWorld extends Agent {
 
         startUnitCreationBehaviour();
         startMoveToCellBehaviour();
+        startTownHallCreationBehaviour();
     }
     
     private void initializeAgent() {
@@ -162,7 +166,7 @@ public class AgWorld extends Agent {
         log(Level.INFO, "Starting game...");
 
         // TODO: temp
-        final int MAX_TRIBES = 2;
+        final int MAX_TRIBES = 1;
         
         // TODO: not the right way to initiate the game. Should be after registering
         // all tribes and giving the resources.
@@ -244,6 +248,9 @@ public class AgWorld extends Agent {
                                     , unitPosition)) {
                                 respondMessage(message, ACLMessage.REFUSE);
                             } else {
+                                if(requesterUnit.getIsBuilding()){
+                                    requesterUnit.refundUnitTransaction();
+                                }
                                 ownerTribe.purchaseUnit();
                                 respondMessage(message, ACLMessage.AGREE);
                                 initiateUnitCreation(ownerTribe, unitPosition, message);
@@ -311,7 +318,6 @@ public class AgWorld extends Agent {
         if(UnitCellPositioner.getInstance(worldMap).isMoving(requester)){
             return false;
         }
-        
 
         return tribe.canAffordUnit() && thereIsATownHall(requesterPosition, tribe);    
     }
@@ -529,6 +535,9 @@ public class AgWorld extends Agent {
                                 try {
                                     MapCell mapCell = worldMap.getCellAt(targetCell
                                             .getTarget().getX(), targetCell.getTarget().getY());
+                                    if(requesterUnit.getIsBuilding()){
+                                        requesterUnit.refundUnitTransaction();
+                                    }
                                     initiateMoveToCell(requesterUnit, mapCell, moveToCellAction, message);
                                 } catch (NoSuchElementException ex) {
                                     respondMessage(message, ACLMessage.REFUSE);
@@ -603,4 +612,131 @@ public class AgWorld extends Agent {
             System.out.println(compMsg);
         }
     }
+    
+    private void startTownHallCreationBehaviour() {
+        final Action createTownHallAction = new Action(getAID(), null);
+        addBehaviour(new Conversation(this, ontology, codec, createTownHallAction, GameOntology.CREATEBUILDING) {
+            @Override
+            public void onStart() {
+                Action action = new Action(getAID(), new CreateBuilding());
+
+                listenMessages(new Conversation.ResponseHandler() {
+                    @Override
+                    public void onRequest(ACLMessage message) {
+                        log(Level.FINE, "received CreateTownHall request from"
+                                + message.getSender().getLocalName());
+
+                        final Tribe ownerTribe = findOwnerTribe(message.getSender());
+                        Unit requesterUnit = findUnit(ownerTribe, message.getSender());
+                        if (requesterUnit == null) {
+                            respondMessage(message, ACLMessage.REFUSE);
+                            return;
+                        }
+                        
+                        try {
+                            MapCell unitPosition = worldMap.getCellAt(requesterUnit
+                                    .getCoordX(), requesterUnit.getCoordY());
+                            
+                            if(requesterUnit.getIsBuilding()){
+                                requesterUnit.refundUnitTransaction();
+                            }
+                            if (ownerTribe == null) {
+                                respondMessage(message, ACLMessage.REFUSE);
+                            } else if (!canCreateTownHall(ownerTribe, requesterUnit
+                                    , unitPosition)) {
+                                respondMessage(message, ACLMessage.REFUSE);
+                            } else {
+                                ownerTribe.purchaseTownHall();
+                                respondMessage(message, ACLMessage.AGREE);
+                                unitPosition.setSomeoneIsBuilding(true);
+                                requesterUnit.setIsBuilding(true);
+                                initiateTownHallCreation(ownerTribe, requesterUnit, unitPosition, message);
+                            }
+                            
+                        } catch (NoSuchElementException ex) {
+                            log(Level.WARNING, "Unit "
+                                    + requesterUnit.getId().getLocalName() + " is at an unknown position");
+                            respondMessage(message, ACLMessage.REFUSE);
+                        }
+
+                    }
+                });
+            }
+
+            private void initiateTownHallCreation(Tribe ownerTribe, Unit requesterUnit, MapCell unitPosition, ACLMessage message) {
+
+                DelayedTransactionalBehaviour activeTransaction
+                        = new DelayedTransactionalBehaviour(myAgent, CREATE_TOWN_HALL_TICKS) {
+                            
+                    boolean finished = false;
+                    
+                    @Override
+                    public boolean done() {
+                        return finished;
+                    }
+
+                    @Override
+                    public void commit() {
+                        if (!finished) {
+                            unitPosition.setSomeoneIsBuilding(false);
+                            requesterUnit.setIsBuilding(false);
+                            boolean success = launchTownHall(unitPosition, ownerTribe);
+                            if (!success) {
+                                ownerTribe.refundTownHall();
+                                
+                                respondMessage(message, ACLMessage.FAILURE);
+
+                            } else {
+                                respondMessage(message, ACLMessage.INFORM);
+                            }
+                        }
+
+                        finished = true;
+                    }
+
+                    @Override
+                    public void rollback() {
+                        if (!finished) {
+                            log(Level.INFO, "refunded unit to create town hall"
+                                        + ownerTribe.getAID().getLocalName());
+                            unitPosition.setSomeoneIsBuilding(false);
+                            requesterUnit.setIsBuilding(false);
+                            ownerTribe.refundTownHall();
+                            respondMessage(message, ACLMessage.FAILURE);
+                        }
+                        finished = true;
+                    }
+                   
+                };
+                
+                requesterUnit.setCurrentTransaction(activeTransaction);
+                activeTransactions.add(activeTransaction);
+                addBehaviour(activeTransaction);
+            }
+        });
+    }
+    
+    private boolean canCreateTownHall(Tribe tribe, Unit requester, MapCell requesterPosition) {
+        
+        if(UnitCellPositioner.getInstance(worldMap).isMoving(requester) 
+                || (requesterPosition.getSomeoneIsBuilding() && !requester.getIsBuilding())
+                || !(requesterPosition.getContent() instanceof Empty)){
+            return false;
+        }
+
+        return tribe.canAffordTownHall();    
+    }
+    
+    private boolean launchTownHall(MapCell newTownHallPosition, Tribe ownerTribe){
+        try {
+            Building tribeTownHall = new Building();
+            tribeTownHall.setOwner(ownerTribe.getAID());
+            tribeTownHall.setType(WoaDefinitions.TOWN_HALL);
+            newTownHallPosition.setContent(tribeTownHall);
+            return true;
+        } catch (Exception e) {
+            log(Level.INFO, "Cannot create town hall");
+            return false;
+        }
+    }    
 }

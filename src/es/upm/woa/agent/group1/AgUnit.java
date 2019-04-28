@@ -16,6 +16,7 @@ import es.upm.woa.agent.group1.strategy.StrategicUnitBehaviour;
 import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
@@ -419,6 +420,65 @@ public class AgUnit extends Agent {
         });
     }
 
+    private void startCreateTownHallBehaviour() {
+        CreateBuilding createBuilding = new CreateBuilding();
+        createBuilding.setBuildingType(WoaDefinitions.TOWN_HALL);
+        Action createTownHall = new Action(getAID(), createBuilding);
+        addBehaviour(new Conversation(this, gameOntology, codec, createTownHall, GameOntology.CREATEBUILDING) {
+            @Override
+            public void onStart() {
+                AID worldAID = (AID) worldAgentServiceDescription.getName();
+
+                sendMessage(worldAID, ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
+
+                    @Override
+                    public void onSent(String conversationID) {
+
+                        receiveResponse(conversationID, new Conversation.ResponseHandler() {
+
+                            @Override
+                            public void onAgree(ACLMessage response) {
+                                log(Level.FINER, "received CreateTownHall agree from "
+                                        + response.getSender().getLocalName());
+
+                                receiveResponse(conversationID, new Conversation.ResponseHandler() {
+
+                                    @Override
+                                    public void onFailure(ACLMessage response) {
+                                        log(Level.WARNING, "received CreateTownHall failure from "
+                                                + response.getSender().getLocalName());
+                                    }
+
+                                    @Override
+                                    public void onInform(ACLMessage response) {
+                                        log(Level.FINER, "received CreateTownHall inform from "
+                                                + response.getSender().getLocalName());
+                                    }
+
+                                });
+                            }
+
+                            @Override
+                            public void onNotUnderstood(ACLMessage response) {
+                                log(Level.WARNING, "received CreateTownHall not understood from "
+                                        + response.getSender().getLocalName());
+                            }
+
+                            @Override
+                            public void onRefuse(ACLMessage response) {
+                                log(Level.FINE, "receive CreateTownHall refuse from "
+                                        + response.getSender().getLocalName());
+                            }
+
+                        });
+                    }
+                });
+
+            }
+
+        });
+    }
+    
     void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
         if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
@@ -427,6 +487,8 @@ public class AgUnit extends Agent {
     }
 
     private void startStrategy() {
+        //startCreateTownHallBehaviour();
+        //startCreateTownHallBehaviour();
         StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
         //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
         unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));

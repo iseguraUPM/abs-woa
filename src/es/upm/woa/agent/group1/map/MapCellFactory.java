@@ -63,11 +63,13 @@ public class MapCellFactory {
         private Concept content;
         private final int x;
         private final int y;
-
+        private boolean someoneIsBuilding;
+        
         public SimpleMapCell(Concept content, int x, int y) {
             this.content = content;
             this.x = x;
             this.y = y;
+            someoneIsBuilding = false;
         }
 
         @Override
@@ -88,6 +90,16 @@ public class MapCellFactory {
         @Override
         public void setContent(Concept content) {
             this.content = content;
+        }
+
+        @Override
+        public boolean getSomeoneIsBuilding() {
+            return someoneIsBuilding;
+        }
+
+        @Override
+        public void setSomeoneIsBuilding(boolean building) {
+            someoneIsBuilding = building;
         }
 
     }
