@@ -275,3 +275,26 @@
  2. [NOTE]
     The MapCell now can be modified by its contents. This is because no cells can be substitued in the GameMap
      but they can be modified when building a Town Hall for example.
+----------------------------------------------------------------------------------------------------------------
+ (26) {28/04/2019 17:30} Creating town hall : Martin
+ 1. [COMPLETE]
+    - As a unit I want to create a new town hall so that a new city is added to my territories
+    - As the world I want to cancel the building of a Town Hall when the game is over so that I can finish 
+      myself without anybody waiting for me.
+    - As the world I want to check the conditions of creating a new Town Hall so that I can proceed with or 
+      interrupt the construction process: 
+	-Tribe: As it happens with the creation of the unit, purchaseTownHall, canAffordTownHall and refundTownHall
+	are implemented.
+    - As the world I want to confirm a unit about the result of a town hall creation request so that it can 
+      finish the new city creation process:  
+	- SomeoneIsBuilding(MapCell) variable is added in order to check that no one is building in that cell
+	- In case a unit is already building, its current building transaction is rolled back(canceled). To do so, Transaction
+	reference is added in the Unit, and we only have to call refundUnitTransaction method (Unit).
+    - WoaDefinitions are update: town hall, store and farm are added and their costs are added.
+ 2. [TODO]
+    UC 2.1.2.1 SCENARIO 5: A unit asks to create a Town Hall and, then, asks for exploiting some resource before finishing
+    the building construction.
+ 3. [NOTE]
+    When requesting for a building creation, while being building another building, the resources of the building that 
+    is being built are taken into account.
+    
