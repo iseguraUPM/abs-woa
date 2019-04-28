@@ -6,7 +6,7 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.GameMap;
-import es.upm.woa.agent.group1.map.GraphGameMap;
+import es.upm.woa.agent.group1.map.MapCell;
 
 import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
@@ -27,5 +27,11 @@ abstract class GroupAgent extends Agent {
     abstract GameMap getKnownMap();
     
     abstract void log(Level logLevel, String message);
+    
+    abstract void onCellDiscovered(MapCell newCell);
+    
+    abstract void onCellUpdated(MapCell updatedCell);
+    
+    abstract void onUnitPassby(MapCell cell, String tribeId);
     
 }

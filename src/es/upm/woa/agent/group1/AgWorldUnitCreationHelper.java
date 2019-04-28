@@ -111,6 +111,8 @@ class AgWorldUnitCreationHelper {
 
                             } else {
                                 respondMessage(message, ACLMessage.INFORM);
+                                agWorld.informAboutUnitPassby(ownerTribe
+                                        , unitPosition);
                             }
                         }
 

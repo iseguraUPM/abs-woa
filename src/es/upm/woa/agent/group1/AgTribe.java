@@ -73,6 +73,7 @@ public class AgTribe extends GroupAgent {
         startInformNewUnitBehaviour();
         new GroupAgentInformCellDetailHelper(this).startInformCellDetailBehaviour();
         startWhereAmIBehaviour();
+        new GroupAgentInformUnitPositionHelper(this).startInformCellDetailBehaviour();
     }
     
     
@@ -231,11 +232,36 @@ public class AgTribe extends GroupAgent {
             });
     }
     
+    @Override
     void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
         if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
             System.out.println(compMsg);
         }
+    }
+
+    @Override
+    void onCellDiscovered(MapCell newCell) {
+        log(Level.FINER, "Cell discovery at "
+                                + newCell.getXCoord()
+                                + ","
+                                + newCell.getYCoord());
+    }
+
+    @Override
+    void onCellUpdated(MapCell updatedCell) {
+        log(Level.FINER, "Cell updated at "
+                                + updatedCell.getXCoord()
+                                + ","
+                                + updatedCell.getYCoord());
+    }
+
+    @Override
+    void onUnitPassby(MapCell cell, String tribeId) {
+        log(Level.FINER, "Unit from tribe " + tribeId + " at "
+                                + cell.getXCoord()
+                                + ","
+                                + cell.getYCoord());
     }
 
 

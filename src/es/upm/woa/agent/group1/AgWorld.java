@@ -17,6 +17,7 @@ import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
+import es.upm.woa.ontology.NotifyUnitPosition;
 
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -35,6 +36,7 @@ import jade.wrapper.StaleProxyException;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.IOException;
+import java.security.acl.Owner;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -403,12 +405,51 @@ public class AgWorld extends Agent {
     }
     
     private void broadcastNotifyCellDetail(AID[] receipts, Cell cell) {
-        NotifyCellDetail notifyNewCellDiscovery = new NotifyCellDetail();
+        NotifyCellDetail notifyCellDetail = new NotifyCellDetail();
 
-        notifyNewCellDiscovery.setNewCell(cell);
+        notifyCellDetail.setNewCell(cell);
 
-        Action informNewCellDiscoveryAction = new Action(getAID(), notifyNewCellDiscovery);
-        addBehaviour(new Conversation(this, ontology, codec, informNewCellDiscoveryAction, GameOntology.NOTIFYCELLDETAIL) {
+        Action informCellDetailAction = new Action(getAID(), notifyCellDetail);
+        addBehaviour(new Conversation(this, ontology, codec, informCellDetailAction, GameOntology.NOTIFYCELLDETAIL) {
+            @Override
+            public void onStart() {
+                sendMessage(receipts, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+                });
+            }
+        });
+    }
+    
+    void informAboutUnitPassby(Tribe ownerTribe, MapCell position) {
+        Cell ontologyCell = new Cell();
+        ontologyCell.setX(position.getXCoord());
+        ontologyCell.setY(position.getYCoord());
+        ontologyCell.setContent(position.getContent());
+        
+        List<AID> receipts = new ArrayList<>();
+        tribeCollection.forEach((targetTribe) -> {
+            try {
+                targetTribe.getKnownMap().getCellAt(position.getXCoord()
+                        , position.getYCoord());
+                receipts.add(targetTribe.getAID());
+                targetTribe.getUnitsIterable()
+                        .forEach(u -> receipts.add(u.getId()));
+                broadcastNotifyUnitPosition(receipts
+                        .toArray(new AID[receipts.size()]), ownerTribe, ontologyCell);
+            }
+            catch (NoSuchElementException ex) {
+                // Tribe does not know cell
+            }
+        });
+    }
+    
+    private void broadcastNotifyUnitPosition(AID[] receipts, Tribe ownerTribe, Cell position) {
+        NotifyUnitPosition notifyUnitPosition = new NotifyUnitPosition();
+
+        notifyUnitPosition.setTribeId(ownerTribe.getAID().getLocalName());
+        notifyUnitPosition.setCell(position);
+
+        Action informUnitPositionAction = new Action(getAID(), notifyUnitPosition);
+        addBehaviour(new Conversation(this, ontology, codec, informUnitPositionAction, GameOntology.NOTIFYUNITPOSITION) {
             @Override
             public void onStart() {
                 sendMessage(receipts, ACLMessage.INFORM, new Conversation.SentMessageHandler() {

@@ -9,17 +9,16 @@ import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
-import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
-import es.upm.woa.ontology.NotifyCellDetail;
+import es.upm.woa.ontology.NotifyUnitPosition;
 
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
-
 import jade.lang.acl.ACLMessage;
+
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -27,25 +26,25 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-class GroupAgentInformCellDetailHelper {
+class GroupAgentInformUnitPositionHelper {
     
     private final GroupAgent groupAgent;
     
-    public GroupAgentInformCellDetailHelper(GroupAgent groupAgent) {
+    public GroupAgentInformUnitPositionHelper(GroupAgent groupAgent) {
         this.groupAgent = groupAgent;
     }
     
     public void startInformCellDetailBehaviour() {
-        Action informCellDetailAction = new Action(groupAgent.getAID(), null);
+        Action informUnitPositionAction = new Action(groupAgent.getAID(), null);
         groupAgent.addBehaviour(new Conversation(groupAgent, groupAgent.getOntology(), groupAgent.getCodec()
-                , informCellDetailAction, GameOntology.NOTIFYCELLDETAIL) {
+                , informUnitPositionAction, GameOntology.NOTIFYUNITPOSITION) {
             @Override
             public void onStart() {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onInform(ACLMessage response) {
                         try {
-                            handleNotifyCellDetailMessage(response);
+                            handleNotifyUnitPositionMessage(response);
                         } catch (Codec.CodecException | OntologyException ex) {
                             groupAgent.log(Level.WARNING, "could not receive message"
                                     + " (" + ex + ")");
@@ -58,7 +57,7 @@ class GroupAgentInformCellDetailHelper {
         });
     }
 
-    private void handleNotifyCellDetailMessage(ACLMessage response)
+    private void handleNotifyUnitPositionMessage(ACLMessage response)
             throws OntologyException, Codec.CodecException {
         ContentElement ce = groupAgent.getContentManager().extractContent(response);
         if (ce instanceof Action) {
@@ -66,13 +65,15 @@ class GroupAgentInformCellDetailHelper {
             Action agAction = (Action) ce;
             Concept conc = agAction.getAction();
 
-            if (conc instanceof NotifyCellDetail) {
-                groupAgent.log(Level.FINER, "receive NotifyCellDetail inform from "
+            if (conc instanceof NotifyUnitPosition) {
+                groupAgent.log(Level.FINER, "receive NotifyUnitPosition inform from "
                         + response.getSender().getLocalName());
 
-                NotifyCellDetail cellDetail = (NotifyCellDetail) conc;
+                NotifyUnitPosition unitPosition = (NotifyUnitPosition) conc;
 
-                Cell informedCell = cellDetail.getNewCell();
+                // NOTE: if a world mistakenly sends us an unknown position
+                // we take it as a gift
+                Cell informedCell = unitPosition.getCell();
                 boolean success = groupAgent.getKnownMap()
                         .addCell(MapCellFactory.getInstance()
                                 .buildCell(informedCell));
@@ -81,13 +82,10 @@ class GroupAgentInformCellDetailHelper {
                             .getCellAt(informedCell.getX(),
                                      informedCell.getY());
                     if (success) {
-                        groupAgent.onCellDiscovered(knownCell);
-                        
-                    } else {
-                        updateCellContents(knownCell, informedCell);
-                        groupAgent.onCellUpdated(knownCell);
+                        groupAgent.onCellDiscovered(knownCell);   
                     }
                     
+                    groupAgent.onUnitPassby(knownCell, unitPosition.getTribeId()); 
                 } catch (NoSuchElementException ex) {
                     // Should not reach
                     groupAgent.log(Level.WARNING, "Could not retrieve known cell");
@@ -97,9 +95,5 @@ class GroupAgentInformCellDetailHelper {
         }
     }
     
-    private void updateCellContents(MapCell knownCell, Cell updatedCell) {
-        if (knownCell.getContent() instanceof Empty) {
-            knownCell.setContent((Concept) updatedCell.getContent());
-        }
-    }
+    
 }

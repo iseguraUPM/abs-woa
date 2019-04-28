@@ -143,6 +143,8 @@ public class AgUnit extends GroupAgent {
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
                 handler.onUnitInitialized();
+                new GroupAgentInformUnitPositionHelper(this)
+                        .startInformCellDetailBehaviour();
             });
         });
     }
@@ -433,18 +435,43 @@ public class AgUnit extends GroupAgent {
     }
 
     private void startStrategy() {
-        startCreateTownHallBehaviour();
+        //startCreateTownHallBehaviour();
         StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
         //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
-        //unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
+        unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
         addBehaviour(unitBehaviour);
     }
     
+    @Override
     void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
         if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
             System.out.println(compMsg);
         }
+    }
+
+    @Override
+    void onCellDiscovered(MapCell newCell) {
+        log(Level.FINER, "Cell discovery at "
+                                + newCell.getXCoord()
+                                + ","
+                                + newCell.getYCoord());
+    }
+
+    @Override
+    void onCellUpdated(MapCell updatedCell) {
+        log(Level.FINER, "Cell updated at "
+                                + updatedCell.getXCoord()
+                                + ","
+                                + updatedCell.getYCoord());
+    }
+    
+    @Override
+    void onUnitPassby(MapCell cell, String tribeId) {
+        log(Level.FINER, "Unit from tribe " + tribeId + " at "
+                                + cell.getXCoord()
+                                + ","
+                                + cell.getYCoord());
     }
     
     private interface OnReceivedOwnershipHandler {
@@ -464,4 +491,6 @@ public class AgUnit extends GroupAgent {
         void onUnitInitialized();
 
     }
+    
+    
 }

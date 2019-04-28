@@ -130,6 +130,9 @@ public class AgWorldUnitPositionerHelper {
                                      mapCell.getYCoord());
 
                             agWorld.processTribeKnownCell(ownerTribe, newCell);
+                            
+                            agWorld.informAboutUnitPassby(ownerTribe
+                                        , mapCell);
                         }
 
                         @Override
