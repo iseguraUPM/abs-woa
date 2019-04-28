@@ -95,6 +95,8 @@ public class AgUnit extends Agent {
     }
 
     /// !NOTE
+    
+    
     @Override
     protected void setup() {
         logHandler = new ConsoleHandler();
