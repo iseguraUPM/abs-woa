@@ -297,4 +297,22 @@
  3. [NOTE]
     When requesting for a building creation, while being building another building, the resources of the building that 
     is being built are taken into account.
-    
+----------------------------------------------------------------------------------------------------------------
+ (27) {28/04/2019 21:45} Refactoring + Cell details and Unit positions : Inaki
+ 1. [REFACT] ref [COMPLETE 26.1]
+   Refactored town hall creation to a generic CellBuildingConstructor which can create any of the tree type of buildings.
+   Its functioning is similar to the UnitCellPositioner.
+ 2. [REFACT]
+   Refactored a lot of listener behaviors in AgWorld to remove code weight in the class. The classes behave as helpers
+   and use package-private methods of AgWorld, thus they are heavily dependant on this agent.
+ 3. [COMPLETE]
+   Story: As the world I want to inform tribes about the construction of buildings in their known territory so that
+    they can adapt their strategy.
+   Used the same helper concept as in [REFACT 27.2] for the CellDetail protocol in AgTribe and AgUnit. Both agents
+   have been grouped in a parent class GroupAgent. This is because they respond equally to NotifyCellDetail messages.
+ 4. [COMPLETE]
+   Story: As the world I want to inform tribes about movements of units in their known territory so that they
+    can adapt their strategy.
+   Added the same type of helper class to implement the side of AgTribe and AgUnit, as for now they respond equally
+    to NotifyUnitPosition messages.
+   GroupAgents are notified of unit passbies (if they know the cell) on unit creation and on unit movement completion.

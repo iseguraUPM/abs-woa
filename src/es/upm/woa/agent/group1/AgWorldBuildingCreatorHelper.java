@@ -12,12 +12,14 @@ import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.GameOntology;
+
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
+
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 

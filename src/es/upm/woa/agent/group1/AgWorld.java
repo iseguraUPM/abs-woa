@@ -36,7 +36,6 @@ import jade.wrapper.StaleProxyException;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.IOException;
-import java.security.acl.Owner;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
