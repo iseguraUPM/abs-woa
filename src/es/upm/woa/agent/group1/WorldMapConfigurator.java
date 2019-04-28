@@ -133,7 +133,7 @@ public class WorldMapConfigurator {
      * 
      * @param gameMap will have a new town hall where the tribe is placed
      * @param tribeAID of the tribe to be added
-     * @return the location of the new Town Hall
+     * @return the location of the initial cell
      * @throws ConfigurationException if any of the conditions do not meet to
      *  add a new tribe:
      *  - The JSON configuration format is as required
@@ -156,24 +156,19 @@ public class WorldMapConfigurator {
         }
         
         try {
-            return addTownHall(gameMap, position, tribeAID);
+            return getInitialCell(gameMap, position, tribeAID);
         } catch (NoSuchElementException ex) {
             throw new ConfigurationException("The starting position does not fit"
                     + "in the map");
         }
     }
 
-    private MapCell addTownHall(GameMap gameMap, Integer[] position, AID tribeAID)
+    private MapCell getInitialCell(GameMap gameMap, Integer[] position, AID tribeAID)
             throws ConfigurationException, NoSuchElementException {
         MapCell targetCell = gameMap.getCellAt(position[0], position[1]);
         if (!(targetCell.getContent() instanceof Empty)) {
-            throw new ConfigurationException("Cannot place a building"
-                    + " on an already occupied cell");
+            throw new ConfigurationException("Ocupied cell");
         }
-        Building tribeTownHall = new Building();
-        tribeTownHall.setOwner(tribeAID);
-        tribeTownHall.setType(WoaDefinitions.TOWN_HALL);
-        targetCell.setContent(tribeTownHall);
         
         return targetCell;
     }
