@@ -53,6 +53,7 @@ public class AgUnit extends GroupAgent {
     
     // TODO: temporary
     private static final int UNIT_KNOWN_MAP_SIZE = 4;
+    private static int UNIT_TEST_MODE = 0;
 
     private GraphGameMap knownMap;
     private Ontology gameOntology;
@@ -438,11 +439,17 @@ public class AgUnit extends GroupAgent {
     }
 
     private void startStrategy() {
-        //startCreateTownHallBehaviour();
-        StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
-        //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
-        unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
-        addBehaviour(unitBehaviour);
+        // TODO: the test mode is so the first unit creates a town hall and
+        //  the second one explores
+        if (UNIT_TEST_MODE++ == 0) {
+            startCreateTownHallBehaviour();
+        }
+        else if (UNIT_TEST_MODE == 1) {
+            StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
+            //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
+            unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
+            addBehaviour(unitBehaviour);
+        }
     }
     
     @Override
