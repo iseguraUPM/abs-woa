@@ -41,6 +41,8 @@ import java.util.logging.LogRecord;
  */
 public class AgTribe extends GroupAgent {
     
+    private static final int TRIBE_KNOWN_MAP_SIZE = 4;
+    
     private Ontology gameOntology;
     private Ontology group1Ontology;
     private Codec codec;
@@ -171,7 +173,8 @@ public class AgTribe extends GroupAgent {
         getContentManager().registerOntology(group1Ontology);
 
         units = new HashSet<>();
-        knownMap = GraphGameMap.getInstance(4, 4);
+        knownMap = GraphGameMap.getInstance(TRIBE_KNOWN_MAP_SIZE
+                , TRIBE_KNOWN_MAP_SIZE);
     }
         
     private void informNewUnitOwnership(Unit unit) {

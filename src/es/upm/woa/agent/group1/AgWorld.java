@@ -238,7 +238,8 @@ public class AgWorld extends Agent {
             AgentController ac = cc.acceptNewAgent(tribeName, newTribe);
             ac.start();
 
-            Tribe newTribeRef = new Tribe(newTribe.getAID());
+            Tribe newTribeRef = new Tribe(newTribe.getAID()
+                    , worldMap.getWidth(), worldMap.getHeight());
             if (!tribeCollection.add(newTribeRef)) {
                 ac.kill();
                 return null;

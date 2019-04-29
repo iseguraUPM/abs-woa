@@ -50,6 +50,9 @@ public class AgUnit extends GroupAgent {
 
     private static final int MAX_REQUEST_POSITION_TRIES = 3;
     private static final int BETWEEN_REQUEST_POSITION_TRIES_TIME_MILLIS = 1000;
+    
+    // TODO: temporary
+    private static final int UNIT_KNOWN_MAP_SIZE = 4;
 
     private GraphGameMap knownMap;
     private Ontology gameOntology;
@@ -137,7 +140,7 @@ public class AgUnit extends GroupAgent {
         getContentManager().registerOntology(gameOntology);
         getContentManager().registerOntology(group1Ontology);
 
-        knownMap = GraphGameMap.getInstance(4, 4);
+        knownMap = GraphGameMap.getInstance(UNIT_KNOWN_MAP_SIZE, UNIT_KNOWN_MAP_SIZE);
 
         new GroupAgentInformCellDetailHelper(this).startInformCellDetailBehaviour();
         startInformOwnershipBehaviour(() -> {
