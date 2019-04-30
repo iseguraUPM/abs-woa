@@ -9,7 +9,7 @@ package es.upm.woa.agent.group1.map;
  *
  * @author ISU
  */
-class CellTranslation {
+public class CellTranslation {
     
     public static final int [] DOWN = {2,0};
     public static final int [] UP = {-2,0};

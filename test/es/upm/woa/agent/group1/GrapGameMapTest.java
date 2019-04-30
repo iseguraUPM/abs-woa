@@ -1,4 +1,4 @@
-package es.upm.woa.agent.group1.map;
+package es.upm.woa.agent.group1;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -6,6 +6,7 @@ package es.upm.woa.agent.group1.map;
  * and open the template in the editor.
  */
 
+import es.upm.woa.agent.group1.map.MapCell;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.After;

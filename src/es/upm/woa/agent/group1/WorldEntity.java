@@ -13,7 +13,7 @@ import jade.core.AID;
  * @author Martin
  * An Entity is any class which corresponds to an agent which will be part of the world
  */
-public abstract class WorldEntity {
+abstract class WorldEntity {
     
     private final AID id;
     private int coordX;

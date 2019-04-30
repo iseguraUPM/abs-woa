@@ -13,7 +13,7 @@ import java.util.TreeMap;
  *
  * @author ISU
  */
-public class WorldMap implements GameMap {
+class WorldMap implements GameMap {
     
     private final int width;
     private final int height;

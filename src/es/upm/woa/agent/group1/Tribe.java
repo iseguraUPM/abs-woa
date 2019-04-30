@@ -1,7 +1,6 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.GameMap;
-import es.upm.woa.agent.group1.map.GraphGameMap;
 
 import jade.core.AID;
 

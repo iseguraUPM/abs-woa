@@ -7,6 +7,7 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
+import es.upm.woa.agent.group1.map.WorldMapConfigurator;
 import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.gui.WoaGUIFactory;
 import es.upm.woa.agent.group1.map.GameMap;

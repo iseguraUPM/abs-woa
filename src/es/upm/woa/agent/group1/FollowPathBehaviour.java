@@ -22,7 +22,7 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-public abstract class FollowPathBehaviour extends SimpleBehaviour {
+abstract class FollowPathBehaviour extends SimpleBehaviour {
 
     private final List<MapCell> path;
     private MapCell currentCell;

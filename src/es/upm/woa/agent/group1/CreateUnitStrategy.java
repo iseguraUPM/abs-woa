@@ -5,7 +5,6 @@
  */
 package es.upm.woa.agent.group1;
 
-import es.upm.woa.agent.group1.map.GraphGameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.strategy.Strategy;

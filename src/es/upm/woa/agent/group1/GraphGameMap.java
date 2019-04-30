@@ -3,9 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1.map;
+package es.upm.woa.agent.group1;
 
 
+import es.upm.woa.agent.group1.map.CellTranslation;
+import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.GameMapCoordinate;
+import es.upm.woa.agent.group1.map.MapCell;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
@@ -22,7 +26,7 @@ import java.util.stream.Collectors;
  *
  * @author ISU
  */
-public class GraphGameMap implements GameMap {
+class GraphGameMap implements GameMap {
     
     private final int width;
     private final int height;
