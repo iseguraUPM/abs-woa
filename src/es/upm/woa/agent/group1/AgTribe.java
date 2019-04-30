@@ -67,7 +67,7 @@ public class AgTribe extends GroupAgent {
     @Override
     protected void setup() {       
         logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.FINER);
+        logHandler.setLevel(Level.ALL);
         
         initializeAgent();
         initializeTribe();

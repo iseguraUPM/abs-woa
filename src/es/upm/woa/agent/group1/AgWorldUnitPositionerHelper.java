@@ -102,7 +102,6 @@ public class AgWorldUnitPositionerHelper {
                     agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " is currently building. Current construction"
                                     + " will be cancelled");
-                    requesterUnit.rollbackCurrentTransaction();
                     respondMessage(message, ACLMessage.REFUSE);
                     return;
                 }

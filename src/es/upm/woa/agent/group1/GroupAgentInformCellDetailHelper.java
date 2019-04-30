@@ -41,6 +41,7 @@ class GroupAgentInformCellDetailHelper {
                 , informCellDetailAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
+                groupAgent.log(Level.INFO, "listening to NotifyCellDetail messages");
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onInform(ACLMessage response) {
@@ -92,9 +93,11 @@ class GroupAgentInformCellDetailHelper {
                     // Should not reach
                     groupAgent.log(Level.WARNING, "Could not retrieve known cell");
                 }
-                
+                return;
             }
         }
+        
+        groupAgent.log(Level.WARNING, "Could not retrieve cell detail action");
     }
     
     private void updateCellContents(MapCell knownCell, Cell updatedCell) {

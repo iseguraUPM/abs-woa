@@ -99,7 +99,6 @@ public class AgWorldBuildingCreatorHelper {
                     agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " is currently building. Current construction"
                                     + " will be cancelled");
-                    requesterUnit.rollbackCurrentTransaction();
                     respondMessage(message, ACLMessage.REFUSE);
                     return;
                 }
@@ -126,7 +125,6 @@ public class AgWorldBuildingCreatorHelper {
 
                     ownerTribe.purchaseTownHall();
                     respondMessage(message, ACLMessage.AGREE);
-                    requesterUnit.setCurrentTransaction(buildTransaction);
                     agWorld.getActiveTransactions().add(buildTransaction);
                 } catch (CellBuildingConstructor.CellOccupiedException ex) {
                     agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()

@@ -101,7 +101,7 @@ public class AgUnit extends GroupAgent {
     @Override
     protected void setup() {
         logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.FINER);
+        logHandler.setLevel(Level.ALL);
 
         initializeAgent(() -> {
             log(Level.INFO, "Unit initialized");
@@ -389,6 +389,7 @@ public class AgUnit extends GroupAgent {
                     @Override
                     public void onSent(String conversationID) {
 
+                        log(Level.FINER, "sent CreateBuuilding request");
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
                             @Override
