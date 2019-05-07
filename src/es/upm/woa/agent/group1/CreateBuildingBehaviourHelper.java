@@ -61,7 +61,7 @@ public class CreateBuildingBehaviourHelper {
      * Unregistered tribes or units will be refused.
      */
     public void startBuildingCreationBehaviour() {
-        final Action createBuildingAction = new Action(woaAgent.getAID(), null);
+        final Action createBuildingAction = new Action(woaAgent.getAID(), new CreateBuilding());
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, createBuildingAction, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {

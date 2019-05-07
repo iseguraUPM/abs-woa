@@ -45,7 +45,7 @@ class ReceiveInformUnitPositionBehaviourHelper {
      * Start listening behaviour for NotifyUnitPosition agent inform.
      */
     public void startInformCellDetailBehaviour() {
-        Action informUnitPositionAction = new Action(groupAgent.getAID(), null);
+        Action informUnitPositionAction = new Action(groupAgent.getAID(), new NotifyUnitPosition());
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
                 , informUnitPositionAction, GameOntology.NOTIFYUNITPOSITION) {
             @Override

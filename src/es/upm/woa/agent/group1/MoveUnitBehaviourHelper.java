@@ -59,7 +59,7 @@ public class MoveUnitBehaviourHelper {
     }
     
     public void startMoveToCellBehaviour() {
-        final Action moveToCellAction = new Action(woaAgent.getAID(), null);
+        final Action moveToCellAction = new Action(woaAgent.getAID(), new MoveToCell());
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
                 , moveToCellAction, GameOntology.MOVETOCELL) {
             @Override

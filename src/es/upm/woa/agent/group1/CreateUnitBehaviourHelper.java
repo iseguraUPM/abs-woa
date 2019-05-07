@@ -60,7 +60,7 @@ class CreateUnitBehaviourHelper {
      * Unregistered tribes or units will be refused.
      */
     public void startUnitCreationBehaviour() {
-        final Action createUnitAction = new Action(woaAgent.getAID(), null);
+        final Action createUnitAction = new Action(woaAgent.getAID(), new CreateUnit());
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
                , createUnitAction, GameOntology.CREATEUNIT) {
             @Override

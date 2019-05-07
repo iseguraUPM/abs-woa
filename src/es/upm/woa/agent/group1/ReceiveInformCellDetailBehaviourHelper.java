@@ -46,7 +46,7 @@ class ReceiveInformCellDetailBehaviourHelper {
      * Start listening behaviour for NotifyCellDetail agent inform.
      */
     public void startInformCellDetailBehaviour() {
-        Action informCellDetailAction = new Action(groupAgent.getAID(), null);
+        Action informCellDetailAction = new Action(groupAgent.getAID(), new NotifyCellDetail());
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
                 , informCellDetailAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
