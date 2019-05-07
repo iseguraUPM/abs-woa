@@ -58,7 +58,11 @@ import java.util.logging.LogRecord;
  * @author Iñaki Segura
  *
  */
-public class AgWorld extends Agent {
+public class AgWorld extends WoaAgent implements
+        CreateBuildingBehaviourHelper.KnownPositionInformer
+        , CreateUnitBehaviourHelper.UnitCreator
+        , UnitMovementInformer
+        , TribeInfomationBroker {
 
     public static final String WORLD = "WORLD";
 
@@ -78,30 +82,6 @@ public class AgWorld extends Agent {
     private Collection<Transaction> activeTransactions;
 
     private Handler logHandler;
-    
-    /// NOTE: this methods must be package-private
-    
-    GameMap getWorldMap() {
-        return worldMap;
-    }
-
-    Ontology getOntology() {
-        return ontology;
-    }
-
-    Codec getCodec() {
-        return codec;
-    }
-    
-    Collection<Transaction> getActiveTransactions() {
-        return activeTransactions;
-    }
-    
-    WoaGUI getGUIEndpoint() {
-        return guiEndpoint;
-    }
-
-    /// !NOTE
 
     @Override
     protected void setup() {
@@ -128,9 +108,13 @@ public class AgWorld extends Agent {
             return;
         }
 
-        new AgWorldUnitCreationHelper(this).startUnitCreationBehaviour();
-        new AgWorldUnitPositionerHelper(this).startMoveToCellBehaviour();
-        new AgWorldBuildingCreatorHelper(this).startBuildingCreationBehaviour();
+        new CreateUnitBehaviourHelper(this, ontology, codec
+                , worldMap, activeTransactions, this, this, this).startUnitCreationBehaviour();
+        new MoveUnitBehaviourHelper(this, ontology, codec, guiEndpoint
+                , worldMap, activeTransactions, this, this).startMoveToCellBehaviour();
+        new CreateBuildingBehaviourHelper(this, ontology, codec, guiEndpoint
+                , worldMap, activeTransactions, this, this)
+                .startBuildingCreationBehaviour();
     }
 
     private void initializeAgent() {
@@ -261,7 +245,8 @@ public class AgWorld extends Agent {
         }
     }
 
-    Tribe findOwnerTribe(AID requesterUnAid) {
+    @Override
+    public Tribe findOwnerTribe(AID requesterUnAid) {
         Optional<Tribe> tribe;
         tribe = tribeCollection.stream().filter(currentTribe -> currentTribe.getUnit(requesterUnAid) != null).findAny();
         if (!tribe.isPresent()) {
@@ -271,11 +256,13 @@ public class AgWorld extends Agent {
         }
     }
 
-    Unit findUnit(Tribe ownerTribe, AID unitAID) {
+    @Override
+    public Unit findUnit(Tribe ownerTribe, AID unitAID) {
         return ownerTribe.getUnit(unitAID);
     }
 
-    boolean launchNewAgentUnit(MapCell startingPosition, Tribe ownerTribe) {
+    @Override
+    public boolean launchNewAgentUnit(MapCell startingPosition, Tribe ownerTribe) {
         try {
             ContainerController cc = getContainerController();
             AgUnit newUnit = new AgUnit();
@@ -329,60 +316,55 @@ public class AgWorld extends Agent {
 
         try {
             MapCell discoveredCell = worldMap.getCellAt(cell.getX(), cell.getY());
-            cell.setContent(discoveredCell.getContent());
-            processTribeKnownCell(ownerTribe, cell);
+            processCellOfInterest(ownerTribe, discoveredCell);
         } catch (NoSuchElementException ex) {
             log(Level.WARNING, "Unit in unknown starting position (" + ex + ")");
         }
     }
 
-    void processTribeKnownCell(Tribe ownerTribe, Cell cell) {
+    @Override
+    public void processCellOfInterest(Tribe ownerTribe, MapCell cell) {
         GameMap exploredTribeCells = ownerTribe.getKnownMap();
         try {
-            exploredTribeCells.getCellAt(cell.getX(),
-                     cell.getY());
+            exploredTribeCells.getCellAt(cell.getXCoord(),
+                     cell.getYCoord());
             log(Level.FINER, ownerTribe.getAID().getLocalName()
                     + " already knows cell "
-                    + cell.getX() + "," + cell.getY());
+                    + cell.getXCoord()+ "," + cell.getYCoord());
         } catch (NoSuchElementException ex) {
             log(Level.FINER, ownerTribe.getAID().getLocalName()
                     + " discovered cell "
-                    + cell.getX() + "," + cell.getY());
+                    + cell.getXCoord()+ "," + cell.getYCoord());
             addNewlyExploredCell(cell, exploredTribeCells);
         }
     }
 
-    private void addNewlyExploredCell(Cell cell, GameMap exploredTribeCells) {
-        try {
-            MapCell exploredCell = worldMap.getCellAt(cell.getX(), cell.getY());
+    private void addNewlyExploredCell(MapCell exploredCell, GameMap exploredTribeCells) {
+        Cell ontologyCell = new Cell();
+        ontologyCell.setX(exploredCell.getXCoord());
+        ontologyCell.setY(exploredCell.getYCoord());
+        ontologyCell.setContent(exploredCell.getContent());
 
-            Cell ontologyCell = new Cell();
-            ontologyCell.setX(exploredCell.getXCoord());
-            ontologyCell.setY(exploredCell.getYCoord());
-            ontologyCell.setContent(exploredCell.getContent());
-
-            List<AID> receipts = new ArrayList<>();
-            tribeCollection.forEach((targetTribe) -> {
-                try {
-                    targetTribe.getKnownMap().getCellAt(exploredCell.getXCoord()
-                            , exploredCell.getYCoord());
-                    // Already knows cell
-                }
-                catch (NoSuchElementException ex) {
-                    exploredTribeCells.addCell(exploredCell);
-                    receipts.add(targetTribe.getAID());
-                    targetTribe.getUnitsIterable()
-                            .forEach(u -> receipts.add(u.getId()));
-                    broadcastNotifyCellDetail(receipts
-                            .toArray(new AID[receipts.size()]), ontologyCell);
-                }
-            });
-        } catch (NoSuchElementException ex) {
-            log(Level.WARNING, "Unknown cell at " + cell.getX() +"," + cell.getY());
-        }
+        List<AID> receipts = new ArrayList<>();
+        tribeCollection.forEach((targetTribe) -> {
+            try {
+                targetTribe.getKnownMap().getCellAt(exploredCell.getXCoord()
+                        , exploredCell.getYCoord());
+                // Already knows cell
+            }
+            catch (NoSuchElementException ex) {
+                exploredTribeCells.addCell(exploredCell);
+                receipts.add(targetTribe.getAID());
+                targetTribe.getUnitsIterable()
+                        .forEach(u -> receipts.add(u.getId()));
+                multicastNotifyCellDetail(receipts
+                        .toArray(new AID[receipts.size()]), ontologyCell);
+            }
+        });
     }
     
-    void informAboutKnownCellDetail(MapCell updatedCell) {
+    @Override
+    public void informAboutKnownCellDetail(MapCell updatedCell) {
         Cell ontologyCell = new Cell();
         ontologyCell.setX(updatedCell.getXCoord());
         ontologyCell.setY(updatedCell.getYCoord());
@@ -396,7 +378,7 @@ public class AgWorld extends Agent {
                 receipts.add(targetTribe.getAID());
                 targetTribe.getUnitsIterable()
                         .forEach(u -> receipts.add(u.getId()));
-                broadcastNotifyCellDetail(receipts
+                multicastNotifyCellDetail(receipts
                         .toArray(new AID[receipts.size()]), ontologyCell);
             }
             catch (NoSuchElementException ex) {
@@ -405,7 +387,7 @@ public class AgWorld extends Agent {
         });
     }
     
-    private void broadcastNotifyCellDetail(AID[] receipts, Cell cell) {
+    private void multicastNotifyCellDetail(AID[] receipts, Cell cell) {
         NotifyCellDetail notifyCellDetail = new NotifyCellDetail();
 
         notifyCellDetail.setNewCell(cell);
@@ -420,7 +402,8 @@ public class AgWorld extends Agent {
         });
     }
     
-    void informAboutUnitPassby(Tribe ownerTribe, MapCell position) {
+    @Override
+    public void informAboutUnitPassby(Tribe ownerTribe, MapCell position) {
         Cell ontologyCell = new Cell();
         ontologyCell.setX(position.getXCoord());
         ontologyCell.setY(position.getYCoord());
@@ -459,6 +442,7 @@ public class AgWorld extends Agent {
         });
     }
     
+    @Override
     void log(Level logLevel, String message) {
         String compMsg = getLocalName() + ": " + message;
         if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {

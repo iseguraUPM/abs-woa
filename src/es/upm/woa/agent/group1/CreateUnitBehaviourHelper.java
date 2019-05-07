@@ -5,17 +5,22 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
+import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 
+import jade.content.lang.Codec;
+import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -23,39 +28,61 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-class AgWorldUnitCreationHelper {
+class CreateUnitBehaviourHelper {
       
     private static final int CREATE_UNIT_TICKS = 150;
     
-    private final AgWorld agWorld;
+    private final WoaAgent woaAgent;
+    private final Ontology ontology;
+    private final Codec codec;
+    private final GameMap worldMap;
+    private final Collection<Transaction> activeTransactions;
     
-    public AgWorldUnitCreationHelper(AgWorld agWorldInstance) {
-        agWorld = agWorldInstance;
+    private final TribeInfomationBroker tribeInfomationBroker;
+    private final UnitMovementInformer unitMovementInformer;
+    private final UnitCreator unitCreator;
+    
+    public CreateUnitBehaviourHelper(WoaAgent woaAgent, Ontology ontology
+            , Codec codec, GameMap worldMap
+            , Collection<Transaction> activeTransactions
+            , TribeInfomationBroker tribeInfomationBroker
+            , UnitMovementInformer unitMovementInformer
+            , UnitCreator unitCreator) {
+        this.woaAgent = woaAgent;
+        this.ontology = ontology;
+        this.codec = codec;
+        this.worldMap = worldMap;
+        this.activeTransactions = activeTransactions;
+        this.tribeInfomationBroker = tribeInfomationBroker;
+        this.unitMovementInformer = unitMovementInformer;
+        this.unitCreator = unitCreator;
     }
     
     public void startUnitCreationBehaviour() {
-        final Action createUnitAction = new Action(agWorld.getAID(), null);
-        agWorld.addBehaviour(new Conversation(agWorld, agWorld.getOntology()
-                , agWorld.getCodec(), createUnitAction, GameOntology.CREATEUNIT) {
+        final Action createUnitAction = new Action(woaAgent.getAID(), null);
+        woaAgent.addBehaviour(new Conversation(woaAgent, ontology
+                , codec, createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
-                Action action = new Action(agWorld.getAID(), new CreateUnit());
+                Action action = new Action(woaAgent.getAID(), new CreateUnit());
 
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        agWorld.log(Level.FINE, "received CreateUnit request from"
+                        woaAgent.log(Level.FINE, "received CreateUnit request from"
                                 + message.getSender().getLocalName());
 
-                        final Tribe ownerTribe = agWorld.findOwnerTribe(message.getSender());
-                        Unit requesterUnit = agWorld.findUnit(ownerTribe, message.getSender());
+                        final Tribe ownerTribe = tribeInfomationBroker
+                                .findOwnerTribe(message.getSender());
+                        Unit requesterUnit = tribeInfomationBroker
+                                .findUnit(ownerTribe, message.getSender());
                         if (ownerTribe == null || requesterUnit == null) {
                             respondMessage(message, ACLMessage.REFUSE);
                             return;
                         }
 
                         try {
-                            MapCell unitPosition = agWorld.getWorldMap().getCellAt(requesterUnit
+                            MapCell unitPosition = worldMap.getCellAt(requesterUnit
                                     .getCoordX(), requesterUnit.getCoordY());
 
                             if (!canCreateUnit(ownerTribe, requesterUnit,
@@ -66,7 +93,7 @@ class AgWorldUnitCreationHelper {
                             }
 
                         } catch (NoSuchElementException ex) {
-                            agWorld.log(Level.WARNING, "Unit "
+                            woaAgent.log(Level.WARNING, "Unit "
                                     + requesterUnit.getId().getLocalName() + " is at an unknown position");
                             respondMessage(message, ACLMessage.REFUSE);
                         }
@@ -78,7 +105,7 @@ class AgWorldUnitCreationHelper {
             private void initiateUnitCreation(Unit requesterUnit, Tribe ownerTribe, MapCell unitPosition, ACLMessage message) {
                 if (UnitCellPositioner.getInstance()
                         .isMoving(requesterUnit)) {
-                    agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
+                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " already moving. Cannot create unit");
                     respondMessage(message, ACLMessage.REFUSE);
                     return;
@@ -103,7 +130,8 @@ class AgWorldUnitCreationHelper {
                     @Override
                     public void commit() {
                         if (!finished) {
-                            boolean success = agWorld.launchNewAgentUnit(unitPosition, ownerTribe);
+                            boolean success = unitCreator
+                                    .launchNewAgentUnit(unitPosition, ownerTribe);
                             if (!success) {
                                 ownerTribe.refundUnit();
 
@@ -111,7 +139,7 @@ class AgWorldUnitCreationHelper {
 
                             } else {
                                 respondMessage(message, ACLMessage.INFORM);
-                                agWorld.informAboutUnitPassby(ownerTribe
+                                unitMovementInformer.informAboutUnitPassby(ownerTribe
                                         , unitPosition);
                             }
                         }
@@ -122,7 +150,7 @@ class AgWorldUnitCreationHelper {
                     @Override
                     public void rollback() {
                         if (!finished) {
-                            agWorld.log(Level.INFO, "refunded unit to "
+                            woaAgent.log(Level.INFO, "refunded unit to "
                                     + ownerTribe.getAID().getLocalName());
                             ownerTribe.refundUnit();
                             respondMessage(message, ACLMessage.FAILURE);
@@ -131,8 +159,8 @@ class AgWorldUnitCreationHelper {
                     }
                 };
 
-                agWorld.getActiveTransactions().add(activeTransaction);
-                agWorld.addBehaviour(activeTransaction);
+                activeTransactions.add(activeTransaction);
+                woaAgent.addBehaviour(activeTransaction);
             }
         });
     }
@@ -157,6 +185,18 @@ class AgWorldUnitCreationHelper {
                 return building.getType().equals(WoaDefinitions.TOWN_HALL);
             }
         }
+    }
+    
+    interface UnitCreator {
+        
+        /**
+         * 
+         * @param unitPosition
+         * @param ownerTribe
+         * @return if the creation of the unit agent was successful
+         */
+        boolean launchNewAgentUnit(MapCell unitPosition, Tribe ownerTribe);
+        
     }
     
 }

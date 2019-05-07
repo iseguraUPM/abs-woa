@@ -5,7 +5,9 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.map.CellBuildingConstructor;
+import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -17,10 +19,12 @@ import es.upm.woa.ontology.MoveToCell;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
+import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -28,30 +32,52 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-public class AgWorldUnitPositionerHelper {
+public class MoveUnitBehaviourHelper {
     
-    private final AgWorld agWorld;
+    private final WoaAgent woaAgent;
+    private final Ontology ontology;
+    private final Codec codec;
+    private final WoaGUI gui;
+    private final GameMap worldMap;
+    private final Collection<Transaction> activeTransactions;
     
-    public AgWorldUnitPositionerHelper(AgWorld agWorldInstance) {
-        agWorld = agWorldInstance;
+    private final TribeInfomationBroker tribeInfomationBroker;
+    private final UnitMovementInformer unitMovementInformer;
+    
+    
+    MoveUnitBehaviourHelper(WoaAgent woaAgent, Ontology ontology
+            , Codec codec, WoaGUI gui, GameMap worldMap
+            , Collection<Transaction> activeTransactions
+            , TribeInfomationBroker tribeInfomationBroker
+            , UnitMovementInformer unitMovementInformer) {
+        this.woaAgent = woaAgent;
+        this.ontology = ontology;
+        this.codec = codec;
+        this.gui = gui;
+        this.worldMap = worldMap;
+        this.activeTransactions = activeTransactions;
+        this.tribeInfomationBroker = tribeInfomationBroker;
+        this.unitMovementInformer = unitMovementInformer;
     }
     
     public void startMoveToCellBehaviour() {
-        final Action moveToCellAction = new Action(agWorld.getAID(), null);
-        agWorld.addBehaviour(new Conversation(agWorld, agWorld.getOntology()
-                , agWorld.getCodec(), moveToCellAction, GameOntology.MOVETOCELL) {
+        final Action moveToCellAction = new Action(woaAgent.getAID(), null);
+        woaAgent.addBehaviour(new Conversation(woaAgent, ontology
+                , codec, moveToCellAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
 
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        agWorld.log(Level.FINE, "received unit MoveToCell"
+                        woaAgent.log(Level.FINE, "received unit MoveToCell"
                                 + " request from " + message.getSender()
                                         .getLocalName());
 
-                        final Tribe ownerTribe = agWorld.findOwnerTribe(message.getSender());
-                        Unit requesterUnit = agWorld.findUnit(ownerTribe, message.getSender());
+                        final Tribe ownerTribe = tribeInfomationBroker
+                                .findOwnerTribe(message.getSender());
+                        Unit requesterUnit = tribeInfomationBroker
+                                .findUnit(ownerTribe, message.getSender());
 
                         if (ownerTribe == null || requesterUnit == null) {
                             respondMessage(message, ACLMessage.REFUSE);
@@ -61,25 +87,24 @@ public class AgWorldUnitPositionerHelper {
                         
 
                         try {
-                            ContentElement ce = agWorld
+                            ContentElement ce = woaAgent
                                     .getContentManager().extractContent(message);
                             Action agAction = (Action) ce;
                             Concept conc = agAction.getAction();
                             MoveToCell targetCell = (MoveToCell) conc;
 
-                            MapCell mapCell = agWorld
-                                    .getWorldMap().getCellAt(targetCell
+                            MapCell mapCell = worldMap.getCellAt(targetCell
                                     .getTarget().getX(), targetCell.getTarget()
                                             .getY());
                             
                             initiateMoveToCell(requesterUnit, mapCell, moveToCellAction, message);
 
                         } catch (NoSuchElementException ex) {
-                            agWorld.log(Level.WARNING, "Unit "
+                            woaAgent.log(Level.WARNING, "Unit "
                                     + requesterUnit.getId().getLocalName() + " is at an unknown position");
                             respondMessage(message, ACLMessage.REFUSE);
                         } catch (Codec.CodecException | OntologyException ex) {
-                            agWorld.log(Level.WARNING, "could not receive message (" + ex + ")");
+                            woaAgent.log(Level.WARNING, "could not receive message (" + ex + ")");
                             respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
                         }
 
@@ -91,7 +116,7 @@ public class AgWorldUnitPositionerHelper {
                 UnitCellPositioner unitPositioner = UnitCellPositioner
                         .getInstance();
                 if (unitPositioner.isMoving(requesterUnit)) {
-                    agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
+                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " already moving. Cannot move again");
                     respondMessage(message, ACLMessage.REFUSE);
                     return;
@@ -99,7 +124,7 @@ public class AgWorldUnitPositionerHelper {
                 
                 if (CellBuildingConstructor.getInstance()
                         .isBuilding(requesterUnit)) {
-                    agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
+                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " is currently building. Current construction"
                                     + " will be cancelled");
                     respondMessage(message, ACLMessage.REFUSE);
@@ -107,11 +132,12 @@ public class AgWorldUnitPositionerHelper {
                 }
 
                 try {
-                    Transaction moveTransaction = unitPositioner.move(myAgent, agWorld.getWorldMap(),
+                    Transaction moveTransaction = unitPositioner.move(myAgent, worldMap,
                              requesterUnit, mapCell, new UnitCellPositioner.UnitMovementHandler() {
                         @Override
                         public void onMove() {
-                            Tribe ownerTribe = agWorld.findOwnerTribe(requesterUnit.getId());
+                            Tribe ownerTribe = tribeInfomationBroker
+                                    .findOwnerTribe(requesterUnit.getId());
 
                             Cell newCell = new Cell();
                             newCell.setX(mapCell.getXCoord());
@@ -124,13 +150,14 @@ public class AgWorldUnitPositionerHelper {
                             action.setAction(moveToCellAction);
 
                             respondMessage(message, ACLMessage.INFORM);
-                            agWorld.getGUIEndpoint().apiMoveAgent(requesterUnit.getId()
+                            gui.apiMoveAgent(requesterUnit.getId()
                                     .getLocalName(), mapCell.getXCoord(),
                                      mapCell.getYCoord());
 
-                            agWorld.processTribeKnownCell(ownerTribe, newCell);
+                            unitMovementInformer
+                                    .processCellOfInterest(ownerTribe, mapCell);
                             
-                            agWorld.informAboutUnitPassby(ownerTribe
+                            unitMovementInformer.informAboutUnitPassby(ownerTribe
                                         , mapCell);
                         }
 
@@ -141,10 +168,10 @@ public class AgWorldUnitPositionerHelper {
                     });
 
                     respondMessage(message, ACLMessage.AGREE);
-                    agWorld.getActiveTransactions().add(moveTransaction);
+                    activeTransactions.add(moveTransaction);
 
                 } catch (IndexOutOfBoundsException ex) {
-                    agWorld.log(Level.FINE, requesterUnit.getId().getLocalName()
+                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot move to cell " + mapCell.getXCoord()
                             + ", " + mapCell.getYCoord() + "(" + ex + ")");
                     respondMessage(message, ACLMessage.REFUSE);
@@ -152,5 +179,6 @@ public class AgWorldUnitPositionerHelper {
             }
         });
     }
+    
     
 }

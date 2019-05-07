@@ -10,23 +10,18 @@ import es.upm.woa.agent.group1.map.MapCell;
 
 import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
-import jade.core.Agent;
-
-import java.util.logging.Level;
 
 /**
  *
  * @author ISU
  */
-abstract class GroupAgent extends Agent {
+abstract class GroupAgent extends WoaAgent {
     
     abstract Ontology getOntology();
     
     abstract Codec getCodec();
     
     abstract GameMap getKnownMap();
-    
-    abstract void log(Level logLevel, String message);
     
     abstract void onCellDiscovered(MapCell newCell);
     
