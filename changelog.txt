@@ -316,3 +316,14 @@
    Added the same type of helper class to implement the side of AgTribe and AgUnit, as for now they respond equally
     to NotifyUnitPosition messages.
    GroupAgents are notified of unit passbies (if they know the cell) on unit creation and on unit movement completion.
+----------------------------------------------------------------------------------------------------------------
+ (28) {07/05/2019 13:00} Big refactorizations : Inaki
+ 1. [REFACT] ref [REFACT 27.2]
+    Refactored the listener behaviours of AgWorld to improve code quality and dependencies.
+ 2. [REFACT] ref [COMPLETE 27.3]
+    Refactored as well the listener behaviours for AgTribe and AgUnit.
+ 3. [REFACT]
+    Wrapped the Ontology and Codec usages into CommunicationStandard so its easier to use and removes unnecesary 
+	lines of code.
+ 4. [NOTE]
+    No functionality whatsoever was changed.
