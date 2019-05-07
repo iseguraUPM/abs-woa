@@ -10,7 +10,10 @@ import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
+import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
+import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
@@ -42,9 +45,8 @@ public class AgTribe extends GroupAgent {
     
     private static final int TRIBE_KNOWN_MAP_SIZE = 4;
     
-    private Ontology gameOntology;
-    private Ontology group1Ontology;
-    private Codec codec;
+    private CommunicationStandard gameComStandard;
+    private CommunicationStandard group1ComStandard;
     private Collection<Unit> units;
     private GameMap knownMap;
     private Handler logHandler;
@@ -58,16 +60,16 @@ public class AgTribe extends GroupAgent {
         initializeTribe();
         
         startInformNewUnitBehaviour();
-        new ReceiveInformCellDetailBehaviourHelper(this, gameOntology
-                , codec, knownMap).startInformCellDetailBehaviour();
+        new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
+                , knownMap).startInformCellDetailBehaviour();
         startWhereAmIBehaviour();
-        new ReceiveInformUnitPositionBehaviourHelper(this, gameOntology, codec, knownMap).startInformCellDetailBehaviour();
+        new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard, knownMap).startInformCellDetailBehaviour();
     }
     
     
     private void startInformNewUnitBehaviour() {
         Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
-        addBehaviour(new Conversation(this, gameOntology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
+        addBehaviour(new Conversation(this, gameComStandard, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -112,7 +114,7 @@ public class AgTribe extends GroupAgent {
     
     private void startWhereAmIBehaviour() {
         final Action whereAmIAction = new Action(getAID(), new WhereAmI());
-        addBehaviour(new Conversation(this, group1Ontology, codec, whereAmIAction, Group1Ontology.WHEREAMI) {
+        addBehaviour(new Conversation(this, group1ComStandard, whereAmIAction, Group1Ontology.WHEREAMI) {
             @Override
             public void onStart() {
                 listenMessages(new Conversation.ResponseHandler() {
@@ -150,12 +152,11 @@ public class AgTribe extends GroupAgent {
     }
 
     private void initializeTribe() {
-        gameOntology = GameOntology.getInstance();
-        group1Ontology = Group1Ontology.getInstance();
-        codec = new SLCodec();
-        getContentManager().registerLanguage(codec);
-        getContentManager().registerOntology(gameOntology);
-        getContentManager().registerOntology(group1Ontology);
+        gameComStandard = new WoaCommunicationStandard();
+        gameComStandard.register(getContentManager());
+        
+        group1ComStandard = new Group1CommunicationStandard();
+        group1ComStandard.register(getContentManager());
 
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance(TRIBE_KNOWN_MAP_SIZE
@@ -164,7 +165,7 @@ public class AgTribe extends GroupAgent {
         
     private void informNewUnitOwnership(Unit unit) {
         Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
-        addBehaviour(new Conversation(this, group1Ontology, codec, informOwnershipAction
+        addBehaviour(new Conversation(this, group1ComStandard, informOwnershipAction
                 , Group1Ontology.NOTIFYUNITOWNERSHIP) {
             @Override
             public void onStart() {
@@ -199,7 +200,7 @@ public class AgTribe extends GroupAgent {
         newCellDiscovery.setNewCell(knownCell);
         
         Action informCellDiscoveryAction = new Action(getAID(), newCellDiscovery);
-        addBehaviour(new Conversation(this, gameOntology, codec, informCellDiscoveryAction
+        addBehaviour(new Conversation(this, gameComStandard, informCellDiscoveryAction
             , GameOntology.NOTIFYCELLDETAIL) {
                 
                 @Override

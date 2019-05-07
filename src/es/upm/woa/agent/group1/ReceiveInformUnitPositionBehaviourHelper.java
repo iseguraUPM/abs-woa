@@ -8,6 +8,7 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
@@ -16,7 +17,6 @@ import es.upm.woa.ontology.NotifyUnitPosition;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
-import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
@@ -31,15 +31,13 @@ import java.util.logging.Level;
 class ReceiveInformUnitPositionBehaviourHelper {
     
     private final GroupAgent groupAgent;
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final GameMap knownMap;
     
     public ReceiveInformUnitPositionBehaviourHelper(GroupAgent groupAgent
-            , Ontology ontology, Codec codec, GameMap knownGameMap) {
+            , CommunicationStandard comStandard, GameMap knownGameMap) {
         this.groupAgent = groupAgent;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = comStandard;
         this.knownMap = knownGameMap;
     }
     
@@ -48,7 +46,7 @@ class ReceiveInformUnitPositionBehaviourHelper {
      */
     public void startInformCellDetailBehaviour() {
         Action informUnitPositionAction = new Action(groupAgent.getAID(), null);
-        groupAgent.addBehaviour(new Conversation(groupAgent, ontology, codec
+        groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
                 , informUnitPositionAction, GameOntology.NOTIFYUNITPOSITION) {
             @Override
             public void onStart() {

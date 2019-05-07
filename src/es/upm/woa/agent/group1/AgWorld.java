@@ -12,8 +12,10 @@ import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.gui.WoaGUIFactory;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Transaction;
+import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyCellDetail;
@@ -25,7 +27,6 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
-import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -69,8 +70,7 @@ public class AgWorld extends WoaAgent implements
     private static final int STARTING_UNIT_NUMBER = 1;
 
     private static final long serialVersionUID = 1L;
-    private Ontology ontology;
-    private Codec codec;
+    private CommunicationStandard woaComStandard;
 
     private Collection<Tribe> tribeCollection;
     private GameMap worldMap;
@@ -108,11 +108,11 @@ public class AgWorld extends WoaAgent implements
             return;
         }
 
-        new CreateUnitBehaviourHelper(this, ontology, codec
+        new CreateUnitBehaviourHelper(this, woaComStandard
                 , worldMap, activeTransactions, this, this, this).startUnitCreationBehaviour();
-        new MoveUnitBehaviourHelper(this, ontology, codec, guiEndpoint
+        new MoveUnitBehaviourHelper(this, woaComStandard, guiEndpoint
                 , worldMap, activeTransactions, this, this).startMoveToCellBehaviour();
-        new CreateBuildingBehaviourHelper(this, ontology, codec, guiEndpoint
+        new CreateBuildingBehaviourHelper(this, woaComStandard, guiEndpoint
                 , worldMap, activeTransactions, this, this)
                 .startBuildingCreationBehaviour();
     }
@@ -134,10 +134,8 @@ public class AgWorld extends WoaAgent implements
     }
 
     private boolean initializeWorld() {
-        ontology = GameOntology.getInstance();
-        codec = new SLCodec();
-        getContentManager().registerLanguage(codec);
-        getContentManager().registerOntology(ontology);
+        woaComStandard = new WoaCommunicationStandard();
+        woaComStandard.register(getContentManager());
 
         guiEndpoint = new WoaGUIWrapper();
         try {
@@ -305,7 +303,7 @@ public class AgWorld extends WoaAgent implements
         notifyNewUnit.setNewUnit(newUnit.getId());
 
         Action informNewUnitAction = new Action(ownerTribe.getAID(), notifyNewUnit);
-        addBehaviour(new Conversation(this, ontology, codec, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
+        addBehaviour(new Conversation(this, woaComStandard, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
@@ -393,7 +391,7 @@ public class AgWorld extends WoaAgent implements
         notifyCellDetail.setNewCell(cell);
 
         Action informCellDetailAction = new Action(getAID(), notifyCellDetail);
-        addBehaviour(new Conversation(this, ontology, codec, informCellDetailAction, GameOntology.NOTIFYCELLDETAIL) {
+        addBehaviour(new Conversation(this, woaComStandard, informCellDetailAction, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
                 sendMessage(receipts, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
@@ -433,7 +431,7 @@ public class AgWorld extends WoaAgent implements
         notifyUnitPosition.setCell(position);
 
         Action informUnitPositionAction = new Action(getAID(), notifyUnitPosition);
-        addBehaviour(new Conversation(this, ontology, codec, informUnitPositionAction, GameOntology.NOTIFYUNITPOSITION) {
+        addBehaviour(new Conversation(this, woaComStandard, informUnitPositionAction, GameOntology.NOTIFYUNITPOSITION) {
             @Override
             public void onStart() {
                 sendMessage(receipts, ACLMessage.INFORM, new Conversation.SentMessageHandler() {

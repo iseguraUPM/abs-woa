@@ -6,13 +6,12 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 
-import jade.content.lang.Codec;
-import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
@@ -28,8 +27,7 @@ import java.util.logging.Level;
 abstract class FollowPathBehaviour extends SimpleBehaviour {
 
     private final WoaAgent woaAgent;
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final AID worldAID;
     private final List<MapCell> path;
     
@@ -37,12 +35,10 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
     private int next;
     private boolean finished;
 
-    public FollowPathBehaviour(WoaAgent agent, Ontology ontology
-            , Codec codec, AID worldAID, List<MapCell> path) {
+    public FollowPathBehaviour(WoaAgent agent, CommunicationStandard comStandard, AID worldAID, List<MapCell> path) {
         super(agent);
         this.woaAgent = agent;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = comStandard;
         this.worldAID = worldAID;
         this.path = path;
         
@@ -82,8 +78,8 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
 
     private void launchMoveConversation(MapCell targetCell) {
         Action moveAction = createMoveToCellAction(targetCell);
-        woaAgent.addBehaviour(new Conversation(myAgent, ontology
-                , codec, moveAction, GameOntology.MOVETOCELL) {
+        woaAgent.addBehaviour(new Conversation(myAgent, comStandard
+                , moveAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
                 sendMessage(worldAID, ACLMessage.REQUEST, new SentMessageHandler() {

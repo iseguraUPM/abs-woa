@@ -6,6 +6,7 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.strategy.Strategy;
 import es.upm.woa.agent.group1.strategy.StrategyEvent;
@@ -30,8 +31,7 @@ import java.util.logging.Level;
 class CreateUnitStrategy extends Strategy {
     
     private final WoaAgent woaAgent;
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final GraphGameMap graphKnownMap;
     private final AID worldAID;
     
@@ -40,14 +40,13 @@ class CreateUnitStrategy extends Strategy {
     private int priority;
     private boolean finished;
     
-    public CreateUnitStrategy(WoaAgent agent, Ontology ontology, Codec codec
+    public CreateUnitStrategy(WoaAgent agent, CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit
             , StrategyEventDispatcher eventDispatcher) {
         super(agent, eventDispatcher);
         this.woaAgent = agent;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = comStandard;
         this.graphKnownMap = graphGameMap;
         this.worldAID = worldAID;
         this.agentUnit = agentUnit;
@@ -132,7 +131,7 @@ class CreateUnitStrategy extends Strategy {
     }
 
     private void startFollowPathBehaviour(WoaAgent woaAgent, List<MapCell> pathToTownHall, OnArrivedToTownHallHandler handler) {
-        woaAgent.addBehaviour(new FollowPathBehaviour(woaAgent, ontology, codec, worldAID, pathToTownHall) {
+        woaAgent.addBehaviour(new FollowPathBehaviour(woaAgent, comStandard, worldAID, pathToTownHall) {
             @Override
             protected void onArrived(MapCell destination) {
                 agentUnit.setCurrentPosition(destination);
@@ -190,8 +189,8 @@ class CreateUnitStrategy extends Strategy {
     private void startCreateUnitBehaviour(OnCreatedUnitHandler handler) {
         
         Action createUnitAction = new Action(woaAgent.getAID(), new CreateUnit());
-        woaAgent.addBehaviour(new Conversation(woaAgent, ontology
-                , codec, createUnitAction, GameOntology.CREATEUNIT) {
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
+                , createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
                 woaAgent.log(Level.FINE, "Wants to create a unit");

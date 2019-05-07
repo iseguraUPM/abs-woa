@@ -10,6 +10,7 @@ import es.upm.woa.agent.group1.map.CellBuildingConstructor;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.CreateBuilding;
@@ -34,8 +35,7 @@ import java.util.logging.Level;
 public class CreateBuildingBehaviourHelper {
     
     private final WoaAgent woaAgent;
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final WoaGUI gui;
     private final GameMap worldMap;
     private final Collection<Transaction> activeTransactions;
@@ -43,14 +43,13 @@ public class CreateBuildingBehaviourHelper {
     private final KnownPositionInformer knownPositionInformHandler;
     private final TribeInfomationBroker tribeInfomationHandler;
     
-    CreateBuildingBehaviourHelper(WoaAgent woaAgent, Ontology ontology
-            , Codec codec, WoaGUI gui, GameMap worldMap
+    CreateBuildingBehaviourHelper(WoaAgent woaAgent
+            , CommunicationStandard comStandard, WoaGUI gui, GameMap worldMap
             , Collection<Transaction> activeTransactions
             , KnownPositionInformer knownPositionInformHandler
             , TribeInfomationBroker tribeInfomationHandler) {
         this.woaAgent = woaAgent;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = comStandard;
         this.gui = gui;
         this.worldMap = worldMap;
         this.activeTransactions = activeTransactions;
@@ -64,7 +63,7 @@ public class CreateBuildingBehaviourHelper {
      */
     public void startBuildingCreationBehaviour() {
         final Action createBuildingAction = new Action(woaAgent.getAID(), null);
-        woaAgent.addBehaviour(new Conversation(woaAgent, ontology, codec, createBuildingAction, GameOntology.CREATEBUILDING) {
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, createBuildingAction, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
                 Action action = new Action(woaAgent.getAID(), new CreateBuilding());

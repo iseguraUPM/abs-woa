@@ -9,7 +9,10 @@ import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
+import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
+import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.agent.group1.strategy.StrategicUnitBehaviour;
 import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 
@@ -55,9 +58,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private static int UNIT_TEST_MODE = 0;
 
     private GraphGameMap knownMap;
-    private Ontology gameOntology;
-    private Ontology group1Ontology;
-    private SLCodec codec;
+    private CommunicationStandard gameComStandard;
+    private CommunicationStandard group1ComStandard;
     private DFAgentDescription worldAgentServiceDescription;
     private MapCell currentPosition;
     private AID ownerTribe;
@@ -116,22 +118,21 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     private void initializeUnit(OnUnitInitializedHandler handler) {
-        gameOntology = GameOntology.getInstance();
-        group1Ontology = Group1Ontology.getInstance();
-        codec = new SLCodec();
-        getContentManager().registerLanguage(codec);
-        getContentManager().registerOntology(gameOntology);
-        getContentManager().registerOntology(group1Ontology);
+        gameComStandard = new WoaCommunicationStandard();
+        gameComStandard.register(getContentManager());
+        
+        group1ComStandard = new Group1CommunicationStandard();
+        group1ComStandard.register(getContentManager());
 
         knownMap = GraphGameMap.getInstance(UNIT_KNOWN_MAP_SIZE, UNIT_KNOWN_MAP_SIZE);
 
-        new ReceiveInformCellDetailBehaviourHelper(this, gameOntology
-                , codec, knownMap).startInformCellDetailBehaviour();
+        new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
+                , knownMap).startInformCellDetailBehaviour();
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
                 handler.onUnitInitialized();
-                new ReceiveInformUnitPositionBehaviourHelper(this, gameOntology
-                        , codec, knownMap)
+                new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard
+                        , knownMap)
                         .startInformCellDetailBehaviour();
             });
         });
@@ -140,7 +141,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     // TODO: remove. Do not copy code
     private void startCreateUnitBehaviour() {
         Action createUnitAction = new Action(getAID(), new CreateUnit());
-        addBehaviour(new Conversation(this, gameOntology, codec, createUnitAction, GameOntology.CREATEUNIT) {
+        addBehaviour(new Conversation(this, gameComStandard, createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
                 AID worldAID = (AID) worldAgentServiceDescription.getName();
@@ -207,7 +208,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         moveToCell.setTarget(newCellPosition);
 
         Action moveToCellAction = new Action(getAID(), moveToCell);
-        addBehaviour(new Conversation(this, gameOntology, codec, moveToCellAction, GameOntology.MOVETOCELL) {
+        addBehaviour(new Conversation(this, gameComStandard, moveToCellAction, GameOntology.MOVETOCELL) {
 
             @Override
             public void onStart() {
@@ -270,7 +271,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void startInformOwnershipBehaviour(OnReceivedOwnershipHandler handler) {
         Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
-        addBehaviour(new Conversation(this, group1Ontology, codec, informOwnershipAction, Group1Ontology.NOTIFYUNITOWNERSHIP) {
+        addBehaviour(new Conversation(this, group1ComStandard, informOwnershipAction, Group1Ontology.NOTIFYUNITOWNERSHIP) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -296,7 +297,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void attemptCurrentPositionRequest(int tries, OnReceivedStartingPositionHandler handler) {
         final Action whereAmIAction = new Action(getAID(), new WhereAmI());
-        addBehaviour(new Conversation(this, group1Ontology, codec, whereAmIAction, Group1Ontology.WHEREAMI) {
+        addBehaviour(new Conversation(this, group1ComStandard, whereAmIAction, Group1Ontology.WHEREAMI) {
             @Override
             public void onStart() {
                 sendMessage(ownerTribe, ACLMessage.REQUEST, new SentMessageHandler() {
@@ -364,7 +365,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         CreateBuilding createBuilding = new CreateBuilding();
         createBuilding.setBuildingType(WoaDefinitions.TOWN_HALL);
         Action createTownHall = new Action(getAID(), createBuilding);
-        addBehaviour(new Conversation(this, gameOntology, codec, createTownHall, GameOntology.CREATEBUILDING) {
+        addBehaviour(new Conversation(this, gameComStandard, createTownHall, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
                 AID worldAID = (AID) worldAgentServiceDescription.getName();
@@ -439,7 +440,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     private void addFreeExploreStrategy(StrategicUnitBehaviour unitBehaviour) {
-        unitBehaviour.addStrategy(new FreeExploreStrategy(this, gameOntology, codec, knownMap, worldAgentServiceDescription.getName(), this, eventDispatcher));
+        unitBehaviour.addStrategy(new FreeExploreStrategy(this, gameComStandard, knownMap, worldAgentServiceDescription.getName(), this, eventDispatcher));
     }
     
     @Override

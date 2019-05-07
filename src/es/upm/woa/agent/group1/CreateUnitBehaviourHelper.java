@@ -8,6 +8,7 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
@@ -15,8 +16,6 @@ import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 
-import jade.content.lang.Codec;
-import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
 
@@ -33,8 +32,7 @@ class CreateUnitBehaviourHelper {
     private static final int CREATE_UNIT_TICKS = 150;
     
     private final WoaAgent woaAgent;
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final GameMap worldMap;
     private final Collection<Transaction> activeTransactions;
     
@@ -42,15 +40,14 @@ class CreateUnitBehaviourHelper {
     private final UnitMovementInformer unitMovementInformer;
     private final UnitCreator unitCreator;
     
-    public CreateUnitBehaviourHelper(WoaAgent woaAgent, Ontology ontology
-            , Codec codec, GameMap worldMap
+    public CreateUnitBehaviourHelper(WoaAgent woaAgent
+            , CommunicationStandard comStandard, GameMap worldMap
             , Collection<Transaction> activeTransactions
             , TribeInfomationBroker tribeInfomationBroker
             , UnitMovementInformer unitMovementInformer
             , UnitCreator unitCreator) {
         this.woaAgent = woaAgent;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = comStandard;
         this.worldMap = worldMap;
         this.activeTransactions = activeTransactions;
         this.tribeInfomationBroker = tribeInfomationBroker;
@@ -64,8 +61,8 @@ class CreateUnitBehaviourHelper {
      */
     public void startUnitCreationBehaviour() {
         final Action createUnitAction = new Action(woaAgent.getAID(), null);
-        woaAgent.addBehaviour(new Conversation(woaAgent, ontology
-                , codec, createUnitAction, GameOntology.CREATEUNIT) {
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
+               , createUnitAction, GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
                 Action action = new Action(woaAgent.getAID(), new CreateUnit());

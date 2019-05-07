@@ -6,7 +6,6 @@
 package es.upm.woa.agent.group1.protocol;
 
 import jade.content.lang.Codec;
-import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
@@ -27,18 +26,16 @@ import java.util.logging.Logger;
  */
 public abstract class Conversation extends SimpleBehaviour {
 
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final Action action;
     private final String protocol;
     private boolean finished;
 
-    public Conversation(Agent agent, Ontology ontology, Codec codec
+    public Conversation(Agent agent, CommunicationStandard com
             , Action action, String protocol) {
         super(agent);
         this.finished = false;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = com;
         this.action = action;
         this.protocol = protocol;
     }
@@ -58,8 +55,8 @@ public abstract class Conversation extends SimpleBehaviour {
                 ACLMessage newMsg = new ACLMessage(performative);
                 String conversationID = UUID.randomUUID().toString();
 
-                newMsg.setOntology(ontology.getName());
-                newMsg.setLanguage(codec.getName());
+                newMsg.setOntology(comStandard.getOntology().getName());
+                newMsg.setLanguage(comStandard.getCodec().getName());
                 newMsg.setConversationId(conversationID);
                 newMsg.setProtocol(protocol);
                 
@@ -205,8 +202,8 @@ public abstract class Conversation extends SimpleBehaviour {
     
     private MessageTemplate generateMessageFilter() {
         MessageTemplate filter = MessageTemplate
-                .and(MessageTemplate.MatchLanguage(codec.getName()),
-                        MessageTemplate.MatchOntology(ontology.getName()));
+                .and(MessageTemplate.MatchLanguage(comStandard.getCodec().getName()),
+                        MessageTemplate.MatchOntology(comStandard.getOntology().getName()));
         filter = MessageTemplate.and(filter
                 , MessageTemplate.MatchProtocol(protocol));
         

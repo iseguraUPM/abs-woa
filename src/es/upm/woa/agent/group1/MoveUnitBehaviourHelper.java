@@ -10,6 +10,7 @@ import es.upm.woa.agent.group1.map.CellBuildingConstructor;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.Cell;
@@ -35,8 +36,7 @@ import java.util.logging.Level;
 public class MoveUnitBehaviourHelper {
     
     private final WoaAgent woaAgent;
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final WoaGUI gui;
     private final GameMap worldMap;
     private final Collection<Transaction> activeTransactions;
@@ -45,14 +45,13 @@ public class MoveUnitBehaviourHelper {
     private final UnitMovementInformer unitMovementInformer;
     
     
-    MoveUnitBehaviourHelper(WoaAgent woaAgent, Ontology ontology
-            , Codec codec, WoaGUI gui, GameMap worldMap
+    MoveUnitBehaviourHelper(WoaAgent woaAgent, CommunicationStandard comStandard
+            , WoaGUI gui, GameMap worldMap
             , Collection<Transaction> activeTransactions
             , TribeInfomationBroker tribeInfomationBroker
             , UnitMovementInformer unitMovementInformer) {
         this.woaAgent = woaAgent;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = comStandard;
         this.gui = gui;
         this.worldMap = worldMap;
         this.activeTransactions = activeTransactions;
@@ -62,8 +61,8 @@ public class MoveUnitBehaviourHelper {
     
     public void startMoveToCellBehaviour() {
         final Action moveToCellAction = new Action(woaAgent.getAID(), null);
-        woaAgent.addBehaviour(new Conversation(woaAgent, ontology
-                , codec, moveToCellAction, GameOntology.MOVETOCELL) {
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
+                , moveToCellAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
 

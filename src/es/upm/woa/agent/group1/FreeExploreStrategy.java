@@ -9,6 +9,7 @@ import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.GameMapCoordinate;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
+import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.strategy.Strategy;
 import es.upm.woa.agent.group1.strategy.StrategyEvent;
@@ -42,8 +43,7 @@ import java.util.logging.Level;
 class FreeExploreStrategy extends Strategy {
 
     private final WoaAgent woaAgent;
-    private final Ontology ontology;
-    private final Codec codec;
+    private final CommunicationStandard comStandard;
     private final GraphGameMap graphKnownMap;
     private final AID worldAID;
     
@@ -54,12 +54,11 @@ class FreeExploreStrategy extends Strategy {
     private MapCell nextCandidate;
     private int exploredCells;
 
-    public FreeExploreStrategy(WoaAgent agent, Ontology ontology, Codec codec
+    public FreeExploreStrategy(WoaAgent agent, CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit, StrategyEventDispatcher eventDispatcher) {
         super(agent, eventDispatcher);
         this.woaAgent = agent;
-        this.ontology = ontology;
-        this.codec = codec;
+        this.comStandard = comStandard;
         this.graphKnownMap = graphGameMap;
         this.worldAID = worldAID;
         this.agentUnit = agentUnit;
@@ -184,7 +183,7 @@ class FreeExploreStrategy extends Strategy {
     private void moveToFarAwayTargetCell(MapCell startCell, Cell cellToExplore, OnMovedToNewCellHandler handler) {
         List<MapCell> path = graphKnownMap.findShortestPath(startCell, nextCandidate);
 
-        myAgent.addBehaviour(new FollowPathBehaviour(woaAgent, ontology, codec
+        myAgent.addBehaviour(new FollowPathBehaviour(woaAgent, comStandard
                 , worldAID, path) {
             @Override
             protected void onArrived(MapCell destination) {
@@ -219,7 +218,7 @@ class FreeExploreStrategy extends Strategy {
 
     private void moveToTargetCell(Cell targetCell, OnMovedToNewCellHandler handler) {
         Action moveAction = createMoveToCellAction(targetCell);
-        myAgent.addBehaviour(new Conversation(myAgent, ontology, codec, moveAction, GameOntology.MOVETOCELL) {
+        myAgent.addBehaviour(new Conversation(myAgent, comStandard, moveAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
                 sendMessage(worldAID, ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
