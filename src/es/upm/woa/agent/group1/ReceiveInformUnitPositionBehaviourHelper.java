@@ -43,6 +43,9 @@ class ReceiveInformUnitPositionBehaviourHelper {
         this.knownMap = knownGameMap;
     }
     
+    /**
+     * Start listening behaviour for NotifyUnitPosition agent inform.
+     */
     public void startInformCellDetailBehaviour() {
         Action informUnitPositionAction = new Action(groupAgent.getAID(), null);
         groupAgent.addBehaviour(new Conversation(groupAgent, ontology, codec

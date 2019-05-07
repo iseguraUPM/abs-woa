@@ -58,6 +58,10 @@ class CreateUnitBehaviourHelper {
         this.unitCreator = unitCreator;
     }
     
+     /**
+     * Start listening behaviour for CreateUnit agent requests.
+     * Unregistered tribes or units will be refused.
+     */
     public void startUnitCreationBehaviour() {
         final Action createUnitAction = new Action(woaAgent.getAID(), null);
         woaAgent.addBehaviour(new Conversation(woaAgent, ontology

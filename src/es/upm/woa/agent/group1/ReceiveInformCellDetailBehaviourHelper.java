@@ -44,6 +44,9 @@ class ReceiveInformCellDetailBehaviourHelper {
         this.knownMap = knownMap;
     }
     
+     /**
+     * Start listening behaviour for NotifyCellDetail agent inform.
+     */
     public void startInformCellDetailBehaviour() {
         Action informCellDetailAction = new Action(groupAgent.getAID(), null);
         groupAgent.addBehaviour(new Conversation(groupAgent, ontology, codec

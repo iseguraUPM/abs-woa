@@ -21,7 +21,6 @@ import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
-import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
@@ -59,6 +58,10 @@ public class CreateBuildingBehaviourHelper {
         this.tribeInfomationHandler = tribeInfomationHandler;
     }
     
+    /**
+     * Start listening behaviour for CreateBuilding agent requests.
+     * Unregistered tribes or units will be refused.
+     */
     public void startBuildingCreationBehaviour() {
         final Action createBuildingAction = new Action(woaAgent.getAID(), null);
         woaAgent.addBehaviour(new Conversation(woaAgent, ontology, codec, createBuildingAction, GameOntology.CREATEBUILDING) {

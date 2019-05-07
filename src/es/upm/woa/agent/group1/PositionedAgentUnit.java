@@ -15,6 +15,10 @@ import jade.core.AID;
  */
 interface PositionedAgentUnit {
     
+    /**
+     * 
+     * @return owner tribe AID
+     */
     AID getTribeAID();
 
     MapCell getCurrentPosition();
