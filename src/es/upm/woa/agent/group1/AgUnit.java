@@ -22,8 +22,6 @@ import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 
-import jade.content.lang.sl.SLCodec;
-import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.domain.DFService;

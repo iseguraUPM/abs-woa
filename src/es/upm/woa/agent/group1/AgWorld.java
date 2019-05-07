@@ -22,9 +22,6 @@ import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
 import es.upm.woa.ontology.NotifyUnitPosition;
 
-import jade.content.lang.Codec;
-import jade.content.lang.sl.SLCodec;
-import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.*;

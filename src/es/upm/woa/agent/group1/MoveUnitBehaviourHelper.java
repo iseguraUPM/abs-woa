@@ -20,7 +20,6 @@ import es.upm.woa.ontology.MoveToCell;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
-import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;

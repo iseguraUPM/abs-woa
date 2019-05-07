@@ -6,15 +6,9 @@
 package es.upm.woa.agent.group1.map;
 
 import es.upm.woa.agent.group1.WoaDefinitions;
-import es.upm.woa.agent.group1.map.GameMap;
-import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.agent.group1.map.MapCellFactory;
-import es.upm.woa.agent.group1.map.WorldMap;
-import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.Empty;
 
 import jade.core.AID;
-import jade.util.leap.ArrayList;
 
 import org.apache.commons.configuration2.JSONConfiguration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
@@ -114,17 +108,15 @@ public class WorldMapConfigurator {
         
         List<HierarchicalConfiguration<ImmutableNode>> mapTiles
                 = mapConfig.configurationsAt("tiles");
-        for (HierarchicalConfiguration<ImmutableNode> tile : mapTiles) {
-            MapCell mapCell = MapCellFactory.getInstance()
-            .buildCellFromImmutableNode(tile);
-
-            try {
-                worldMap.addCell(mapCell);
-            } catch (IndexOutOfBoundsException ex) {
-                Logger.getGlobal().log(Level.WARNING
-                        , "Could not add cell to world map ({0})", ex);
-            }
-        }
+        mapTiles.stream().map((tile) -> MapCellFactory.getInstance()
+                .buildCellFromImmutableNode(tile)).forEachOrdered((mapCell) -> {
+                    try {
+                        worldMap.addCell(mapCell);
+                    } catch (IndexOutOfBoundsException ex) {
+                        Logger.getGlobal().log(Level.WARNING
+                                , "Could not add cell to world map ({0})", ex);
+                    }
+        });
         
         
         return worldMap;
@@ -183,10 +175,9 @@ public class WorldMapConfigurator {
         
         List<HierarchicalConfiguration<ImmutableNode>> initialPositionsConfiguration
                 = mapConfig.configurationsAt("initialPositions");
-        for (HierarchicalConfiguration<ImmutableNode> initialPosition
-                : initialPositionsConfiguration) {
+        initialPositionsConfiguration.forEach((initialPosition) -> {
             initialPositionStack.add(loadPositionFromNode(initialPosition));
-        }
+        });
         
         return initialPositionStack;
     }

@@ -5,8 +5,6 @@
  */
 package es.upm.woa.agent.group1.protocol;
 
-import es.upm.woa.agent.group1.Ticker;
-
 import jade.core.Agent;
 
 /**

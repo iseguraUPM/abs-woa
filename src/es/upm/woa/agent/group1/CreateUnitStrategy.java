@@ -15,8 +15,6 @@ import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
 
-import jade.content.lang.Codec;
-import jade.content.onto.Ontology;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
