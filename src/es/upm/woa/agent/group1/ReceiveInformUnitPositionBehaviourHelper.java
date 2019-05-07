@@ -5,6 +5,7 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -15,6 +16,7 @@ import es.upm.woa.ontology.NotifyUnitPosition;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
+import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
@@ -26,17 +28,24 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-class GroupAgentInformUnitPositionHelper {
+class ReceiveInformUnitPositionBehaviourHelper {
     
     private final GroupAgent groupAgent;
+    private final Ontology ontology;
+    private final Codec codec;
+    private final GameMap knownMap;
     
-    public GroupAgentInformUnitPositionHelper(GroupAgent groupAgent) {
+    public ReceiveInformUnitPositionBehaviourHelper(GroupAgent groupAgent
+            , Ontology ontology, Codec codec, GameMap knownGameMap) {
         this.groupAgent = groupAgent;
+        this.ontology = ontology;
+        this.codec = codec;
+        this.knownMap = knownGameMap;
     }
     
     public void startInformCellDetailBehaviour() {
         Action informUnitPositionAction = new Action(groupAgent.getAID(), null);
-        groupAgent.addBehaviour(new Conversation(groupAgent, groupAgent.getOntology(), groupAgent.getCodec()
+        groupAgent.addBehaviour(new Conversation(groupAgent, ontology, codec
                 , informUnitPositionAction, GameOntology.NOTIFYUNITPOSITION) {
             @Override
             public void onStart() {
@@ -74,11 +83,11 @@ class GroupAgentInformUnitPositionHelper {
                 // NOTE: if a world mistakenly sends us an unknown position
                 // we take it as a gift
                 Cell informedCell = unitPosition.getCell();
-                boolean success = groupAgent.getKnownMap()
+                boolean success = knownMap
                         .addCell(MapCellFactory.getInstance()
                                 .buildCell(informedCell));
                 try {
-                    MapCell knownCell = groupAgent.getKnownMap()
+                    MapCell knownCell = knownMap
                             .getCellAt(informedCell.getX(),
                                      informedCell.getY());
                     if (success) {

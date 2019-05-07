@@ -16,11 +16,14 @@ import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
+
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
+import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
+import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
 import java.util.ArrayList;
@@ -38,13 +41,29 @@ import java.util.logging.Level;
  */
 class FreeExploreStrategy extends Strategy {
 
+    private final WoaAgent woaAgent;
+    private final Ontology ontology;
+    private final Codec codec;
+    private final GraphGameMap graphKnownMap;
+    private final AID worldAID;
+    
+    private final PositionedAgentUnit agentUnit;
+    
     private boolean finished;
     private final Set<MapCell> visitedCandidates;
     private MapCell nextCandidate;
     private int exploredCells;
 
-    public FreeExploreStrategy(AgUnit agent, StrategyEventDispatcher eventDispatcher) {
+    public FreeExploreStrategy(WoaAgent agent, Ontology ontology, Codec codec
+            , GraphGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit, StrategyEventDispatcher eventDispatcher) {
         super(agent, eventDispatcher);
+        this.woaAgent = agent;
+        this.ontology = ontology;
+        this.codec = codec;
+        this.graphKnownMap = graphGameMap;
+        this.worldAID = worldAID;
+        this.agentUnit = agentUnit;
+        
         this.finished = false;
         this.visitedCandidates = new HashSet<>();
         this.exploredCells = 1;
@@ -61,14 +80,13 @@ class FreeExploreStrategy extends Strategy {
     }
 
     private void exploreNewCell() {
-        AgUnit myAgUnit = (AgUnit) myAgent;
-        MapCell currentCell = myAgUnit.getCurrentCell();
-        Cell destination = findAdjacentCellToExplore(myAgUnit.getKnownMap(), currentCell);
+        MapCell currentCell = agentUnit.getCurrentPosition();
+        Cell destination = findAdjacentCellToExplore(graphKnownMap, currentCell);
         if (destination != null) {
             travelToNewCell(currentCell, destination, new OnMovedToNewCellHandler() {
                 @Override
                 public void onMoved() {
-                    myAgUnit.log(Level.FINE, "explored cell "
+                    woaAgent.log(Level.FINE, "explored cell "
                             + destination.getX() + ","
                             + destination.getY());
                     exploredCells++;
@@ -77,18 +95,18 @@ class FreeExploreStrategy extends Strategy {
 
                 @Override
                 public void onError() {
-                    myAgUnit.log(Level.FINE, "error while traveling to cell "
+                    woaAgent.log(Level.FINE, "error while traveling to cell "
                             + destination.getX() + ","
                             + destination.getY());
                     finished = true;
                 }
             });
         } else {
-            myAgUnit.log(Level.FINE, "Could not find a cell to explore");
+            woaAgent.log(Level.FINE, "Could not find a cell to explore");
         }
-        int mapSize = (myAgUnit.getKnownMap().getHeight()
-                * myAgUnit.getKnownMap().getWidth()) / 2;
-        myAgUnit.log(Level.FINE, "Explored " + exploredCells
+        int mapSize = (graphKnownMap.getHeight()
+                * graphKnownMap.getWidth()) / 2;
+        woaAgent.log(Level.FINE, "Explored " + exploredCells
                 + " out of " + mapSize + " cells");
     }
 
@@ -164,14 +182,14 @@ class FreeExploreStrategy extends Strategy {
     }
 
     private void moveToFarAwayTargetCell(MapCell startCell, Cell cellToExplore, OnMovedToNewCellHandler handler) {
-        final AgUnit agentUnit = (AgUnit) myAgent;
-        List<MapCell> path = agentUnit.getKnownMap().findShortestPath(startCell, nextCandidate);
+        List<MapCell> path = graphKnownMap.findShortestPath(startCell, nextCandidate);
 
-        agentUnit.addBehaviour(new FollowPathBehaviour(agentUnit, path) {
+        myAgent.addBehaviour(new FollowPathBehaviour(woaAgent, ontology, codec
+                , worldAID, path) {
             @Override
             protected void onArrived(MapCell destination) {
-                agentUnit.setCurrentCell(destination);
-                agentUnit.log(Level.FINE, "arrived to cell "
+                agentUnit.setCurrentPosition(destination);
+                woaAgent.log(Level.FINE, "arrived to cell "
                         + destination.getXCoord() + ","
                         + destination.getYCoord());
                 moveToTargetCell(cellToExplore, handler);
@@ -179,8 +197,8 @@ class FreeExploreStrategy extends Strategy {
 
             @Override
             protected void onStep(MapCell currentCell) {
-                agentUnit.setCurrentCell(currentCell);
-                agentUnit.log(Level.FINE, "traveling to cell "
+                agentUnit.setCurrentPosition(currentCell);
+                woaAgent.log(Level.FINE, "traveling to cell "
                         + nextCandidate.getXCoord() + ","
                         + nextCandidate.getYCoord() + " from "
                         + currentCell.getXCoord() + ","
@@ -200,30 +218,28 @@ class FreeExploreStrategy extends Strategy {
     }
 
     private void moveToTargetCell(Cell targetCell, OnMovedToNewCellHandler handler) {
-        final AgUnit agentUnit = (AgUnit) myAgent;
-
         Action moveAction = createMoveToCellAction(targetCell);
-        agentUnit.addBehaviour(new Conversation(myAgent, agentUnit.getOntology(), agentUnit.getCodec(), moveAction, GameOntology.MOVETOCELL) {
+        myAgent.addBehaviour(new Conversation(myAgent, ontology, codec, moveAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
-                sendMessage(agentUnit.getWorldAID(), ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
+                sendMessage(worldAID, ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
-                        agentUnit.log(Level.FINE, "wants to explore cell "
+                        woaAgent.log(Level.FINE, "wants to explore cell "
                                 + targetCell.getX() + "," + targetCell.getY());
 
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
                             @Override
                             public void onAgree(ACLMessage response) {
-                                agentUnit.log(Level.FINER, "receive MoveToCell agree from "
+                                woaAgent.log(Level.FINER, "receive MoveToCell agree from "
                                         + response.getSender().getLocalName());
 
                                 receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
                                     @Override
                                     public void onFailure(ACLMessage response) {
-                                        agentUnit.log(Level.WARNING, "receive MoveToCell failure from "
+                                        woaAgent.log(Level.WARNING, "receive MoveToCell failure from "
                                                 + response.getSender().getLocalName());
                                         handler.onError();
                                     }
@@ -231,10 +247,10 @@ class FreeExploreStrategy extends Strategy {
                                     @Override
                                     public void onInform(ACLMessage response) {
                                         try {
-                                            updateCurrentPosition(agentUnit, response);
+                                            updateCurrentPosition(woaAgent, response);
                                             handler.onMoved();
                                         } catch (Codec.CodecException | OntologyException | IndexOutOfBoundsException ex) {
-                                            agentUnit.log(Level.WARNING, "cannot retrieve new"
+                                            woaAgent.log(Level.WARNING, "cannot retrieve new"
                                                     + " position. Unit"
                                                     + " position desync"
                                                     + " (" + ex + ")"
@@ -248,14 +264,14 @@ class FreeExploreStrategy extends Strategy {
 
                             @Override
                             public void onNotUnderstood(ACLMessage response) {
-                                agentUnit.log(Level.WARNING, "receive MoveToCell not understood from "
+                                woaAgent.log(Level.WARNING, "receive MoveToCell not understood from "
                                         + response.getSender().getLocalName());
                                 handler.onError();
                             }
 
                             @Override
                             public void onRefuse(ACLMessage response) {
-                                agentUnit.log(Level.FINER, "receive MoveToCell refuse from "
+                                woaAgent.log(Level.FINER, "receive MoveToCell refuse from "
                                         + response.getSender().getLocalName());
                                 handler.onError();
                             }
@@ -273,23 +289,23 @@ class FreeExploreStrategy extends Strategy {
         });
     }
 
-    private void updateCurrentPosition(AgUnit agentUnit, ACLMessage response)
+    private void updateCurrentPosition(WoaAgent woaAgent, ACLMessage response)
             throws Codec.CodecException, OntologyException {
-        ContentElement ce = agentUnit.getContentManager().extractContent(response);
+        ContentElement ce = woaAgent.getContentManager().extractContent(response);
         Action agAction = (Action) ce;
         Concept conc = agAction.getAction();
         MoveToCell targetCell = (MoveToCell) conc;
         MapCell currentCell = MapCellFactory
                 .getInstance()
                 .buildCell(targetCell.getTarget());
-        boolean success = agentUnit.getKnownMap().addCell(currentCell);
+        boolean success = graphKnownMap.addCell(currentCell);
         if (!success) {
-            currentCell = agentUnit.getKnownMap().getCellAt(currentCell
+            currentCell = graphKnownMap.getCellAt(currentCell
                     .getXCoord(), currentCell.getYCoord());
         }
 
-        agentUnit.setCurrentCell(currentCell);
-        agentUnit.log(Level.FINER, "receive MoveToCell inform from " + response.getSender().getLocalName());
+        agentUnit.setCurrentPosition(currentCell);
+        woaAgent.log(Level.FINER, "receive MoveToCell inform from " + response.getSender().getLocalName());
     }
 
     private Action createMoveToCellAction(Cell targetCell) {
@@ -306,5 +322,6 @@ class FreeExploreStrategy extends Strategy {
         void onError();
 
     }
+    
 
 }

@@ -48,21 +48,6 @@ public class AgTribe extends GroupAgent {
     private Collection<Unit> units;
     private GameMap knownMap;
     private Handler logHandler;
-    
-    @Override
-    Ontology getOntology() {
-        return gameOntology;
-    }
-
-    @Override
-    Codec getCodec() {
-        return codec;
-    }
-
-    @Override
-    GameMap getKnownMap() {
-        return knownMap;
-    }
 
     @Override
     protected void setup() {       
@@ -73,9 +58,10 @@ public class AgTribe extends GroupAgent {
         initializeTribe();
         
         startInformNewUnitBehaviour();
-        new GroupAgentInformCellDetailHelper(this).startInformCellDetailBehaviour();
+        new ReceiveInformCellDetailBehaviourHelper(this, gameOntology
+                , codec, knownMap).startInformCellDetailBehaviour();
         startWhereAmIBehaviour();
-        new GroupAgentInformUnitPositionHelper(this).startInformCellDetailBehaviour();
+        new ReceiveInformUnitPositionBehaviourHelper(this, gameOntology, codec, knownMap).startInformCellDetailBehaviour();
     }
     
     

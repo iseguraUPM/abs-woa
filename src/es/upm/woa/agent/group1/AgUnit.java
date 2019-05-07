@@ -43,7 +43,7 @@ import java.util.logging.LogRecord;
  *
  * @author ISU
  */
-public class AgUnit extends GroupAgent {
+public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     public static final String WORLD = "WORLD";
 
@@ -65,39 +65,22 @@ public class AgUnit extends GroupAgent {
 
     private Handler logHandler;
 
-    /// NOTE: this methods must be package-private
     @Override
-    GraphGameMap getKnownMap() {
-        return knownMap;
-    }
-
-    @Override
-    Ontology getOntology() {
-        return gameOntology;
-    }
-
-    @Override
-    Codec getCodec() {
-        return codec;
-    }
-
-    AID getWorldAID() {
-        return worldAgentServiceDescription.getName();
-    }
-
-    MapCell getCurrentCell() {
+    public MapCell getCurrentPosition() {
         return currentPosition;
     }
 
-    void setCurrentCell(MapCell currentPosition) {
+    @Override
+    public void setCurrentPosition(MapCell currentPosition) {
         this.currentPosition = currentPosition;
     }
 
-    AID getOwnerAID() {
+    @Override
+    public AID getTribeAID() {
         return ownerTribe;
     }
 
-    /// !NOTE
+
     @Override
     protected void setup() {
         logHandler = new ConsoleHandler();
@@ -142,11 +125,13 @@ public class AgUnit extends GroupAgent {
 
         knownMap = GraphGameMap.getInstance(UNIT_KNOWN_MAP_SIZE, UNIT_KNOWN_MAP_SIZE);
 
-        new GroupAgentInformCellDetailHelper(this).startInformCellDetailBehaviour();
+        new ReceiveInformCellDetailBehaviourHelper(this, gameOntology
+                , codec, knownMap).startInformCellDetailBehaviour();
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
                 handler.onUnitInitialized();
-                new GroupAgentInformUnitPositionHelper(this)
+                new ReceiveInformUnitPositionBehaviourHelper(this, gameOntology
+                        , codec, knownMap)
                         .startInformCellDetailBehaviour();
             });
         });
@@ -446,10 +431,15 @@ public class AgUnit extends GroupAgent {
         }
         else if (UNIT_TEST_MODE == 1) {
             StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
+            
             //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
-            unitBehaviour.addStrategy(new FreeExploreStrategy(this, eventDispatcher));
+            addFreeExploreStrategy(unitBehaviour);
             addBehaviour(unitBehaviour);
         }
+    }
+
+    private void addFreeExploreStrategy(StrategicUnitBehaviour unitBehaviour) {
+        unitBehaviour.addStrategy(new FreeExploreStrategy(this, gameOntology, codec, knownMap, worldAgentServiceDescription.getName(), this, eventDispatcher));
     }
     
     @Override

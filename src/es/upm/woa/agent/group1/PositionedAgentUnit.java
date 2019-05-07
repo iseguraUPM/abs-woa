@@ -7,17 +7,18 @@ package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.MapCell;
 
+import jade.core.AID;
 
 /**
  *
  * @author ISU
  */
-abstract class GroupAgent extends WoaAgent {
+interface PositionedAgentUnit {
     
-    abstract void onCellDiscovered(MapCell newCell);
-    
-    abstract void onCellUpdated(MapCell updatedCell);
-    
-    abstract void onUnitPassby(MapCell cell, String tribeId);
+    AID getTribeAID();
+
+    MapCell getCurrentPosition();
+
+    void setCurrentPosition(MapCell mapCell);
     
 }
