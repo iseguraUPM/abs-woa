@@ -8,19 +8,19 @@ import jade.core.*;
 /**
 * Protege name: Cell
 * @author ontology bean generator
-* @version 2019/04/26, 13:38:37
+* @version 2019/05/8, 00:40:35
 */
 public class Cell implements Concept {
 
    /**
-* Protege name: content
+* Protege name: x
    */
-   private Object content;
-   public void setContent(Object value) { 
-    this.content=value;
+   private int x;
+   public void setX(int value) { 
+    this.x=value;
    }
-   public Object getContent() {
-     return this.content;
+   public int getX() {
+     return this.x;
    }
 
    /**
@@ -35,14 +35,14 @@ public class Cell implements Concept {
    }
 
    /**
-* Protege name: x
+* Protege name: content
    */
-   private int x;
-   public void setX(int value) { 
-    this.x=value;
+   private CellContent content;
+   public void setContent(CellContent value) { 
+    this.content=value;
    }
-   public int getX() {
-     return this.x;
+   public CellContent getContent() {
+     return this.content;
    }
 
 }

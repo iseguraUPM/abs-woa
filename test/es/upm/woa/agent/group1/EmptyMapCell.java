@@ -6,9 +6,9 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.ontology.CellContent;
 import es.upm.woa.ontology.Empty;
 
-import jade.content.Concept;
 
 /**
  *
@@ -16,7 +16,7 @@ import jade.content.Concept;
  */
 class EmptyMapCell implements MapCell {
     
-    private final Concept content;
+    private final CellContent content;
     
     private final int x;
     private final int y;
@@ -28,7 +28,7 @@ class EmptyMapCell implements MapCell {
     }
 
     @Override
-    public Concept getContent() {
+    public CellContent getContent() {
         return content;
     }
 
@@ -62,7 +62,7 @@ class EmptyMapCell implements MapCell {
     }
 
     @Override
-    public void setContent(Concept content) {
+    public void setContent(CellContent content) {
         
     }
     

@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: NotifyCellDetail
 * @author ontology bean generator
-* @version 2019/04/26, 13:38:37
+* @version 2019/05/8, 00:40:35
 */
 public class NotifyCellDetail implements AgentAction {
 

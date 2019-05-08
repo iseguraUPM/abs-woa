@@ -6,10 +6,9 @@
 package es.upm.woa.agent.group1.map;
 
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.CellContent;
 import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.Resource;
-
-import jade.content.Concept;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -29,14 +28,7 @@ public class MapCellFactory {
     }
 
     public MapCell buildCell(Cell cellInfo) {
-        Concept content;
-        if (cellInfo.getContent() instanceof Concept) {
-            content = (Concept) cellInfo.getContent();
-        } else {
-            content = new Empty();
-        }
-
-        return new SimpleMapCell(content,
+        return new SimpleMapCell(cellInfo.getContent(),
                  cellInfo.getX(), cellInfo.getY());
     }
 
@@ -46,7 +38,7 @@ public class MapCellFactory {
         String resourceType = tileNode.getString("resource");
 
         // TODO: other resource types
-        Concept resourceContent;
+        CellContent resourceContent;
         if (resourceType.equals("Ground")) {
             resourceContent = new Empty();
         } else {
@@ -60,18 +52,18 @@ public class MapCellFactory {
 
     private class SimpleMapCell implements MapCell {
 
-        private Concept content;
+        private CellContent content;
         private final int x;
         private final int y;
         
-        public SimpleMapCell(Concept content, int x, int y) {
+        public SimpleMapCell(CellContent content, int x, int y) {
             this.content = content;
             this.x = x;
             this.y = y;
         }
 
         @Override
-        public Concept getContent() {
+        public CellContent getContent() {
             return content;
         }
 
@@ -86,7 +78,7 @@ public class MapCellFactory {
         }
 
         @Override
-        public void setContent(Concept content) {
+        public void setContent(CellContent content) {
             this.content = content;
         }
         

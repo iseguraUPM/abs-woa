@@ -112,7 +112,7 @@ class ReceiveInformCellDetailBehaviourHelper {
     
     private void updateCellContents(MapCell knownCell, Cell updatedCell) {
         if (knownCell.getContent() instanceof Empty) {
-            knownCell.setContent((Concept) updatedCell.getContent());
+            knownCell.setContent(updatedCell.getContent());
         }
     }
 }

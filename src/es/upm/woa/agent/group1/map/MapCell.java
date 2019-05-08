@@ -5,7 +5,7 @@
  */
 package es.upm.woa.agent.group1.map;
 
-import jade.content.Concept;
+import es.upm.woa.ontology.CellContent;
 
 /**
  *
@@ -13,12 +13,12 @@ import jade.content.Concept;
  */
 public interface MapCell {
     
-    public Concept getContent();
+    public CellContent getContent();
     
     public int getXCoord();
     
     public int getYCoord();
     
-    public void setContent(Concept content);
+    public void setContent(CellContent content);
       
 }

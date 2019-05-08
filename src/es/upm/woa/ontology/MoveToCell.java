@@ -8,19 +8,19 @@ import jade.core.*;
 /**
 * Protege name: MoveToCell
 * @author ontology bean generator
-* @version 2019/04/26, 13:38:37
+* @version 2019/05/8, 00:40:35
 */
 public class MoveToCell implements AgentAction {
 
    /**
-* Protege name: target
+* Protege name: targetDirection
    */
-   private Cell target;
-   public void setTarget(Cell value) { 
-    this.target=value;
+   private int targetDirection;
+   public void setTargetDirection(int value) { 
+    this.targetDirection=value;
    }
-   public Cell getTarget() {
-     return this.target;
+   public int getTargetDirection() {
+     return this.targetDirection;
    }
 
 }

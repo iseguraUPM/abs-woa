@@ -8,20 +8,9 @@ import jade.core.*;
 /**
 * Protege name: NotifyUnitPosition
 * @author ontology bean generator
-* @version 2019/04/26, 13:38:37
+* @version 2019/05/8, 00:40:35
 */
 public class NotifyUnitPosition implements AgentAction {
-
-   /**
-* Protege name: tribeId
-   */
-   private String tribeId;
-   public void setTribeId(String value) { 
-    this.tribeId=value;
-   }
-   public String getTribeId() {
-     return this.tribeId;
-   }
 
    /**
 * Protege name: cell
@@ -32,6 +21,17 @@ public class NotifyUnitPosition implements AgentAction {
    }
    public Cell getCell() {
      return this.cell;
+   }
+
+   /**
+* Protege name: tribeId
+   */
+   private String tribeId;
+   public void setTribeId(String value) { 
+    this.tribeId=value;
+   }
+   public String getTribeId() {
+     return this.tribeId;
    }
 
 }
