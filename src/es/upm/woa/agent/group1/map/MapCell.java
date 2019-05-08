@@ -20,5 +20,8 @@ public interface MapCell {
     public int getYCoord();
     
     public void setContent(CellContent content);
+    
+    @Override
+    public String toString();
       
 }

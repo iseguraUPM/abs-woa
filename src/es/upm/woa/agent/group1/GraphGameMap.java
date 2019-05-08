@@ -29,25 +29,20 @@ import java.util.stream.Collectors;
  */
 class GraphGameMap implements GameMap {
     
-    private final int width;
-    private final int height;
-    
     private Graph<MapCell, CellTranslation> mapGraph;
     private DijkstraShortestPath<MapCell, CellTranslation> dijkstraShortestPath;
     
-    private GraphGameMap(int width, int height) {
-        this.width = width;
-        this.height = height;
+    private GraphGameMap() {
     }
     
     @Override
     public int getWidth() {
-       return width;
+       return 0;
     }
     
     @Override
     public int getHeight() {
-        return height;
+        return 0;
     }
     
     /**
@@ -61,12 +56,9 @@ class GraphGameMap implements GameMap {
      * @param height of the map
      * @return 
      */
-    public static GraphGameMap getInstance(int width, int height) {
-        if (width < 1 || height < 1) {
-            return null;
-        }
+    public static GraphGameMap getInstance() {
         
-        GraphGameMap newInstance = new GraphGameMap(width, height);
+        GraphGameMap newInstance = new GraphGameMap();
         newInstance.mapGraph = new DirectedPseudograph<>(CellTranslation.class);
         
         return newInstance;
@@ -75,7 +67,7 @@ class GraphGameMap implements GameMap {
     
     @Override
     public MapCell getCellAt(int x, int y) throws NoSuchElementException {
-        if (x < 1 || y < 1 || x > height || y > width) {
+        if (x < 1 || y < 1) {
             throw new NoSuchElementException("Coordinates (" + x + "," + y
                     + ") exceed map dimensions");
         }
@@ -85,7 +77,7 @@ class GraphGameMap implements GameMap {
                 .findFirst().orElse(null);
         
         if (targetCell == null) {
-            throw new NoSuchElementException("Cell " + x + "," + y + " is not located"
+            throw new NoSuchElementException("Cell [" + x + "," + y + "] is not located"
                     + " in the map");
         }
         
@@ -101,10 +93,10 @@ class GraphGameMap implements GameMap {
      * Compute the shortest path to the target cell.
      * @param source
      * @param target
-     * @return the list of cells that make the path (including source)
+     * @return the sequence of translations required that make the path
      * or an empty list if there is not a viable path.
      */
-    public List<MapCell> findShortestPath(MapCell source, MapCell target) {
+    public List<CellTranslation> findShortestPath(MapCell source, MapCell target) {
         if (dijkstraShortestPath == null) {
             updateDijskstraPath();
         }
@@ -115,7 +107,7 @@ class GraphGameMap implements GameMap {
             return new ArrayList<>();
         }
         
-        return shortestPath.getVertexList();
+        return shortestPath.getEdgeList();
     }
     
     /**
@@ -123,10 +115,10 @@ class GraphGameMap implements GameMap {
      * predicate filter.
      * @param source 
      * @param filterPredicate the predicate to filter candidate cells
-     * @return the list of cells that make the path (including source)
+     * @return the sequence of translations required that make the path
      * or an empty list if there is not a viable path.
      */
-    public List<MapCell> findShortestPathTo(MapCell source
+    public List<CellTranslation> findShortestPathTo(MapCell source
             , Predicate<MapCell> filterPredicate) {
         List<MapCell> availableCells = mapGraph.vertexSet().stream()
                 .filter(filterPredicate).collect(Collectors.toList());
@@ -155,17 +147,15 @@ class GraphGameMap implements GameMap {
             return new ArrayList<>();
         }
         else {
-            return bestPath.getVertexList();
+            return bestPath.getEdgeList();
         }
     }
     
     @Override
     public boolean addCell(MapCell mapCell) {
-        if (mapCell.getXCoord() < 1 || mapCell.getYCoord() < 1
-                || mapCell.getXCoord() > height || mapCell.getYCoord() > width) {
-            throw new IndexOutOfBoundsException("Coordinates ("
-                    + mapCell.getXCoord() + "," + mapCell.getYCoord()
-                    + ") exceed map dimensions");
+        if (mapCell.getXCoord() < 1 || mapCell.getYCoord() < 1) {
+            throw new IndexOutOfBoundsException("Coordinates " + mapCell
+                    + " exceed map dimensions");
         }
         
         if (mapGraph.containsVertex(mapCell)) {
@@ -173,7 +163,20 @@ class GraphGameMap implements GameMap {
         }
         else {
             mapGraph.addVertex(mapCell);
-            connectToNeighbours(mapCell);
+            return true;
+        }
+    }
+    
+    public boolean connectPath(MapCell from, MapCell to, CellTranslation translation) {
+        if (!mapGraph.containsVertex(from) || !mapGraph.containsVertex(to)) {
+            throw new NoSuchElementException("Cannot connect unknown map cells");
+        }
+        
+        boolean success = mapGraph.addEdge(from, to, translation);
+        if (!success) {
+            return false;
+        }
+        else {
             updateDijskstraPath();
             return true;
         }
@@ -181,36 +184,6 @@ class GraphGameMap implements GameMap {
     
     private void updateDijskstraPath() {
         dijkstraShortestPath = new DijkstraShortestPath<>(mapGraph);
-    }
-    
-    private void connectToNeighbours(MapCell cell) {
-        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
-            int[] neighbourPosition = generateNeighbourPosition(cell, translationVector);
-            
-            try {
-                MapCell neighbour = getCellAt(neighbourPosition[0]
-                    , neighbourPosition[1]);
-                
-                CellTranslation translation = new CellTranslation(translationVector);
-                mapGraph.addEdge(cell, neighbour, translation);
-                mapGraph.addEdge(neighbour, cell, translation.generateInverse());
-            }
-            catch (NoSuchElementException ex) {}
-        }
-    }
-    
-    private int [] generateNeighbourPosition(MapCell cell, int [] translationVector) {       
-        int[] neighbourPosition = GameMapCoordinate.applyTranslation(width
-                , height, cell.getXCoord(), cell.getYCoord(), translationVector);
-        
-        if (neighbourPosition == null) {
-            // NOTE: should not reach
-            throw new NoSuchElementException();
-        }
-        
-        return neighbourPosition;
-    }
-    
-    
+    } 
     
 }

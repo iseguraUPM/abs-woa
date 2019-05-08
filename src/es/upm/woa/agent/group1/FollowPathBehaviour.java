@@ -5,6 +5,7 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -29,18 +30,21 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
     private final AID worldAID;
-    private final List<MapCell> path;
+    private final List<CellTranslation> pathOperations;
     
-    private MapCell currentCell;
+    private final PositionedAgentUnit agentUnit;
+    
     private int next;
     private boolean finished;
 
-    public FollowPathBehaviour(WoaAgent agent, CommunicationStandard comStandard, AID worldAID, List<MapCell> path) {
+    public FollowPathBehaviour(WoaAgent agent, CommunicationStandard comStandard
+            , AID worldAID, PositionedAgentUnit agentUnit, List<CellTranslation> path) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
         this.worldAID = worldAID;
-        this.path = path;
+        this.pathOperations = path;
+        this.agentUnit = agentUnit;
         
         this.next = 0;
         this.finished = false;
@@ -48,13 +52,12 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
 
     @Override
     public final void onStart() {
-        if (path.isEmpty()) {
+        if (pathOperations.isEmpty()) {
             onMoveErrorImpl("Path is empty");
-        } else if (path.size() == 1) {
+        } else if (pathOperations.size() == 1) {
             finished = true;
-            onArrived(path.get(0));
+            onArrived(agentUnit.getCurrentPosition());
         } else {
-            currentCell = path.get(0);
             step();
         }
     }
@@ -66,18 +69,18 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
 
     private void step() {
         next++;
-        if (next < path.size()) {
-            MapCell targetCell = path.get(next);
-            launchMoveConversation(targetCell);
+        if (next < pathOperations.size()) {
+            CellTranslation operation = pathOperations.get(next);
+            launchMoveConversation(operation);
         }
         else {
             finished = true;
-            onArrived(currentCell);
+            onArrived(agentUnit.getCurrentPosition());
         }
     }
 
-    private void launchMoveConversation(MapCell targetCell) {
-        Action moveAction = createMoveToCellAction(targetCell);
+    private void launchMoveConversation(CellTranslation operation) {
+        Action moveAction = createMoveToCellAction(operation);
         woaAgent.addBehaviour(new Conversation(myAgent, comStandard
                 , moveAction, GameOntology.MOVETOCELL) {
             @Override
@@ -85,8 +88,9 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                 sendMessage(worldAID, ACLMessage.REQUEST, new SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
-                        woaAgent.log(Level.FINE, "wants to move to cell "
-                                + targetCell.getXCoord() + "," + targetCell.getXCoord());
+                        woaAgent.log(Level.FINE, "wants to move from "
+                                + agentUnit.getCurrentPosition() + " "
+                                + operation);
 
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
@@ -114,8 +118,8 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                                                 + targetCell.getYCoord());
 
                                         currentCell = targetCell;
-                                        if (!path.isEmpty()
-                                                && currentCell != path.get(path.size()-1)) {
+                                        if (!pathOperations.isEmpty()
+                                                && currentCell != pathOperations.get(pathOperations.size()-1)) {
                                             onStep(currentCell);
                                         }
                                         
@@ -152,13 +156,9 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
         });
     }
 
-    private Action createMoveToCellAction(MapCell targetCell) {
-        Cell targetCellOntology = new Cell();
-        targetCellOntology.setX(targetCell.getXCoord());
-        targetCellOntology.setY(targetCell.getYCoord());
-
+    private Action createMoveToCellAction(CellTranslation operation) {
         MoveToCell moveToCell = new MoveToCell();
-        moveToCell.setTarget(targetCellOntology);
+        moveToCell.setTargetDirection(operation.getTranslationCode());
         return new Action(myAgent.getAID(), moveToCell);
     }
 

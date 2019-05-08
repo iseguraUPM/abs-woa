@@ -11,9 +11,9 @@ package es.upm.woa.agent.group1.map;
  */
 public class GameMapCoordinate {
 
-    public static final int[][] POS_OPERATORS = {CellTranslation.UP
-            , CellTranslation.RUP, CellTranslation.RDOWN, CellTranslation.DOWN
-            , CellTranslation.LDOWN, CellTranslation.LUP};
+    public static final int[][] POS_OPERATORS = {CellTranslation.V_UP
+            , CellTranslation.V_RUP, CellTranslation.V_RDOWN, CellTranslation.V_DOWN
+            , CellTranslation.V_LDOWN, CellTranslation.V_LUP};
     
     /**
      * 
