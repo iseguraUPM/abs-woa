@@ -96,6 +96,7 @@ public class AgWorld extends WoaAgent implements
         startingTribeNames.add("TribeF");
 
         initializeAgent();
+        
         if (!initializeWorld()) {
             try {
                 getContainerController().kill();

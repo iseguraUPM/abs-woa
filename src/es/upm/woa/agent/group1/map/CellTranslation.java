@@ -5,13 +5,14 @@
  */
 package es.upm.woa.agent.group1.map;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  *
  * @author ISU
  */
-public class CellTranslation {
+public class CellTranslation implements Serializable {
     
     public static final int [] V_DOWN = {2,0};
     public static final int [] V_UP = {-2,0};
@@ -20,7 +21,7 @@ public class CellTranslation {
     public static final int [] V_LDOWN = {1,-1};
     public static final int [] V_RDOWN = {1,1};
     
-    public enum TranslateDirection {
+    public enum TranslateDirection implements Serializable {
         
         UP(1), RUP(2), RDOWN(3), DOWN(4), LDOWN(5), LUP(6);
         

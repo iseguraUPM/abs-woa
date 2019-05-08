@@ -7,11 +7,13 @@ package es.upm.woa.agent.group1.map;
 
 import es.upm.woa.ontology.CellContent;
 
+import java.io.Serializable;
+
 /**
  *
  * @author ISU
  */
-public interface MapCell {
+public interface MapCell extends Serializable {
     
     public CellContent getContent();
     

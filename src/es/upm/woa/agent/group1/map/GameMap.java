@@ -5,13 +5,14 @@
  */
 package es.upm.woa.agent.group1.map;
 
+import java.io.Serializable;
 import java.util.NoSuchElementException;
 
 /**
  *
  * @author ISU
  */
-public interface GameMap {
+public interface GameMap extends Serializable {
     
     public int getHeight();
     

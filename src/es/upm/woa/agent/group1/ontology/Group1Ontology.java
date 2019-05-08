@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: Group1Ontology.java
  * @author ontology bean generator
- * @version 2019/04/12, 14:10:16
+ * @version 2019/05/8, 17:42:14
  */
 public class Group1Ontology extends jade.content.onto.Ontology  {
   //NAME
@@ -27,6 +27,8 @@ public class Group1Ontology extends jade.content.onto.Ontology  {
     public static final String WHEREAMI_YCOORD="yCoord";
     public static final String WHEREAMI="WhereAmI";
     public static final String NOTIFYUNITOWNERSHIP="NotifyUnitOwnership";
+    public static final String SHAREMAPDATA_KNOWNMAP="knownMap";
+    public static final String SHAREMAPDATA="ShareMapData";
 
   /**
    * Constructor
@@ -38,6 +40,8 @@ public class Group1Ontology extends jade.content.onto.Ontology  {
     // adding Concept(s)
 
     // adding AgentAction(s)
+    AgentActionSchema shareMapDataSchema = new AgentActionSchema(SHAREMAPDATA);
+    add(shareMapDataSchema, es.upm.woa.agent.group1.ontology.ShareMapData.class);
     AgentActionSchema notifyUnitOwnershipSchema = new AgentActionSchema(NOTIFYUNITOWNERSHIP);
     add(notifyUnitOwnershipSchema, es.upm.woa.agent.group1.ontology.NotifyUnitOwnership.class);
     AgentActionSchema whereAmISchema = new AgentActionSchema(WHEREAMI);
@@ -49,6 +53,7 @@ public class Group1Ontology extends jade.content.onto.Ontology  {
 
 
     // adding fields
+    shareMapDataSchema.add(SHAREMAPDATA_KNOWNMAP, (TermSchema)getSchema(BasicOntology.SET), ObjectSchema.MANDATORY);
     whereAmISchema.add(WHEREAMI_YCOORD, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     whereAmISchema.add(WHEREAMI_XCOORD, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
 

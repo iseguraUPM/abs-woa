@@ -106,7 +106,7 @@ class FreeExploreStrategy extends Strategy {
             MapCell connectedNeighbour
                     = knownMap.getMapCellOnDirection(currentPosition
                             , translationDirection);
-            if (connectedNeighbour == null) {
+            if (connectedNeighbour != null) {
                 if (nextCandidate == null && !visitedCandidates.contains(connectedNeighbour)) {
                     nextCandidate = connectedNeighbour;
                 }

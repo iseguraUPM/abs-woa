@@ -22,6 +22,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.io.Serializable;
+import java.util.Collection;
 
 /**
  *
@@ -209,8 +211,33 @@ class GraphGameMap implements GameMap {
         }
     }
     
+    public void mergeMapData(GraphGameMap other) {
+        for (MapCell myCell : mapGraph.vertexSet()) {
+            
+        }
+    }
+    
+    private void addMissingConnections(MapCell myCell, GraphGameMap other, Collection<MapCell> newAdditions) {
+        try {
+            MapCell otherCell = other.getCellAt(myCell.getXCoord(), myCell.getYCoord());
+            if (otherCell != null) {
+                for (CellTranslation direction : other.mapGraph.outgoingEdgesOf(otherCell)) {
+                    MapCell target = other.mapGraph.getEdgeTarget(direction);
+                    try {
+                        MapCell myTarget = getCellAt(myCell.getXCoord(), myCell.getYCoord());
+                        mapGraph.addEdge(myCell, myTarget, direction);
+                    } catch (NoSuchElementException ex) {
+                        newAdditions.add(target);
+                    }
+                }
+            }
+        } catch (NoSuchElementException ex) {
+            // Other map does not know this cell
+        }
+    }
+    
     private void updateDijskstraPath() {
         dijkstraShortestPath = new DijkstraShortestPath<>(mapGraph);
-    } 
+    }
     
 }
