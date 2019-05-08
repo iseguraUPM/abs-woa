@@ -1,9 +1,13 @@
-; Fri Apr 12 16:14:42 CEST 2019
+; Wed May 08 18:51:52 CEST 2019
 ; 
 ;+ (version "3.5")
-;+ (build "Build 663")
+;+ (build "Build 660")
 
 ([NotifyUnitOwnership] of  %3AJADE-CLASS
+
+	(%3AJADE-IGNORE FALSE))
+
+([ShareMapData] of  %3AJADE-CLASS
 
 	(%3AJADE-IGNORE FALSE))
 
