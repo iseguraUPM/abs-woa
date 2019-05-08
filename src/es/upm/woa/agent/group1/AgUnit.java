@@ -16,11 +16,8 @@ import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.agent.group1.strategy.StrategicUnitBehaviour;
 import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 
-import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateBuilding;
-import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
-import es.upm.woa.ontology.MoveToCell;
 
 import jade.content.onto.basic.Action;
 import jade.core.AID;
@@ -52,7 +49,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private static final int BETWEEN_REQUEST_POSITION_TRIES_TIME_MILLIS = 1000;
     
     // TODO: temporary
-    private static final int UNIT_KNOWN_MAP_SIZE = 4;
     private static int UNIT_TEST_MODE = 0;
 
     private GraphGameMap knownMap;
@@ -122,7 +118,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         group1ComStandard = new Group1CommunicationStandard();
         group1ComStandard.register(getContentManager());
 
-        knownMap = GraphGameMap.getInstance(UNIT_KNOWN_MAP_SIZE, UNIT_KNOWN_MAP_SIZE);
+        knownMap = GraphGameMap.getInstance();
 
         new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
                 , knownMap).startInformCellDetailBehaviour();
@@ -294,16 +290,17 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private void startStrategy() {
         // TODO: the test mode is so the first unit creates a town hall and
         //  the second one explores
-        if (UNIT_TEST_MODE++ == 0) {
+        if (UNIT_TEST_MODE == 1) {
             startCreateTownHallBehaviour();
         }
-        else if (UNIT_TEST_MODE == 1) {
+        else if (UNIT_TEST_MODE == 0) {
             StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
             
             //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
             addFreeExploreStrategy(unitBehaviour);
             addBehaviour(unitBehaviour);
         }
+        UNIT_TEST_MODE++;
     }
 
     private void addFreeExploreStrategy(StrategicUnitBehaviour unitBehaviour) {

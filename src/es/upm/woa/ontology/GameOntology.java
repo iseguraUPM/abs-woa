@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: GameOntology.java
  * @author ontology bean generator
- * @version 2019/05/8, 00:40:35
+ * @version 2019/05/8, 16:06:25
  */
 public class GameOntology extends jade.content.onto.Ontology  {
   //NAME
@@ -30,6 +30,7 @@ public class GameOntology extends jade.content.onto.Ontology  {
     public static final String NOTIFYNEWUNIT="NotifyNewUnit";
     public static final String NOTIFYCELLDETAIL_NEWCELL="newCell";
     public static final String NOTIFYCELLDETAIL="NotifyCellDetail";
+    public static final String MOVETOCELL_NEWLYARRIVEDCELL="newlyArrivedCell";
     public static final String MOVETOCELL_TARGETDIRECTION="targetDirection";
     public static final String MOVETOCELL="MoveToCell";
     public static final String NOTIFYUNITPOSITION_TRIBEID="tribeId";
@@ -125,6 +126,7 @@ public class GameOntology extends jade.content.onto.Ontology  {
     notifyUnitPositionSchema.add(NOTIFYUNITPOSITION_CELL, cellSchema, ObjectSchema.MANDATORY);
     notifyUnitPositionSchema.add(NOTIFYUNITPOSITION_TRIBEID, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
     moveToCellSchema.add(MOVETOCELL_TARGETDIRECTION, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
+    moveToCellSchema.add(MOVETOCELL_NEWLYARRIVEDCELL, cellSchema, ObjectSchema.OPTIONAL);
     notifyCellDetailSchema.add(NOTIFYCELLDETAIL_NEWCELL, cellSchema, ObjectSchema.MANDATORY);
     notifyNewUnitSchema.add(NOTIFYNEWUNIT_LOCATION, cellSchema, ObjectSchema.MANDATORY);
     notifyNewUnitSchema.add(NOTIFYNEWUNIT_NEWUNIT, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);

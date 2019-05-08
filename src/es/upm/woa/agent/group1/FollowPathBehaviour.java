@@ -7,11 +7,16 @@ package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
+import jade.content.onto.OntologyException;
 
 import jade.content.onto.basic.Action;
 import jade.core.AID;
@@ -31,21 +36,21 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
     private final CommunicationStandard comStandard;
     private final AID worldAID;
     private final List<CellTranslation> pathOperations;
-    
+
     private final PositionedAgentUnit agentUnit;
-    
+
     private int next;
     private boolean finished;
 
-    public FollowPathBehaviour(WoaAgent agent, CommunicationStandard comStandard
-            , AID worldAID, PositionedAgentUnit agentUnit, List<CellTranslation> path) {
+    public FollowPathBehaviour(WoaAgent agent, CommunicationStandard comStandard,
+            AID worldAID, PositionedAgentUnit agentUnit, List<CellTranslation> path) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
         this.worldAID = worldAID;
         this.pathOperations = path;
         this.agentUnit = agentUnit;
-        
+
         this.next = 0;
         this.finished = false;
     }
@@ -61,7 +66,7 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
             step();
         }
     }
-    
+
     @Override
     public void action() {
         block();
@@ -72,8 +77,7 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
         if (next < pathOperations.size()) {
             CellTranslation operation = pathOperations.get(next);
             launchMoveConversation(operation);
-        }
-        else {
+        } else {
             finished = true;
             onArrived(agentUnit.getCurrentPosition());
         }
@@ -81,8 +85,8 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
 
     private void launchMoveConversation(CellTranslation operation) {
         Action moveAction = createMoveToCellAction(operation);
-        woaAgent.addBehaviour(new Conversation(myAgent, comStandard
-                , moveAction, GameOntology.MOVETOCELL) {
+        woaAgent.addBehaviour(new Conversation(myAgent, comStandard,
+                moveAction, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
                 sendMessage(worldAID, ACLMessage.REQUEST, new SentMessageHandler() {
@@ -92,58 +96,7 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                                 + agentUnit.getCurrentPosition() + " "
                                 + operation);
 
-                        receiveResponse(conversationID, new Conversation.ResponseHandler() {
-
-                            @Override
-                            public void onAgree(ACLMessage response) {
-                                woaAgent.log(Level.FINER, "receive MoveToCell agree from "
-                                        + response.getSender().getLocalName());
-
-                                receiveResponse(conversationID, new Conversation.ResponseHandler() {
-
-                                    @Override
-                                    public void onFailure(ACLMessage response) {
-                                        woaAgent.log(Level.WARNING, "receive MoveToCell failure from "
-                                                + response.getSender().getLocalName());
-                                        onMoveErrorImpl("Message failure");
-                                    }
-
-                                    @Override
-                                    public void onInform(ACLMessage response) {
-                                        woaAgent.log(Level.FINER, "receive MoveToCell inform from "
-                                                + response.getSender().getLocalName());
-
-                                        woaAgent.log(Level.FINE, "moved to cell "
-                                                + targetCell.getXCoord() + ","
-                                                + targetCell.getYCoord());
-
-                                        currentCell = targetCell;
-                                        if (!pathOperations.isEmpty()
-                                                && currentCell != pathOperations.get(pathOperations.size()-1)) {
-                                            onStep(currentCell);
-                                        }
-                                        
-                                        step();
-                                    }
-
-                                });
-                            }
-
-                            @Override
-                            public void onNotUnderstood(ACLMessage response) {
-                                woaAgent.log(Level.WARNING, "receive MoveToCell not understood from "
-                                        + response.getSender().getLocalName());
-                                onMoveErrorImpl("Message not understood");
-                            }
-
-                            @Override
-                            public void onRefuse(ACLMessage response) {
-                                woaAgent.log(Level.FINER, "receive MoveToCell refuse from "
-                                        + response.getSender().getLocalName());
-                                onStuckImpl(currentCell);
-                            }
-
-                        });
+                        handleOnSentMessage(conversationID);
                     }
 
                     @Override
@@ -153,7 +106,83 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
 
                 });
             }
+
+            private void handleOnSentMessage(String conversationID) {
+                receiveResponse(conversationID, new Conversation.ResponseHandler() {
+                    
+                    @Override
+                    public void onAgree(ACLMessage response) {
+                        woaAgent.log(Level.FINER, "receive MoveToCell agree from "
+                                + response.getSender().getLocalName());
+                        
+                        receiveResponse(conversationID, new Conversation.ResponseHandler() {
+                            
+                            @Override
+                            public void onFailure(ACLMessage response) {
+                                woaAgent.log(Level.WARNING, "receive MoveToCell failure from "
+                                        + response.getSender().getLocalName());
+                                onMoveErrorImpl("Message failure");
+                            }
+
+                            @Override
+                            public void onInform(ACLMessage response) {
+                                try {
+                                    woaAgent.log(Level.FINER, "receive MoveToCell inform from "
+                                            + response.getSender().getLocalName());
+                                    
+                                    Cell newPosition = extractCellFromMessage(response);
+                                    
+                                    if (!pathOperations.isEmpty()) {
+                                        onStep(MapCellFactory.getInstance()
+                                                .buildCell(newPosition));
+                                    }
+                                    
+                                    step();
+                                } catch (Codec.CodecException | OntologyException ex) {
+                                    onMoveErrorImpl("Could not receive the new position");
+                                }
+                                
+                            }
+
+                        });
+                        
+                    }
+
+                    @Override
+                    public void onNotUnderstood(ACLMessage response) {
+                        woaAgent.log(Level.WARNING, "receive MoveToCell not understood from "
+                                + response.getSender().getLocalName());
+                        onMoveErrorImpl("Message not understood");
+                    }
+
+                    @Override
+                    public void onRefuse(ACLMessage response) {
+                        woaAgent.log(Level.FINER, "receive MoveToCell refuse from "
+                                + response.getSender().getLocalName());
+                        onStuckImpl(agentUnit.getCurrentPosition());
+                    }
+                    
+                });
+            }
         });
+    }
+
+    private Cell extractCellFromMessage(ACLMessage response)
+            throws Codec.CodecException, OntologyException {
+        ContentElement ce = woaAgent.getContentManager().extractContent(response);
+        if (ce instanceof Action) {
+
+            Action agAction = (Action) ce;
+            Concept conc = agAction.getAction();
+
+            if (conc instanceof MoveToCell) {
+                MoveToCell cellDetail = (MoveToCell) conc;
+
+                return cellDetail.getNewlyArrivedCell();
+            }
+        }
+
+        throw new OntologyException("Message contents are empty");
     }
 
     private Action createMoveToCellAction(CellTranslation operation) {
@@ -178,13 +207,13 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
         onMoveError(msg);
         block();
     }
-    
+
     protected abstract void onArrived(MapCell destination);
 
     protected abstract void onStep(MapCell currentCell);
-    
+
     protected abstract void onStuck(MapCell currentCell);
-    
+
     protected abstract void onMoveError(String msg);
 
 }

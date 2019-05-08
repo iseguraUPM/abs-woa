@@ -61,7 +61,9 @@ public class CreateBuildingBehaviourHelper {
      * Unregistered tribes or units will be refused.
      */
     public void startBuildingCreationBehaviour() {
-        final Action createBuildingAction = new Action(woaAgent.getAID(), new CreateBuilding());
+        CreateBuilding dummyAction = new CreateBuilding();
+        dummyAction.setBuildingType("");
+        final Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, createBuildingAction, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
@@ -94,6 +96,7 @@ public class CreateBuildingBehaviourHelper {
                             MapCell unitPosition = worldMap.getCellAt(requesterUnit
                                     .getCoordX(), requesterUnit.getCoordY());
 
+                            action.setAction(conc);
                             if (!canCreateBuilding(buildingType
                                     , ownerTribe, requesterUnit)) {
                                 respondMessage(message, ACLMessage.REFUSE);

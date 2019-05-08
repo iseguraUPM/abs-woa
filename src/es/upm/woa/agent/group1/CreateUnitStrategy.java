@@ -5,6 +5,7 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -122,14 +123,14 @@ class CreateUnitStrategy extends Strategy {
     }
     
     private void moveToNearestTownHall(OnArrivedToTownHallHandler handler) {
-        List<MapCell> pathToTownHall
+        List<CellTranslation> pathToTownHall
                 = findShortestPathToTownHall(agentUnit.getCurrentPosition());
         
         startFollowPathBehaviour(woaAgent, pathToTownHall, handler);
     }
 
-    private void startFollowPathBehaviour(WoaAgent woaAgent, List<MapCell> pathToTownHall, OnArrivedToTownHallHandler handler) {
-        woaAgent.addBehaviour(new FollowPathBehaviour(woaAgent, comStandard, worldAID, pathToTownHall) {
+    private void startFollowPathBehaviour(WoaAgent woaAgent, List<CellTranslation> pathToTownHall, OnArrivedToTownHallHandler handler) {
+        woaAgent.addBehaviour(new FollowPathBehaviour(woaAgent, comStandard, worldAID, agentUnit, pathToTownHall) {
             @Override
             protected void onArrived(MapCell destination) {
                 agentUnit.setCurrentPosition(destination);
@@ -163,8 +164,8 @@ class CreateUnitStrategy extends Strategy {
         });
     }
     
-    private List<MapCell> findShortestPathToTownHall(MapCell source) {
-        List<MapCell> shortestPath = graphKnownMap.findShortestPathTo(source, (MapCell t) -> {
+    private List<CellTranslation> findShortestPathToTownHall(MapCell source) {
+        List<CellTranslation> shortestPath = graphKnownMap.findShortestPathTo(source, (MapCell t) -> {
             if (t.getContent() instanceof Building) {
                 Building building = (Building) t.getContent();
                 

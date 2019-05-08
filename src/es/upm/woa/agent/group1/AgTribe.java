@@ -43,8 +43,6 @@ import java.util.logging.LogRecord;
  */
 public class AgTribe extends GroupAgent {
     
-    private static final int TRIBE_KNOWN_MAP_SIZE = 4;
-    
     private CommunicationStandard gameComStandard;
     private CommunicationStandard group1ComStandard;
     private Collection<Unit> units;
@@ -159,8 +157,7 @@ public class AgTribe extends GroupAgent {
         group1ComStandard.register(getContentManager());
 
         units = new HashSet<>();
-        knownMap = GraphGameMap.getInstance(TRIBE_KNOWN_MAP_SIZE
-                , TRIBE_KNOWN_MAP_SIZE);
+        knownMap = GraphGameMap.getInstance();
     }
         
     private void informNewUnitOwnership(Unit unit) {

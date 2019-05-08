@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: NotifyUnitPosition
 * @author ontology bean generator
-* @version 2019/05/8, 00:40:35
+* @version 2019/05/8, 16:06:26
 */
 public class NotifyUnitPosition implements AgentAction {
 

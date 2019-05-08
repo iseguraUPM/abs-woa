@@ -31,7 +31,6 @@ public class CellTranslation {
         }
     }
     
-
     private final TranslateDirection direction;
     
     public CellTranslation(TranslateDirection direction) {

@@ -22,9 +22,9 @@ public class Tribe {
     private int currentStone;
     private int currentWood;
 
-    public Tribe(AID pId, int mapWidth, int mapHeight) {
+    public Tribe(AID pId) {
         agentID = pId;
-        knownMap = GraphGameMap.getInstance(mapWidth, mapWidth);
+        knownMap = GraphGameMap.getInstance();
         
         //TODO: define how many units of currentGold/food/stone/wood
         currentGold = 250;

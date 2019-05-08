@@ -7,7 +7,9 @@ package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.map.CellBuildingConstructor;
+import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.GameMapCoordinate;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
@@ -90,12 +92,7 @@ public class MoveUnitBehaviourHelper {
                             Action agAction = (Action) ce;
                             Concept conc = agAction.getAction();
                             MoveToCell targetCell = (MoveToCell) conc;
-
-                            MapCell mapCell = worldMap.getCellAt(targetCell
-                                    .getTarget().getX(), targetCell.getTarget()
-                                            .getY());
-                            
-                            initiateMoveToCell(requesterUnit, mapCell, moveToCellAction, message);
+                            processMoveToCellAction(targetCell, requesterUnit, message);
 
                         } catch (NoSuchElementException ex) {
                             woaAgent.log(Level.WARNING, "Unit "
@@ -107,10 +104,66 @@ public class MoveUnitBehaviourHelper {
                         }
 
                     }
+
+                    private void processMoveToCellAction(MoveToCell targetCell, Unit requesterUnit, ACLMessage message) throws NoSuchElementException {
+                        int translationCode = targetCell.getTargetDirection();
+                        int[] translationVector = getTranslationVectorFromCode(translationCode);
+                        
+                        if (translationVector == null) {
+                            woaAgent.log(Level.FINE, "Unit "
+                                    + requesterUnit.getId().getLocalName()
+                                    + " used an incorrect translation code");
+                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
+                        }
+                        
+                        
+                        int[] newCoordinates = GameMapCoordinate
+                                .applyTranslation(worldMap.getWidth()
+                                        , worldMap.getHeight()
+                                        , requesterUnit.getCoordX()
+                                        , requesterUnit.getCoordY(), translationVector);
+                        if (newCoordinates == null) {
+                            woaAgent.log(Level.FINE, "Unit "
+                                    + requesterUnit.getId().getLocalName()
+                                    + " cannot move in target direction");
+                            respondMessage(message, ACLMessage.REFUSE);
+                        }
+                        
+                        
+                        MapCell mapCell = worldMap.getCellAt(newCoordinates[0], newCoordinates[1]);
+                        
+                        initiateMoveToCell(requesterUnit, translationCode, mapCell, moveToCellAction, message);
+                    }
+
+                   
                 });
             }
+            
+            private int [] getTranslationVectorFromCode(int translationCode) {
+                if (translationCode == CellTranslation.TranslateDirection.UP.translationCode) {
+                    return CellTranslation.V_UP;
+                }
+                else if (translationCode == CellTranslation.TranslateDirection.RUP.translationCode) {
+                    return CellTranslation.V_RUP;
+                }
+                else if (translationCode == CellTranslation.TranslateDirection.RDOWN.translationCode) {
+                    return CellTranslation.V_RDOWN;
+                }
+                else if (translationCode == CellTranslation.TranslateDirection.DOWN.translationCode) {
+                    return CellTranslation.V_DOWN;
+                }
+                else if (translationCode == CellTranslation.TranslateDirection.LDOWN.translationCode) {
+                    return CellTranslation.V_LDOWN;
+                }
+                else if (translationCode == CellTranslation.TranslateDirection.LUP.translationCode) {
+                    return CellTranslation.V_LUP;
+                }
+                else {
+                    return null;
+                }
+            }
 
-            private void initiateMoveToCell(Unit requesterUnit, MapCell mapCell, Action action, ACLMessage message) {
+            private void initiateMoveToCell(Unit requesterUnit, int translationCode, MapCell mapCell, Action action, ACLMessage message) {
                 UnitCellPositioner unitPositioner = UnitCellPositioner
                         .getInstance();
                 if (unitPositioner.isMoving(requesterUnit)) {
@@ -143,7 +196,8 @@ public class MoveUnitBehaviourHelper {
                             newCell.setContent(mapCell.getContent());
 
                             MoveToCell moveToCellAction = new MoveToCell();
-                            moveToCellAction.setTarget(newCell);
+                            moveToCellAction.setNewlyArrivedCell(newCell);
+                            moveToCellAction.setTargetDirection(translationCode);
 
                             action.setAction(moveToCellAction);
 

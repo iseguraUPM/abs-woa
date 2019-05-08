@@ -218,8 +218,7 @@ public class AgWorld extends WoaAgent implements
             AgentController ac = cc.acceptNewAgent(tribeName, newTribe);
             ac.start();
 
-            Tribe newTribeRef = new Tribe(newTribe.getAID()
-                    , worldMap.getWidth(), worldMap.getHeight());
+            Tribe newTribeRef = new Tribe(newTribe.getAID());
             if (!tribeCollection.add(newTribeRef)) {
                 ac.kill();
                 return null;

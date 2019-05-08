@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: MoveToCell
 * @author ontology bean generator
-* @version 2019/05/8, 00:40:35
+* @version 2019/05/8, 16:06:26
 */
 public class MoveToCell implements AgentAction {
 
@@ -21,6 +21,18 @@ public class MoveToCell implements AgentAction {
    }
    public int getTargetDirection() {
      return this.targetDirection;
+   }
+
+   /**
+   * This property shall only be filled in the INFORM informative, after the protocol has been completed.
+* Protege name: newlyArrivedCell
+   */
+   private Cell newlyArrivedCell;
+   public void setNewlyArrivedCell(Cell value) { 
+    this.newlyArrivedCell=value;
+   }
+   public Cell getNewlyArrivedCell() {
+     return this.newlyArrivedCell;
    }
 
 }

@@ -8,7 +8,6 @@ package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.GameMap;
-import es.upm.woa.agent.group1.map.GameMapCoordinate;
 import es.upm.woa.agent.group1.map.MapCell;
 
 import org.jgrapht.Graph;
@@ -20,6 +19,7 @@ import org.jgrapht.graph.DirectedPseudograph;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -167,6 +167,14 @@ class GraphGameMap implements GameMap {
         }
     }
     
+    /**
+     * Adds a connection between two existing cells
+     * @param from
+     * @param to
+     * @param translation
+     * @return if the connection was added and did not exist before
+     * @throws NoSuchElementException if the map did not contain both cells
+     */
     public boolean connectPath(MapCell from, MapCell to, CellTranslation translation) {
         if (!mapGraph.containsVertex(from) || !mapGraph.containsVertex(to)) {
             throw new NoSuchElementException("Cannot connect unknown map cells");
@@ -179,6 +187,25 @@ class GraphGameMap implements GameMap {
         else {
             updateDijskstraPath();
             return true;
+        }
+    }
+    
+    /**
+     * Return the cell adjacent in the selected direction from a given source.
+     * @param source map cell
+     * @param direction where the connection should be
+     * @return the target cell or null if does not exist
+     */
+    public MapCell getMapCellOnDirection(MapCell source, CellTranslation direction) {
+        Set<CellTranslation> connections = mapGraph.edgesOf(source);
+        CellTranslation actualDirection = connections.stream()
+                .filter(t -> t.getTranslationCode()
+                        == t.getTranslationCode()).findAny().orElse(null);
+        if (actualDirection == null) {
+            return null;
+        }
+        else {
+            return mapGraph.getEdgeTarget(actualDirection);
         }
     }
     
