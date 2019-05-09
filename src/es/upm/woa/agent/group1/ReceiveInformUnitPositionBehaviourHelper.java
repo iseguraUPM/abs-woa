@@ -81,24 +81,15 @@ class ReceiveInformUnitPositionBehaviourHelper {
 
                 NotifyUnitPosition unitPosition = (NotifyUnitPosition) conc;
 
-                // NOTE: if a world mistakenly sends us an unknown position
-                // we take it as a gift
                 Cell informedCell = unitPosition.getCell();
-                boolean success = knownMap
-                        .addCell(MapCellFactory.getInstance()
-                                .buildCell(informedCell));
                 try {
                     MapCell knownCell = knownMap
                             .getCellAt(informedCell.getX(),
                                      informedCell.getY());
-                    if (success) {
-                        groupAgent.onCellDiscovered(knownCell);   
-                    }
-                    
-                    groupAgent.onUnitPassby(knownCell, unitPosition.getTribeId()); 
+                    groupAgent.onUnitPassby(knownCell, unitPosition.getTribeId());
                 } catch (NoSuchElementException ex) {
                     // Should not reach
-                    groupAgent.log(Level.WARNING, "Could not retrieve known cell");
+                    groupAgent.log(Level.WARNING, "Unit passed by an unknown position");
                 }
                 
             }
