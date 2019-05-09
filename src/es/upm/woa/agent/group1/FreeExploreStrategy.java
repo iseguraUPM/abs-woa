@@ -155,35 +155,32 @@ class FreeExploreStrategy extends Strategy {
     }
 
     private void travelToNewCell(MapCell currentCell, CellTranslation direction, OnMovedToNewCellHandler handler) {
-        if (nextCandidate == null || currentCell == nextCandidate) {
+        if (nextCandidate == null || currentCell.equals(nextCandidate)) {
             moveInDirection(direction, handler);
         } else {
             moveToFarAwayTargetCell(currentCell, direction, handler);
         }
     }
 
-    private void moveToFarAwayTargetCell(MapCell startCell, CellTranslation direction, OnMovedToNewCellHandler handler) {
+    private void moveToFarAwayTargetCell(MapCell startCell, CellTranslation lastTranslation, OnMovedToNewCellHandler handler) {
         List<CellTranslation> path = graphKnownMap.findShortestPath(startCell, nextCandidate);
 
         myAgent.addBehaviour(new FollowPathBehaviour(woaAgent, comStandard
                 , worldAID, agentUnit, path) {
             @Override
-            protected void onArrived(MapCell destination) {
-                agentUnit.setCurrentPosition(destination);
+            protected void onArrived(CellTranslation direction, MapCell destination) {
+                agentUnit.updateCurrentPosition(direction, destination);
                 woaAgent.log(Level.FINE, "arrived to cell "
-                        + destination.getXCoord() + ","
-                        + destination.getYCoord());
-                moveInDirection(direction, handler);
+                        + destination);
+                moveInDirection(lastTranslation, handler);
             }
 
             @Override
-            protected void onStep(MapCell currentCell) {
-                agentUnit.setCurrentPosition(currentCell);
+            protected void onStep(CellTranslation direction, MapCell currentCell) {
+                agentUnit.updateCurrentPosition(direction, currentCell);
                 woaAgent.log(Level.FINE, "traveling to cell "
-                        + nextCandidate.getXCoord() + ","
-                        + nextCandidate.getYCoord() + " from "
-                        + currentCell.getXCoord() + ","
-                        + currentCell.getYCoord());
+                        + nextCandidate + " from "
+                        + currentCell);
             }
 
             @Override
@@ -283,16 +280,8 @@ class FreeExploreStrategy extends Strategy {
         MapCell newPosition = MapCellFactory
                 .getInstance()
                 .buildCell(targetCell.getNewlyArrivedCell());
-        boolean success = graphKnownMap.addCell(newPosition);
-        if (!success) {
-            newPosition = graphKnownMap.getCellAt(newPosition
-                    .getXCoord(), newPosition.getYCoord());
-        }
-        
-        graphKnownMap.connectPath(agentUnit.getCurrentPosition()
-                , newPosition, operation);
 
-        agentUnit.setCurrentPosition(newPosition);
+        agentUnit.updateCurrentPosition(operation, newPosition);
         woaAgent.log(Level.FINER, "receive MoveToCell inform from " + response.getSender().getLocalName());
     }
 

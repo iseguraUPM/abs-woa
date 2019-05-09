@@ -9,6 +9,7 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.ontology.Empty;
 
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
@@ -22,8 +23,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  *
@@ -32,7 +33,8 @@ import java.util.Collection;
 class GraphGameMap implements GameMap {
     
     private Graph<MapCell, CellTranslation> mapGraph;
-    private DijkstraShortestPath<MapCell, CellTranslation> dijkstraShortestPath;
+    // Non-serializable
+    transient private DijkstraShortestPath<MapCell, CellTranslation> dijkstraShortestPath;
     
     private GraphGameMap() {
     }
@@ -199,9 +201,9 @@ class GraphGameMap implements GameMap {
      * @return the target cell or null if does not exist
      */
     public MapCell getMapCellOnDirection(MapCell source, CellTranslation direction) {
-        Set<CellTranslation> connections = mapGraph.edgesOf(source);
+        Set<CellTranslation> connections = mapGraph.outgoingEdgesOf(source);
         CellTranslation actualDirection = connections.stream()
-                .filter(t -> t.getTranslationCode()
+                .filter(t -> direction.getTranslationCode()
                         == t.getTranslationCode()).findAny().orElse(null);
         if (actualDirection == null) {
             return null;
@@ -211,33 +213,79 @@ class GraphGameMap implements GameMap {
         }
     }
     
-    public void mergeMapData(GraphGameMap other) {
-        for (MapCell myCell : mapGraph.vertexSet()) {
-            
+    /**
+     * Complete missing information in current graph with new possible cells
+     * that are contained in the other map. Only connecting cells will be added
+     * so that there is always a path between this graph and the new additions.
+     * @param otherGraph 
+     */
+    public void mergeMapData(GraphGameMap otherGraph) {
+        if (mapGraph.vertexSet().isEmpty()) {
+            mergeAll(otherGraph);
+        }
+        else {
+            Collection<MapCell> unknownCells = new HashSet<>();
+            mapGraph.vertexSet().forEach((myCell) -> {
+                addMissingConnections(myCell, otherGraph, unknownCells);
+            });
+
+            if (!unknownCells.isEmpty()) {
+                mergeMissingMapData(otherGraph, unknownCells);
+            }
+        }
+        
+        updateDijskstraPath();
+    }
+    
+    private void mergeAll(GraphGameMap otherGraphMap) {
+        mapGraph = otherGraphMap.mapGraph;
+    }
+    
+    private void mergeMissingMapData(GraphGameMap otherGraph, Collection<MapCell> newAdditions) {
+        newAdditions.stream().forEach(mc -> mapGraph.addVertex(mc));
+        
+        Collection<MapCell> unknownCells = new HashSet<>();
+        newAdditions.stream().forEach(mc -> addMissingConnections(mc, otherGraph, unknownCells));
+        
+        newAdditions.clear();
+        if (!unknownCells.isEmpty()) {
+            mergeMissingMapData(otherGraph, unknownCells);
         }
     }
     
-    private void addMissingConnections(MapCell myCell, GraphGameMap other, Collection<MapCell> newAdditions) {
+    private void addMissingConnections(MapCell myCell, GraphGameMap otherGraph
+            , Collection<MapCell> unknownCells) {
         try {
-            MapCell otherCell = other.getCellAt(myCell.getXCoord(), myCell.getYCoord());
-            if (otherCell != null) {
-                for (CellTranslation direction : other.mapGraph.outgoingEdgesOf(otherCell)) {
-                    MapCell target = other.mapGraph.getEdgeTarget(direction);
-                    try {
-                        MapCell myTarget = getCellAt(myCell.getXCoord(), myCell.getYCoord());
-                        mapGraph.addEdge(myCell, myTarget, direction);
-                    } catch (NoSuchElementException ex) {
-                        newAdditions.add(target);
-                    }
-                }
-            }
+            MapCell otherCell = otherGraph.getCellAt(myCell.getXCoord(), myCell.getYCoord());
+            updateKnownCellContents(myCell, otherCell);
+            otherGraph.mapGraph.outgoingEdgesOf(otherCell).forEach((direction) -> {
+                connectDirection(myCell, direction, otherGraph, unknownCells);
+            });
         } catch (NoSuchElementException ex) {
             // Other map does not know this cell
+        }
+    }
+
+    private void connectDirection(MapCell myCell, CellTranslation direction
+            , GraphGameMap otherGraph, Collection<MapCell> newAdditions) {
+        MapCell target = otherGraph.mapGraph.getEdgeTarget(direction);
+        try {
+            MapCell myKnownTarget = getCellAt(myCell.getXCoord(), myCell.getYCoord());
+            mapGraph.addEdge(myCell, myKnownTarget, direction);
+        } catch (NoSuchElementException ex) {
+            newAdditions.add(target);
         }
     }
     
     private void updateDijskstraPath() {
         dijkstraShortestPath = new DijkstraShortestPath<>(mapGraph);
+    }
+
+    private void updateKnownCellContents(MapCell myCell, MapCell otherCell) {
+        if ((myCell.getContent() instanceof Empty)
+                && !(otherCell.getContent() instanceof Empty)) {
+            myCell.setContent(otherCell.getContent());
+        }
     }
     
 }

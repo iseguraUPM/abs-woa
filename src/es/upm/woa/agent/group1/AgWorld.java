@@ -64,7 +64,7 @@ public class AgWorld extends WoaAgent implements
 
     public static final String WORLD = "WORLD";
 
-    private static final int STARTING_UNIT_NUMBER = 1;
+    private static final int STARTING_UNIT_NUMBER = 2;
 
     private static final long serialVersionUID = 1L;
     private CommunicationStandard woaComStandard;

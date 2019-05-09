@@ -16,8 +16,6 @@ abstract class GroupAgent extends WoaAgent {
     
     abstract void onCellDiscovered(MapCell newCell);
     
-    abstract void onCellUpdated(MapCell updatedCell);
-    
     abstract void onUnitPassby(MapCell cell, String tribeId);
     
 }

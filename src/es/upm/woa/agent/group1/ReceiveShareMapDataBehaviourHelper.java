@@ -6,17 +6,14 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
-import es.upm.woa.agent.group1.ontology.ShareMapData;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
-import jade.content.Concept;
-import jade.content.ContentElement;
-import jade.content.lang.Codec;
-import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 
+import java.io.Serializable;
 import java.util.logging.Level;
 
 /**
@@ -29,15 +26,19 @@ class ReceiveShareMapDataBehaviourHelper {
     private final CommunicationStandard comStandard;
     private final GraphGameMap knownMap;
     
+    private final OnUpdatedMapHandler updatedMapHandler;
+    
     public ReceiveShareMapDataBehaviourHelper(GroupAgent groupAgent
-            , CommunicationStandard comStandard, GraphGameMap knownMap) {
+            , CommunicationStandard comStandard, GraphGameMap knownMap
+            , OnUpdatedMapHandler updatedMapHandler) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;
         this.knownMap = knownMap;
+        this.updatedMapHandler = updatedMapHandler;
     }
     
     /**
-     * Start listening behaviour for NotifyCellDetail agent inform.
+     * Start listening behaviour for ShareMapData agent inform.
      */
     public void startShareMapDataBehaviour() {
         Action informCellDetailAction = new Action(groupAgent.getAID(), null);
@@ -49,13 +50,13 @@ class ReceiveShareMapDataBehaviourHelper {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onInform(ACLMessage response) {
-                        try {
-                            handleShareMapDataInform(response);
-                        } catch (Codec.CodecException | OntologyException ex) {
-                            groupAgent.log(Level.WARNING, "could not receive message"
-                                    + " (" + ex + ")");
-                        }
-
+                        handleShareMapDataInform(response);
+                    }
+                    
+                    @Override
+                    public void onNotUnderstood(ACLMessage response) {
+                        groupAgent.log(Level.WARNING
+                                , "Error while receiving ShareMapData message");
                     }
 
                 });
@@ -63,35 +64,29 @@ class ReceiveShareMapDataBehaviourHelper {
         });
     }
 
-    private void handleShareMapDataInform(ACLMessage response)
-            throws OntologyException, Codec.CodecException {
-        ContentElement ce = groupAgent.getContentManager().extractContent(response);
-        if (ce instanceof Action) {
-
-            Action agAction = (Action) ce;
-            Concept conc = agAction.getAction();
-
-            if (conc instanceof ShareMapData) {
-                groupAgent.log(Level.FINER, "receive NotifyCellDetail inform from "
-                        + response.getSender().getLocalName());
-
-                ShareMapData mapDataAction = (ShareMapData) conc;
-
-                if (mapDataAction.getKnownMap() instanceof GraphGameMap) {
-                    learnNewGraphMapData((GraphGameMap) mapDataAction.getKnownMap());
-                }
-                else {
-                    groupAgent.log(Level.WARNING, "Could not retrieve map data");
-                }
-                return;
+    private void handleShareMapDataInform(ACLMessage response) {
+        try {
+            Serializable content = response.getContentObject();
+            if (content instanceof GraphGameMap) {
+                learnNewGraphMapData((GraphGameMap) content);
             }
+            else {
+                groupAgent.log(Level.WARNING, "Could not retrieve map data");
+            }
+        } catch (UnreadableException ex) {
+            groupAgent.log(Level.WARNING, "Could not retrieve map data (" + ex + ")");
         }
-        
-        groupAgent.log(Level.WARNING, "Could not retrieve map data action");
     }
     
     private void learnNewGraphMapData(GraphGameMap otherGameMap) {
         knownMap.mergeMapData(otherGameMap);
+        updatedMapHandler.onMapUpdated();
+    }
+    
+    interface OnUpdatedMapHandler {
+    
+        void onMapUpdated();
+    
     }
     
 }

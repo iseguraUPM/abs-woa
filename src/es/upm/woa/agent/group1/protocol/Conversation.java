@@ -14,6 +14,9 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
+import java.io.IOException;
+import java.io.Serializable;
 
 import java.util.UUID;
 import java.util.logging.Level;
@@ -47,7 +50,10 @@ public abstract class Conversation extends SimpleBehaviour {
      * @param handler
      */
     protected void sendMessage(AID[] receivers, int performative, SentMessageHandler handler) {
-
+        sendMessage(receivers, performative, null, handler);
+    }
+    
+    protected void sendMessage(AID[] receivers, int performative, Serializable object, SentMessageHandler handler) {
         myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
             @Override
             public void action() {
@@ -59,6 +65,15 @@ public abstract class Conversation extends SimpleBehaviour {
                 newMsg.setLanguage(comStandard.getCodec().getName());
                 newMsg.setConversationId(conversationID);
                 newMsg.setProtocol(protocol);
+                
+                if (object != null) {
+                    try {
+                        newMsg.setContentObject(object);
+                    } catch (IOException ex) {
+                        handler.onSentMessageError();
+                        return;
+                    }
+                }
                 
                 for (AID receiverAID : receivers) {
                     newMsg.addReceiver(receiverAID);
@@ -86,6 +101,17 @@ public abstract class Conversation extends SimpleBehaviour {
      */
     protected void sendMessage(AID receiver, int performative, SentMessageHandler handler) {
         sendMessage(new AID[]{receiver}, performative, handler);
+    }
+    
+    /**
+     * Send message to one recipient with a serialized object
+     * @param receiver
+     * @param performative
+     * @param object
+     * @param handler 
+     */
+    protected void sendMessage(AID receiver, int performative, Serializable object, SentMessageHandler handler) {
+        sendMessage(new AID[]{receiver}, performative, object, handler);
     }
 
     /**
@@ -136,7 +162,6 @@ public abstract class Conversation extends SimpleBehaviour {
                     handleResponseByPerformative(handler, response);
                     received = true;
                 } else {
-                    handler.onResponseError();
                     block();
                 }
 
@@ -166,16 +191,16 @@ public abstract class Conversation extends SimpleBehaviour {
                 MessageTemplate filter = generateMessageFilter();
 
                 ACLMessage response = myAgent.receive(filter);
-
+                
+                
                 if (response != null) {
-
+                    
                     handleResponseByPerformative(handler,
                             response);
                     
                     if (limit > 0)
                         limit--;
                 } else {
-                    handler.onResponseError();
                     block();
                 }
             }
@@ -305,9 +330,6 @@ public abstract class Conversation extends SimpleBehaviour {
 
         public void onCancel(ACLMessage response) {
             logUnhandledMessage("CANCEL", response.getSender());
-        }
-        
-        public void onResponseError() {
         }
 
     }

@@ -5,6 +5,7 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.MapCell;
 
 import jade.core.AID;
@@ -23,6 +24,6 @@ interface PositionedAgentUnit {
 
     MapCell getCurrentPosition();
 
-    void setCurrentPosition(MapCell mapCell);
+    void updateCurrentPosition(CellTranslation direction, MapCell newPosition);
     
 }

@@ -5,17 +5,17 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
+import es.upm.woa.agent.group1.protocol.DelayTickBehaviour;
 import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
-
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
@@ -23,8 +23,6 @@ import es.upm.woa.ontology.NotifyNewUnit;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
-import jade.content.lang.sl.SLCodec;
-import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
@@ -32,10 +30,12 @@ import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -46,8 +46,11 @@ public class AgTribe extends GroupAgent {
     private CommunicationStandard gameComStandard;
     private CommunicationStandard group1ComStandard;
     private Collection<Unit> units;
-    private GameMap knownMap;
+    private GraphGameMap knownMap;
     private Handler logHandler;
+    
+    private MapDataSharingHelper mapDataSharingHelper;
+    private DelayTickBehaviour delayedShareMapDataBehaviour;
 
     @Override
     protected void setup() {       
@@ -58,10 +61,29 @@ public class AgTribe extends GroupAgent {
         initializeTribe();
         
         startInformNewUnitBehaviour();
+        startInformCellDetailBehaviour();
+        startWhereAmIBehaviour();
+        startInformUnitPositionBehaviour();
+        startShareMapDataBehaviour();
+    }
+
+    private void startInformCellDetailBehaviour() {
         new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
                 , knownMap).startInformCellDetailBehaviour();
-        startWhereAmIBehaviour();
-        new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard, knownMap).startInformCellDetailBehaviour();
+    }
+
+    private void startShareMapDataBehaviour() {
+        new ReceiveShareMapDataBehaviourHelper(this,
+                group1ComStandard, knownMap, () -> {
+                    log(Level.FINE, "Updated known map");
+                    shareMapDataWithUnits();
+                    
+                }).startShareMapDataBehaviour();
+    }
+
+    private void startInformUnitPositionBehaviour() {
+        new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard
+                , knownMap).startInformCellDetailBehaviour();
     }
     
     
@@ -158,6 +180,7 @@ public class AgTribe extends GroupAgent {
 
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance();
+        mapDataSharingHelper = new MapDataSharingHelper(this, group1ComStandard, knownMap);
     }
         
     private void informNewUnitOwnership(Unit unit) {
@@ -179,12 +202,7 @@ public class AgTribe extends GroupAgent {
     }
 
     private void informNewUnitOfKnownMap(Unit newUnit) {
-        for (MapCell knownCell : knownMap.getKnownCellsIterable()) {
-            if (knownCell.getXCoord() != newUnit.getCoordX()
-                    || knownCell.getYCoord() != newUnit.getCoordY()) {
-                informOfKnownMapCell(newUnit, knownCell);
-            }
-        }
+        mapDataSharingHelper.unicastMapData(newUnit.getId());
     }
     
     private void informOfKnownMapCell(Unit newUnit, MapCell cell) {
@@ -229,26 +247,43 @@ public class AgTribe extends GroupAgent {
 
     @Override
     void onCellDiscovered(MapCell newCell) {
-        log(Level.FINER, "Cell discovery at "
-                                + newCell.getXCoord()
-                                + ","
-                                + newCell.getYCoord());
-    }
-
-    @Override
-    void onCellUpdated(MapCell updatedCell) {
-        log(Level.FINER, "Cell updated at "
-                                + updatedCell.getXCoord()
-                                + ","
-                                + updatedCell.getYCoord());
+        try {
+            MapCell knownCell = knownMap
+                    .getCellAt(newCell.getXCoord(), newCell.getYCoord());
+            if (knownCell.getContent() instanceof Empty && !(newCell.getContent() instanceof Empty)) {
+                knownCell.setContent(newCell.getContent());
+            }
+            log(Level.FINER, "Cell updated at " + newCell);
+        } catch (NoSuchElementException ex) {
+            //log(Level.FINER, "Cell discovery at " + newCell);
+            // We do nothing. Other units will send us the information
+        }
     }
 
     @Override
     void onUnitPassby(MapCell cell, String tribeId) {
         log(Level.FINER, "Unit from tribe " + tribeId + " at "
-                                + cell.getXCoord()
-                                + ","
-                                + cell.getYCoord());
+                                + cell);
+    }
+
+    private AID[] getMyUnitsAIDs() {
+        return units.stream().map(unit -> unit.getId())
+                .collect(Collectors.toList()).toArray(new AID[units.size()]);
+    }
+
+    private synchronized void shareMapDataWithUnits() {
+        if (delayedShareMapDataBehaviour == null) {
+            delayedShareMapDataBehaviour = new DelayTickBehaviour(this, 100) {
+                
+                @Override
+                protected void handleElapsedTimeout() {
+                    mapDataSharingHelper.multicastMapData(getMyUnitsAIDs());
+                    delayedShareMapDataBehaviour = null;
+                }
+                
+            };
+            addBehaviour(delayedShareMapDataBehaviour);
+        }
     }
 
 

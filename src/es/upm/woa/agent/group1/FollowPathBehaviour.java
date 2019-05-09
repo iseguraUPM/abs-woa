@@ -13,11 +13,11 @@ import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
+
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
-
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
@@ -59,9 +59,6 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
     public final void onStart() {
         if (pathOperations.isEmpty()) {
             onMoveErrorImpl("Path is empty");
-        } else if (pathOperations.size() == 1) {
-            finished = true;
-            onArrived(agentUnit.getCurrentPosition());
         } else {
             step();
         }
@@ -79,7 +76,6 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
             launchMoveConversation(operation);
         } else {
             finished = true;
-            onArrived(agentUnit.getCurrentPosition());
         }
     }
 
@@ -132,8 +128,12 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                                     
                                     Cell newPosition = extractCellFromMessage(response);
                                     
-                                    if (!pathOperations.isEmpty()) {
-                                        onStep(MapCellFactory.getInstance()
+                                    if (next + 1 < pathOperations.size()) {
+                                        onStep(operation, MapCellFactory.getInstance()
+                                                .buildCell(newPosition));
+                                    }
+                                    else {
+                                        onArrived(operation, MapCellFactory.getInstance()
                                                 .buildCell(newPosition));
                                     }
                                     
@@ -208,9 +208,9 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
         block();
     }
 
-    protected abstract void onArrived(MapCell destination);
+    protected abstract void onArrived(CellTranslation direction, MapCell destination);
 
-    protected abstract void onStep(MapCell currentCell);
+    protected abstract void onStep(CellTranslation direction, MapCell currentCell);
 
     protected abstract void onStuck(MapCell currentCell);
 

@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: Group1Ontology.java
  * @author ontology bean generator
- * @version 2019/05/8, 17:42:14
+ * @version 2019/05/8, 21:15:33
  */
 public class Group1Ontology extends jade.content.onto.Ontology  {
   //NAME
@@ -27,7 +27,6 @@ public class Group1Ontology extends jade.content.onto.Ontology  {
     public static final String WHEREAMI_YCOORD="yCoord";
     public static final String WHEREAMI="WhereAmI";
     public static final String NOTIFYUNITOWNERSHIP="NotifyUnitOwnership";
-    public static final String SHAREMAPDATA_KNOWNMAP="knownMap";
     public static final String SHAREMAPDATA="ShareMapData";
 
   /**
@@ -53,7 +52,6 @@ public class Group1Ontology extends jade.content.onto.Ontology  {
 
 
     // adding fields
-    shareMapDataSchema.add(SHAREMAPDATA_KNOWNMAP, (TermSchema)getSchema(BasicOntology.SET), ObjectSchema.MANDATORY);
     whereAmISchema.add(WHEREAMI_YCOORD, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     whereAmISchema.add(WHEREAMI_XCOORD, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
 

@@ -9,6 +9,7 @@ import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CellContent;
 import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.Resource;
+import java.io.Serializable;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
@@ -17,7 +18,7 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
  *
  * @author ISU
  */
-public class MapCellFactory {
+public class MapCellFactory implements Serializable {
 
     private MapCellFactory() {
 

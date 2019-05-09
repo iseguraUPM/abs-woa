@@ -5,6 +5,7 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
@@ -17,6 +18,7 @@ import es.upm.woa.agent.group1.strategy.StrategicUnitBehaviour;
 import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 
 import es.upm.woa.ontology.CreateBuilding;
+import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 
 import jade.content.onto.basic.Action;
@@ -58,6 +60,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private MapCell currentPosition;
     private AID ownerTribe;
     private StrategyEventDispatcher eventDispatcher;
+    private MapDataSharingHelper mapDataSharingHelper;
 
     private Handler logHandler;
 
@@ -67,8 +70,29 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     @Override
-    public void setCurrentPosition(MapCell currentPosition) {
-        this.currentPosition = currentPosition;
+    public void updateCurrentPosition(CellTranslation direction, MapCell newPosition) {
+        MapCell myCell;
+        try {
+            myCell = knownMap.getCellAt(newPosition.getXCoord()
+                    , newPosition.getYCoord());
+            updateCellContents(myCell, newPosition);
+            knownMap.connectPath(currentPosition, myCell, direction);
+        } catch (NoSuchElementException ex) {
+            myCell = newPosition;
+            if (knownMap.addCell(myCell)) {
+                knownMap.connectPath(currentPosition, myCell, direction);
+            }
+        }
+
+        mapDataSharingHelper.unicastMapData(ownerTribe);
+        
+        currentPosition = myCell;
+    }
+    
+    private void updateCellContents(MapCell myCell, MapCell updatedCell) {
+        if (myCell.getContent() instanceof Empty && !(updatedCell.getContent() instanceof Empty)) {
+            myCell.setContent(updatedCell.getContent());
+        }
     }
 
     @Override
@@ -119,15 +143,20 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         group1ComStandard.register(getContentManager());
 
         knownMap = GraphGameMap.getInstance();
+        mapDataSharingHelper = new MapDataSharingHelper(this, group1ComStandard, knownMap);
 
         new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
                 , knownMap).startInformCellDetailBehaviour();
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
-                handler.onUnitInitialized();
                 new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard
                         , knownMap)
                         .startInformCellDetailBehaviour();
+                new ReceiveShareMapDataBehaviourHelper(this,
+                        gameComStandard, knownMap, () -> {
+                            log(Level.FINE, "Updated known map");
+                }).startShareMapDataBehaviour();
+                handler.onUnitInitialized();
             });
         });
     }
@@ -304,7 +333,9 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     private void addFreeExploreStrategy(StrategicUnitBehaviour unitBehaviour) {
-        unitBehaviour.addStrategy(new FreeExploreStrategy(this, gameComStandard, knownMap, worldAgentServiceDescription.getName(), this, eventDispatcher));
+        unitBehaviour.addStrategy(new FreeExploreStrategy(this, gameComStandard
+                , knownMap, worldAgentServiceDescription.getName(), this
+                , eventDispatcher));
     }
     
     @Override
@@ -317,26 +348,30 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     @Override
     void onCellDiscovered(MapCell newCell) {
-        log(Level.FINER, "Cell discovery at "
-                                + newCell.getXCoord()
-                                + ","
-                                + newCell.getYCoord());
+        if (currentPosition == null) {
+            addFirstCell(newCell);
+        }
+        try {
+            MapCell knownCell = knownMap
+                    .getCellAt(newCell.getXCoord(), newCell.getYCoord());
+            if (knownCell.getContent() instanceof Empty && !(newCell.getContent() instanceof Empty)) {
+                knownCell.setContent(newCell.getContent());
+            }
+            log(Level.FINER, "Cell updated at " + newCell);
+        } catch (NoSuchElementException ex) {
+            //log(Level.FINER, "Cell discovery at " + newCell);
+            // We do nothing. Other units will send us the information
+        }
     }
 
-    @Override
-    void onCellUpdated(MapCell updatedCell) {
-        log(Level.FINER, "Cell updated at "
-                                + updatedCell.getXCoord()
-                                + ","
-                                + updatedCell.getYCoord());
+    private void addFirstCell(MapCell newCell) {
+        knownMap.addCell(newCell);
     }
     
     @Override
     void onUnitPassby(MapCell cell, String tribeId) {
         log(Level.FINER, "Unit from tribe " + tribeId + " at "
-                                + cell.getXCoord()
-                                + ","
-                                + cell.getYCoord());
+                                + cell);
     }
     
     private interface OnReceivedOwnershipHandler {

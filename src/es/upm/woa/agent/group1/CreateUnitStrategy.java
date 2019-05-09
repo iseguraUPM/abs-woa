@@ -132,24 +132,24 @@ class CreateUnitStrategy extends Strategy {
     private void startFollowPathBehaviour(WoaAgent woaAgent, List<CellTranslation> pathToTownHall, OnArrivedToTownHallHandler handler) {
         woaAgent.addBehaviour(new FollowPathBehaviour(woaAgent, comStandard, worldAID, agentUnit, pathToTownHall) {
             @Override
-            protected void onArrived(MapCell destination) {
-                agentUnit.setCurrentPosition(destination);
+            protected void onArrived(CellTranslation direction, MapCell destination) {
+                agentUnit.updateCurrentPosition(direction, destination);
                 woaAgent.log(Level.FINE, "Arrived to town hall at: "
-                        + destination.getXCoord() + "," + destination.getYCoord());
+                        + destination);
                 handler.onArrivedToTownHall();
             }
             
             @Override
-            protected void onStep(MapCell currentCell) {
-                agentUnit.setCurrentPosition(currentCell);
+            protected void onStep(CellTranslation direction, MapCell currentCell) {
+                agentUnit.updateCurrentPosition(direction, currentCell);
                 woaAgent.log(Level.FINER, "Moving towards town hall from: "
-                        + currentCell.getXCoord() + "," + currentCell.getYCoord());
+                        + currentCell);
             }
             
             @Override
             protected void onStuck(MapCell currentCell) {
                 woaAgent.log(Level.FINE, "Cannot move towards town hall from: "
-                        + currentCell.getXCoord() + "," + currentCell.getYCoord());
+                        + currentCell);
                 
                 handler.onCouldntArriveToTownHall();
             }

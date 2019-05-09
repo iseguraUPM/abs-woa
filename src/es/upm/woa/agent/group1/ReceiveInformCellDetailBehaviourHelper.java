@@ -84,35 +84,18 @@ class ReceiveInformCellDetailBehaviourHelper {
                 NotifyCellDetail cellDetail = (NotifyCellDetail) conc;
 
                 Cell informedCell = cellDetail.getNewCell();
-                boolean success = knownMap
-                        .addCell(MapCellFactory.getInstance()
-                                .buildCell(informedCell));
                 try {
-                    MapCell knownCell = knownMap
+                    knownMap
                             .getCellAt(informedCell.getX(),
                                      informedCell.getY());
-                    if (success) {
-                        groupAgent.onCellDiscovered(knownCell);
-                        
-                    } else {
-                        updateCellContents(knownCell, informedCell);
-                        groupAgent.onCellUpdated(knownCell);
-                    }
-                    
                 } catch (NoSuchElementException ex) {
-                    // Should not reach
-                    groupAgent.log(Level.WARNING, "Could not retrieve known cell");
+                    groupAgent.onCellDiscovered(MapCellFactory.getInstance()
+                            .buildCell(informedCell));
                 }
                 return;
             }
         }
         
         groupAgent.log(Level.WARNING, "Could not retrieve cell detail action");
-    }
-    
-    private void updateCellContents(MapCell knownCell, Cell updatedCell) {
-        if (knownCell.getContent() instanceof Empty) {
-            knownCell.setContent(updatedCell.getContent());
-        }
     }
 }

@@ -327,3 +327,16 @@
 	lines of code.
  4. [NOTE]
     No functionality whatsoever was changed.
+----------------------------------------------------------------------------------------------------------------
+ (29) {09/05/2019 10:00} Relative positioning and map data sharing : Inaki
+  1. [FIX]
+    Fixed relative positioning after updating the main ontology. Now AgTribe and AgUnit don't know anything about
+    the map. The AgUnit will take note of all the cells it discovers and the paths it uses to reach those places.
+  2. [FEATURE]
+    In order for the tribe to learn the new cells and the path between them, a new protocol was added: ShareMapData.
+    This protocol serializes the entire GraphGameMap. The AgUnit after learning a new path sends the map data to
+    the tribe. The tribe will merge the new data with the existing one. After waiting a short period of time it
+    sends the accummulated map to all its units.
+  3. [NOTE]
+    Now that whole maps are sent to the tribe the cell discovery event has changed. If the tribe or unit does not
+    know a discovered cell it will ignore it. If they do, it will get updated if necessary.

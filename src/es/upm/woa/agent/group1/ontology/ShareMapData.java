@@ -8,19 +8,8 @@ import jade.core.*;
 /**
 * Protege name: ShareMapData
 * @author ontology bean generator
-* @version 2019/05/8, 17:42:14
+* @version 2019/05/8, 21:15:33
 */
 public class ShareMapData implements AgentAction {
-
-   /**
-* Protege name: knownMap
-   */
-   private Object knownMap;
-   public void setKnownMap(Object value) { 
-    this.knownMap=value;
-   }
-   public Object getKnownMap() {
-     return this.knownMap;
-   }
 
 }
