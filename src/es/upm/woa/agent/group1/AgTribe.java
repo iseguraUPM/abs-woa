@@ -70,7 +70,7 @@ public class AgTribe extends GroupAgent {
         initializeAgent();
         initializeTribe();
         
-        startInformRegisteringBehaviour();
+        startInformRegistrationBehaviour();
         startInformNewUnitBehaviour();
         startInformCellDetailBehaviour();
         startWhereAmIBehaviour();
@@ -78,7 +78,7 @@ public class AgTribe extends GroupAgent {
         startShareMapDataBehaviour();
     }
 
-    private void startInformRegisteringBehaviour() {
+    private void startInformRegistrationBehaviour() {
         final Action registerTribe = new Action(this.getAID(), new RegisterTribe());
 
         addBehaviour(new Conversation(this, gameComStandard, registerTribe, GameOntology.REGISTERTRIBE) {

@@ -340,3 +340,22 @@
   3. [NOTE]
     Now that whole maps are sent to the tribe the cell discovery event has changed. If the tribe or unit does not
     know a discovered cell it will ignore it. If they do, it will get updated if necessary.
+----------------------------------------------------------------------------------------------------------------
+ (30) {09/05/2019 23:30} Use cases 1.2.1 and 1.2.2 : Martin
+ 1. [COMPLETE]
+   Story: As a tribe I want to register myself into the system so that I can participate in the game.
+   	When a tribe is created automatically requests to registering into the game 
+	(method startInformRegistrationBehaviour)
+ 2. [COMPLETE]
+   Story: As the registration desk I want to confirm a tribe about the result of a registration request so that it can 
+	finish the tribe registration process.
+   	- AgRegistrationDesk is created: responsible for checking tribes registration requests and informing the world 
+	about the start of the game.
+	- In order to manage tribe registration requests startTribeRegistrationBehaviour is added.
+3. [TODO]
+    The AgRegistration desk has to inform the world after the registration period has end (REGISTRATION_PERIOD_TICKS).
+3. [TODO]
+    The method startGame from AgWorld has to be checked and updated in order to inform tribes about initial resources, 
+	units and position.
+4. [NOTE]
+    AgRegistrationDesk launches tribe agents. This is a temporal solutions before manual registration thorught the GUI
