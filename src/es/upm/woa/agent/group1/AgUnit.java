@@ -62,7 +62,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private StrategyEventDispatcher eventDispatcher;
     private MapDataSharingHelper mapDataSharingHelper;
 
-    private Handler logHandler;
+    private WoaLogger logger;
 
     @Override
     public MapCell getCurrentPosition() {
@@ -103,8 +103,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     @Override
     protected void setup() {
-        logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.ALL);
+        logger = new WoaLogger(getAID(), new ConsoleHandler());
+        logger.setLevel(Level.ALL);
 
         initializeAgent(() -> {
             log(Level.INFO, "Unit initialized");
@@ -340,10 +340,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     
     @Override
     void log(Level logLevel, String message) {
-        String compMsg = getLocalName() + ": " + message;
-        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
-            System.out.println(compMsg);
-        }
+        logger.log(logLevel, message);
     }
 
     @Override

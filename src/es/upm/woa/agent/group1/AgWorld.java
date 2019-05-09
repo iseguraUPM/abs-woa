@@ -78,12 +78,12 @@ public class AgWorld extends WoaAgent implements
 
     private Collection<Transaction> activeTransactions;
 
-    private Handler logHandler;
+    private WoaLogger logger;
 
     @Override
     protected void setup() {
-        logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.FINE);
+        logger = new WoaLogger(getAID(), new ConsoleHandler());
+        logger.setLevel(Level.FINE);
         log(Level.INFO, "has entered the system");
 
         // TODO: temp
@@ -439,10 +439,7 @@ public class AgWorld extends WoaAgent implements
     
     @Override
     void log(Level logLevel, String message) {
-        String compMsg = getLocalName() + ": " + message;
-        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
-            System.out.println(compMsg);
-        }
+        logger.log(logLevel, message);
     }
 
 }

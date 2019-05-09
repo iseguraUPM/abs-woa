@@ -32,9 +32,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.stream.Collectors;
 
 /**
@@ -47,15 +45,15 @@ public class AgTribe extends GroupAgent {
     private CommunicationStandard group1ComStandard;
     private Collection<Unit> units;
     private GraphGameMap knownMap;
-    private Handler logHandler;
+    private WoaLogger logger;
     
     private MapDataSharingHelper mapDataSharingHelper;
     private DelayTickBehaviour delayedShareMapDataBehaviour;
 
     @Override
     protected void setup() {       
-        logHandler = new ConsoleHandler();
-        logHandler.setLevel(Level.ALL);
+        logger = new WoaLogger(getAID(), new ConsoleHandler());
+        logger.setLevel(Level.ALL);
         
         initializeAgent();
         initializeTribe();
@@ -239,10 +237,7 @@ public class AgTribe extends GroupAgent {
     
     @Override
     void log(Level logLevel, String message) {
-        String compMsg = getLocalName() + ": " + message;
-        if (logHandler.isLoggable(new LogRecord(logLevel, compMsg))) {
-            System.out.println(compMsg);
-        }
+        logger.log(logLevel, message);
     }
 
     @Override
