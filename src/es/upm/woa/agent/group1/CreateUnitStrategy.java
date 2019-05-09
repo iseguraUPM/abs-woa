@@ -10,8 +10,6 @@ import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.strategy.Strategy;
-import es.upm.woa.agent.group1.strategy.StrategyEvent;
-import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
@@ -29,6 +27,8 @@ import java.util.logging.Level;
  */
 class CreateUnitStrategy extends Strategy {
     
+    public final String STRATEGY_CREATE_UNIT = "CreateUnit";
+    
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
     private final GraphGameMap graphKnownMap;
@@ -41,9 +41,8 @@ class CreateUnitStrategy extends Strategy {
     
     public CreateUnitStrategy(WoaAgent agent, CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID
-            , PositionedAgentUnit agentUnit
-            , StrategyEventDispatcher eventDispatcher) {
-        super(agent, eventDispatcher);
+            , PositionedAgentUnit agentUnit) {
+        super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
         this.graphKnownMap = graphGameMap;
@@ -58,15 +57,10 @@ class CreateUnitStrategy extends Strategy {
     public int getPriority() {
         return priority;
     }
-
+    
     @Override
-    public void onEvent(StrategyEvent event) {
-        if (event == StrategyEvent.CREATE_UNIT) {
-            priority = HIGH_PRIORITY;
-        }
-        else if (event == StrategyEvent.WAIT) {
-            priority = LOW_PRIORITY;
-        }
+    public boolean isOneShot() {
+        return true;
     }
 
     @Override
@@ -252,8 +246,6 @@ class CreateUnitStrategy extends Strategy {
             
         });
     }
-
-
 
     
     private interface OnArrivedToTownHallHandler {

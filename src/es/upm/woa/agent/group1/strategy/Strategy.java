@@ -12,20 +12,19 @@ import jade.core.behaviours.Behaviour;
  *
  * @author ISU
  */
-public abstract class Strategy extends Behaviour implements StrategyEventListener {
+public abstract class Strategy extends Behaviour {
     
     public static final int HIGH_PRIORITY = 0;
     public static final int MID_PRIORITY = 50;
     public static final int LOW_PRIORITY = 100;
-
-    protected StrategyEventDispatcher eventDispatcher; 
     
-    public Strategy(Agent agent, StrategyEventDispatcher eventDispatcher) {
+    public Strategy(Agent agent) {
         super(agent);
-        this.eventDispatcher = eventDispatcher;
     }
     
     public abstract int getPriority();
+    
+    public abstract boolean isOneShot();
     
     @Override
     public abstract void onStart();

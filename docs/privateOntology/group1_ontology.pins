@@ -1,7 +1,11 @@
-; Wed May 08 22:10:12 CEST 2019
+; Thu May 09 17:48:52 CEST 2019
 ; 
 ;+ (version "3.5")
 ;+ (build "Build 663")
+
+([AssignStrategy] of  %3AJADE-CLASS
+
+	(%3AJADE-IGNORE FALSE))
 
 ([NotifyUnitOwnership] of  %3AJADE-CLASS
 

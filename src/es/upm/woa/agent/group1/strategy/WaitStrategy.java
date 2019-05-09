@@ -16,17 +16,7 @@ class WaitStrategy extends Strategy {
     private static final int WAIT_PRIORITY = LOW_PRIORITY - 10;
 
     public WaitStrategy(Agent agent) {
-        super(agent, new StrategyEventDispatcher() {
-            @Override
-            public void subscribe(StrategyEventListener subscriber) {
-
-            }
-
-            @Override
-            public void dispatch(StrategyEvent event) {
-
-            }
-        });
+        super(agent);
      
     }
 
@@ -46,10 +36,6 @@ class WaitStrategy extends Strategy {
     }
 
     @Override
-    public void onEvent(StrategyEvent event) {
-    }
-
-    @Override
     protected void resetStrategy() {
         
     }
@@ -57,6 +43,11 @@ class WaitStrategy extends Strategy {
     @Override
     public void onStart() {
         
+    }
+
+    @Override
+    public boolean isOneShot() {
+        return false;
     }
 
 }

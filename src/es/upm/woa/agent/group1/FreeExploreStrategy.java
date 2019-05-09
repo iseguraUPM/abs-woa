@@ -11,8 +11,6 @@ import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.strategy.Strategy;
-import es.upm.woa.agent.group1.strategy.StrategyEvent;
-import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 
@@ -51,8 +49,8 @@ class FreeExploreStrategy extends Strategy {
     private MapCell nextCandidate;
 
     public FreeExploreStrategy(WoaAgent agent, CommunicationStandard comStandard
-            , GraphGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit, StrategyEventDispatcher eventDispatcher) {
-        super(agent, eventDispatcher);
+            , GraphGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit) {
+        super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
         this.graphKnownMap = graphGameMap;
@@ -139,12 +137,7 @@ class FreeExploreStrategy extends Strategy {
     public void action() {
         block();
     }
-
-    @Override
-    public void onEvent(StrategyEvent event) {
-
-    }
-
+    
     private Iterable<CellTranslation.TranslateDirection> computeShuffledTranslationVectors() {
         List<CellTranslation.TranslateDirection> shuffledOperators = new ArrayList<>();
         shuffledOperators.addAll(Arrays.asList(CellTranslation.TranslateDirection.values()));
@@ -290,6 +283,11 @@ class FreeExploreStrategy extends Strategy {
         moveToCell.setTargetDirection(operation.getTranslationCode());
 
         return new Action(myAgent.getAID(), moveToCell);
+    }
+
+    @Override
+    public boolean isOneShot() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     private interface OnMovedToNewCellHandler {

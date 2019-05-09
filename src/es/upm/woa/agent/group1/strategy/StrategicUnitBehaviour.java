@@ -40,7 +40,10 @@ public final class StrategicUnitBehaviour extends SerialBehaviour {
     @Override
     protected void scheduleNext(boolean currentDone, int currentResult) {
         if (currentDone) {
-            getCurrentStrategy().reset();
+            Strategy currentStrategy = getCurrentStrategy();
+            if (currentStrategy.isOneShot()) {
+                strategyList.remove(currentStrategy);
+            }
             strategyList.sort(new StrategyComparator());
         }
     }

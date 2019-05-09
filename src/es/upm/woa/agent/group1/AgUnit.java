@@ -16,7 +16,6 @@ import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.agent.group1.strategy.StrategicUnitBehaviour;
-import es.upm.woa.agent.group1.strategy.StrategyEventDispatcher;
 import es.upm.woa.ontology.Cell;
 
 import es.upm.woa.ontology.CreateBuilding;
@@ -59,7 +58,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private DFAgentDescription worldAgentServiceDescription;
     private MapCell currentPosition;
     private AID ownerTribe;
-    private StrategyEventDispatcher eventDispatcher;
     private SendMapDataSharingHelper mapDataSharingHelper;
 
     private WoaLogger logger;
@@ -351,8 +349,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void addFreeExploreStrategy(StrategicUnitBehaviour unitBehaviour) {
         unitBehaviour.addStrategy(new FreeExploreStrategy(this, gameComStandard
-                , knownMap, worldAgentServiceDescription.getName(), this
-                , eventDispatcher));
+                , knownMap, worldAgentServiceDescription.getName(), this));
     }
     
     @Override
