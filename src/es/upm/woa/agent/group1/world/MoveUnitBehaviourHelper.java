@@ -3,8 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.world;
 
+import es.upm.woa.agent.group1.Tribe;
+import es.upm.woa.agent.group1.Unit;
+import es.upm.woa.agent.group1.WoaAgent;
 import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.map.CellBuildingConstructor;
 import es.upm.woa.agent.group1.map.CellTranslation;
@@ -46,7 +49,7 @@ public class MoveUnitBehaviourHelper {
     private final UnitMovementInformer unitMovementInformer;
     
     
-    MoveUnitBehaviourHelper(WoaAgent woaAgent, CommunicationStandard comStandard
+    public MoveUnitBehaviourHelper(WoaAgent woaAgent, CommunicationStandard comStandard
             , WoaGUI gui, GameMap worldMap
             , Collection<Transaction> activeTransactions
             , TribeInfomationBroker tribeInfomationBroker

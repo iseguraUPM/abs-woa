@@ -3,8 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.world;
 
+import es.upm.woa.agent.group1.Tribe;
+import es.upm.woa.agent.group1.Unit;
+import es.upm.woa.agent.group1.WoaAgent;
+import es.upm.woa.agent.group1.WoaDefinitions;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
@@ -27,7 +31,7 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-class CreateUnitBehaviourHelper {
+public class CreateUnitBehaviourHelper {
       
     private static final int CREATE_UNIT_TICKS = 150;
     
@@ -188,7 +192,7 @@ class CreateUnitBehaviourHelper {
         }
     }
     
-    interface UnitCreator {
+    public interface UnitCreator {
         
         /**
          * 

@@ -60,7 +60,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private MapCell currentPosition;
     private AID ownerTribe;
     private StrategyEventDispatcher eventDispatcher;
-    private MapDataSharingHelper mapDataSharingHelper;
+    private SendMapDataSharingHelper mapDataSharingHelper;
 
     private WoaLogger logger;
 
@@ -141,7 +141,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         group1ComStandard.register(getContentManager());
 
         knownMap = GraphGameMap.getInstance();
-        mapDataSharingHelper = new MapDataSharingHelper(this, group1ComStandard, knownMap);
+        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
 
         
         startInformOwnershipBehaviour(() -> {
@@ -356,7 +356,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
     
     @Override
-    void log(Level logLevel, String message) {
+    public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
     }
 

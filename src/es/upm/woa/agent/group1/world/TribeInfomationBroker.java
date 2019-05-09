@@ -3,15 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.world;
 
+import es.upm.woa.agent.group1.Tribe;
+import es.upm.woa.agent.group1.Unit;
 import jade.core.AID;
 
 /**
  *
  * @author ISU
  */
-interface TribeInfomationBroker {
+public interface TribeInfomationBroker {
 
     /**
      * Find the tribe that owns the selected unit by AID.

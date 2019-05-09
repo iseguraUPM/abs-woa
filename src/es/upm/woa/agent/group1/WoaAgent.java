@@ -14,6 +14,6 @@ import java.util.logging.Level;
  */
 public abstract class WoaAgent extends Agent {
     
-    abstract void log(Level logLevel, String message);
+    public abstract void log(Level logLevel, String message);
     
 }

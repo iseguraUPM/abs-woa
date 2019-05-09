@@ -3,8 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.world;
 
+import es.upm.woa.agent.group1.Tribe;
+import es.upm.woa.agent.group1.Unit;
+import es.upm.woa.agent.group1.WoaAgent;
+import es.upm.woa.agent.group1.WoaDefinitions;
 import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.map.CellBuildingConstructor;
 import es.upm.woa.agent.group1.map.GameMap;
@@ -45,7 +49,7 @@ public class CreateBuildingBehaviourHelper {
     private final KnownPositionInformer knownPositionInformHandler;
     private final TribeInfomationBroker tribeInfomationHandler;
     
-    CreateBuildingBehaviourHelper(WoaAgent woaAgent
+    public CreateBuildingBehaviourHelper(WoaAgent woaAgent
             , CommunicationStandard comStandard, WoaGUI gui, GameMap worldMap
             , Collection<Transaction> activeTransactions
             , KnownPositionInformer knownPositionInformHandler
@@ -262,7 +266,7 @@ public class CreateBuildingBehaviourHelper {
         return false;
     }
     
-    interface KnownPositionInformer {
+    public interface KnownPositionInformer {
         
         /**
          * Inform all tribes that may know the cell about its details.

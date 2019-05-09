@@ -20,13 +20,13 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-class MapDataSharingHelper {
+class SendMapDataSharingHelper {
     
     private final WoaAgent groupAgent;
     private final CommunicationStandard comStandard;
     private final GameMap knownMap;
     
-    public MapDataSharingHelper(WoaAgent groupAgent
+    public SendMapDataSharingHelper(WoaAgent groupAgent
             , CommunicationStandard comStandard, GameMap knownMap) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;

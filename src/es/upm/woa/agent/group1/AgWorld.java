@@ -7,6 +7,12 @@ package es.upm.woa.agent.group1;
  *
  ****************************************************************
  */
+import es.upm.woa.agent.group1.world.WoaGUIWrapper;
+import es.upm.woa.agent.group1.world.TribeInfomationBroker;
+import es.upm.woa.agent.group1.world.UnitMovementInformer;
+import es.upm.woa.agent.group1.world.CreateUnitBehaviourHelper;
+import es.upm.woa.agent.group1.world.MoveUnitBehaviourHelper;
+import es.upm.woa.agent.group1.world.CreateBuildingBehaviourHelper;
 import es.upm.woa.agent.group1.map.WorldMapConfigurator;
 import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.gui.WoaGUIFactory;
@@ -436,7 +442,7 @@ public class AgWorld extends WoaAgent implements
     }
     
     @Override
-    void log(Level logLevel, String message) {
+    public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
     }
 

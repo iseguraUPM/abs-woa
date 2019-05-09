@@ -47,7 +47,7 @@ public class AgTribe extends GroupAgent {
     private GraphGameMap knownMap;
     private WoaLogger logger;
     
-    private MapDataSharingHelper mapDataSharingHelper;
+    private SendMapDataSharingHelper mapDataSharingHelper;
     private DelayTickBehaviour delayedShareMapDataBehaviour;
 
     @Override
@@ -178,7 +178,7 @@ public class AgTribe extends GroupAgent {
 
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance();
-        mapDataSharingHelper = new MapDataSharingHelper(this, group1ComStandard, knownMap);
+        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
     }
         
     private void informNewUnitOwnership(Unit unit) {
@@ -235,7 +235,7 @@ public class AgTribe extends GroupAgent {
     }
     
     @Override
-    void log(Level logLevel, String message) {
+    public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
     }
 

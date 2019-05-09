@@ -3,15 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.world;
 
+import es.upm.woa.agent.group1.Tribe;
 import es.upm.woa.agent.group1.map.MapCell;
 
 /**
  *
  * @author ISU
  */
-interface UnitMovementInformer {
+public interface UnitMovementInformer {
 
     /**
      * Process the cell that may be of interest to the tribe for later to be

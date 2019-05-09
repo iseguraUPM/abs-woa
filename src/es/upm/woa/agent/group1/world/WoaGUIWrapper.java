@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.agent.group1;
+package es.upm.woa.agent.group1.world;
 
 import es.upm.woa.agent.group1.gui.WoaGUI;
 
@@ -11,7 +11,7 @@ import es.upm.woa.agent.group1.gui.WoaGUI;
  *
  * @author ISU
  */
-class WoaGUIWrapper implements WoaGUI {
+public class WoaGUIWrapper implements WoaGUI {
     
     private WoaGUI nullableInstance;
    
