@@ -50,9 +50,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 
-
-import es.upm.woa.agent.group2.agents.AgTribe;
-import es.upm.woa.agent.group2.agents.AgUnit;
 // TODO: change docs
 /**
  * This agent has the following functionality:
@@ -65,6 +62,7 @@ import es.upm.woa.agent.group2.agents.AgUnit;
  */
 public class AgWorld extends WoaAgent implements
         CreateBuildingBehaviourHelper.KnownPositionInformer
+        , StartGameInformer
         , CreateUnitBehaviourHelper.UnitCreator
         , UnitMovementInformer
         , TribeInfomationBroker {
@@ -132,62 +130,12 @@ public class AgWorld extends WoaAgent implements
     private boolean initializeWorld() {
         woaComStandard = new WoaCommunicationStandard();
         woaComStandard.register(getContentManager());
-
-        guiEndpoint = new WoaGUIWrapper();
-        try {
-            WoaGUI woaGUI = WoaGUIFactory.getInstance().getGUI();
-            guiEndpoint.setGUIEndpoint(woaGUI);
-        } catch (IOException ex) {
-            log(Level.WARNING, "Could not connect to GUI endpoint");
-        }
-
-        WorldMapConfigurator configurator;
-        try {
-            configurator = WorldMapConfigurator
-                    .getInstance();
-
-            worldMap = configurator.generateWorldMap();
-        } catch (ConfigurationException ex) {
-            log(Level.SEVERE, "Could not load the configuration");
-            return false;
-        }
-
+        
         tribeCollection = new HashSet<>();
         activeTransactions = new ArrayList<>();
-
-        log(Level.INFO, "Starting game...");
-
-        // TODO: temp
-        final int MAX_TRIBES = 1;
-
-        // TODO: not the right way to initiate the game. Should be after registering
-        // all tribes and giving the resources.
-        String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES).toArray(new String[MAX_TRIBES]);
-
-        try {
-            guiEndpoint.apiStartGame(tribeNames,
-                     configurator.getMapConfigurationContents());
-        } catch (IOException ex) {
-            log(Level.SEVERE, "Could not load the map configuration");
-            return false;
-        }
-
-        for (int i = 0; i < MAX_TRIBES; i++) {
-            String tribeName = startingTribeNames.get(i);
-            Tribe newTribe = launchAgentTribe(tribeName);
-            if (newTribe != null) {
-                try {
-                    MapCell townHallCell = configurator.addNewTribe(worldMap,
-                             newTribe.getAID());
-                    handInitialTribeResources(townHallCell, newTribe);
-                } catch (ConfigurationException ex) {
-                    log(Level.SEVERE, "Could not add new tribe: "
-                            + newTribe.getAID().getLocalName() + " (" + ex + ")");
-                    return false;
-                }
-            }
-        }
-
+        
+        launchAgentRegistrationDesk();
+        
         return true;
     }
 
@@ -210,25 +158,15 @@ public class AgWorld extends WoaAgent implements
         }
     }
 
-    private Tribe launchAgentTribe(String tribeName) {
+    private void launchAgentRegistrationDesk() {
         try {
             ContainerController cc = getContainerController();
-            AgTribe newTribe = new AgTribe();
-            AgentController ac = cc.acceptNewAgent(tribeName, newTribe);
+            AgRegistrationDesk agRegistrationDesk = new AgRegistrationDesk(startingTribeNames, tribeCollection, this);
+            AgentController ac = cc.acceptNewAgent("Registartion Desk", agRegistrationDesk);
             ac.start();
-
-            Tribe newTribeRef = new Tribe(newTribe.getAID());
-            if (!tribeCollection.add(newTribeRef)) {
-                ac.kill();
-                return null;
-            } else {
-                return newTribeRef;
-            }
-
         } catch (StaleProxyException ex) {
-            log(Level.WARNING, "could not launch tribe " + tribeName + " (" + ex
+            log(Level.WARNING, "could not launch tribe Registration Desk (" + ex
                     + ")");
-            return null;
         }
     }
 
@@ -438,6 +376,45 @@ public class AgWorld extends WoaAgent implements
     @Override
     public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
+    }
+
+    @Override
+    public void startGame() {
+        guiEndpoint = new WoaGUIWrapper();
+        try {
+            WoaGUI woaGUI = WoaGUIFactory.getInstance().getGUI();
+            guiEndpoint.setGUIEndpoint(woaGUI);
+        } catch (IOException ex) {
+            log(Level.WARNING, "Could not connect to GUI endpoint");
+        }
+        
+        WorldMapConfigurator configurator;
+        try {
+            configurator = WorldMapConfigurator
+                    .getInstance();
+            
+            log(Level.INFO, "Starting game...");
+
+            // TODO: temp
+            final int MAX_TRIBES = 1;
+            
+            for(Tribe tribe: tribeCollection){
+                MapCell townHallCell = configurator.addNewTribe(worldMap, tribe.getAID());
+                handInitialTribeResources(townHallCell, tribe);
+            }
+
+            //TODO: Inform tribes about resources, initial position and initial units
+            
+            String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES).toArray(new String[MAX_TRIBES]);
+            
+            guiEndpoint.apiStartGame(tribeNames,
+                     configurator.getMapConfigurationContents());
+            
+        } catch (ConfigurationException ex) {
+            log(Level.SEVERE, "Could not load the configuration");
+        } catch (IOException ex) {
+            log(Level.SEVERE, "Could not load the map configuration");
+        }
     }
 
 }
