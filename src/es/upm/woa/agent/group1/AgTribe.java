@@ -192,6 +192,7 @@ public class AgTribe extends GroupAgent {
                     @Override
                     public void onSent(String conversationID) {
                         log(Level.FINE, "Informed unit " + unit.getId().getLocalName() + " of ownership");
+                        informOfStartingPosition(unit);
                     }
                     
                 });
@@ -203,11 +204,10 @@ public class AgTribe extends GroupAgent {
         mapDataSharingHelper.unicastMapData(newUnit.getId());
     }
     
-    private void informOfKnownMapCell(Unit newUnit, MapCell cell) {
+    private void informOfStartingPosition(Unit newUnit) {
         Cell knownCell = new Cell();
-        knownCell.setX(cell.getXCoord());
-        knownCell.setY(cell.getYCoord());
-        knownCell.setContent(cell.getContent());
+        knownCell.setX(newUnit.getCoordX());
+        knownCell.setY(newUnit.getCoordY());
         
         NotifyCellDetail newCellDiscovery = new NotifyCellDetail();
         newCellDiscovery.setNewCell(knownCell);
@@ -224,8 +224,7 @@ public class AgTribe extends GroupAgent {
                         public void onSent(String conversationID) {
                             log(Level.FINER, "Informed unit "
                                     + newUnit.getId().getLocalName()
-                                    + " of location " + cell.getXCoord()
-                                    + "," + cell.getYCoord());
+                                    + " of starting position");
                         }
                         
                     });

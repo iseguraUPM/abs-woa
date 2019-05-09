@@ -29,7 +29,10 @@ public class MapCellFactory implements Serializable {
     }
 
     public MapCell buildCell(Cell cellInfo) {
-        return new SimpleMapCell(cellInfo.getContent(),
+        CellContent content = cellInfo.getContent() == null ? new Empty()
+                : cellInfo.getContent();
+        
+        return new SimpleMapCell(content,
                  cellInfo.getX(), cellInfo.getY());
     }
 
