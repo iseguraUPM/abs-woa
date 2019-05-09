@@ -108,8 +108,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
         initializeAgent(() -> {
             log(Level.INFO, "Unit initialized");
-            //startCreateUnitBehaviour(); -> to strategy
-            //startMoveToCellBehaviour(); -> to strategy 
             startStrategy();
         });
 
@@ -375,10 +373,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
             //log(Level.FINER, "Cell discovery at " + newCell);
             // We do nothing. Other units will send us the information
         }
-    }
-
-    private void addFirstCell(MapCell newCell) {
-        knownMap.addCell(newCell);
     }
     
     @Override
