@@ -8,12 +8,15 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.map.CellBuildingConstructor;
 import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.GameMapCoordinate;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Transaction;
+import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateBuilding;
+import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 
 import jade.content.Concept;
@@ -178,8 +181,21 @@ public class CreateBuildingBehaviourHelper {
                             + " cannot build while moving");
             return false;
         }
+        
+        if (!canAffordBuilding(buildingType, tribe)) {
+            return false;
+        }
 
-        return canAffordBuilding(buildingType, tribe);
+        return canPlaceBuildingOnCell(buildingType, requester, tribe);
+    }
+    
+    private boolean canPlaceBuildingOnCell(String buildingType, Unit requester, Tribe owner) {
+        if (buildingType.equals(WoaDefinitions.TOWN_HALL)) {
+            return canPlaceNewTownHall(requester);
+        }
+        else {
+            return canPlaceNewBuilding(requester, owner);
+        }
     }
     
     private boolean canAffordBuilding(String buildingType, Tribe ownerTribe) {
@@ -200,6 +216,50 @@ public class CreateBuildingBehaviourHelper {
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
         }
+    }
+
+    private boolean canPlaceNewTownHall(Unit requester) {
+        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
+            int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap.getWidth(), worldMap.getHeight(), requester.getCoordX()
+                    , requester.getCoordY(), translationVector);
+            try {
+                MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
+                if (!(adjacentCell.getContent() instanceof Empty)) {
+                    return false;
+                }
+            } catch (NoSuchElementException ex) {
+                // That cell does not exist
+            }
+        }
+        
+        return true;
+    }
+
+    private boolean canPlaceNewBuilding(Unit requester, Tribe owner) {
+        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
+            int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap
+                    .getWidth(), worldMap.getHeight(), requester.getCoordX()
+                    , requester.getCoordY(), translationVector);
+            try {
+                MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
+                if (isBuildingFromOwner(adjacentCell, owner)) {
+                    return true;
+                }
+            } catch (NoSuchElementException ex) {
+                // That cell does not exist
+            }
+        }
+        
+        return false;
+    }
+
+    private boolean isBuildingFromOwner(MapCell adjacentCell, Tribe owner) {
+        if (adjacentCell.getContent() instanceof Building) {
+            Building existingBuilding = (Building) adjacentCell.getContent();
+            return existingBuilding.getOwner().equals(owner.getAID());
+        }
+        
+        return false;
     }
     
     interface KnownPositionInformer {
