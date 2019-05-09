@@ -50,6 +50,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 
+
+import es.upm.woa.agent.group2.agents.AgTribe;
+import es.upm.woa.agent.group2.agents.AgUnit;
 // TODO: change docs
 /**
  * This agent has the following functionality:
@@ -89,15 +92,6 @@ public class AgWorld extends WoaAgent implements
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.FINE);
         log(Level.INFO, "has entered the system");
-
-        // TODO: temp
-        startingTribeNames = new ArrayList<>();
-        startingTribeNames.add("TribeA");
-        startingTribeNames.add("TribeB");
-        startingTribeNames.add("TribeC");
-        startingTribeNames.add("TribeD");
-        startingTribeNames.add("TribeE");
-        startingTribeNames.add("TribeF");
 
         initializeAgent();
         
