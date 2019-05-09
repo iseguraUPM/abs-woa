@@ -43,8 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 
 // TODO: change docs
 /**
