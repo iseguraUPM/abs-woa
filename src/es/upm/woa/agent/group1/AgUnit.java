@@ -33,6 +33,8 @@ import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
+import jade.lang.acl.UnreadableException;
+import java.io.Serializable;
 
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
@@ -208,42 +210,22 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                         receiveResponse(conversationID, new ResponseHandler() {
                             @Override
                             public void onInform(ACLMessage response) {
-                                try {
-                                    ContentElement ce = getContentManager().extractContent(response);
-                                    if (ce instanceof Action) {
-
-                                        Action agAction = (Action) ce;
-                                        Concept conc = agAction.getAction();
-
-                                        if (conc instanceof WhereAmI) {
-                                            log(Level.FINER, "receive WhereAmI inform from "
+                                log(Level.FINER, "receive WhereAmI inform from "
                                                     + response.getSender().getLocalName());
-
-                                            WhereAmI where = (WhereAmI) conc;
-                                            int x = where.getXCoord();
-                                            int y = where.getYCoord();
-                                            
-                                            if (currentPosition == null) {
-                                                Cell newPos = new Cell();
-                                                newPos.setX(x);
-                                                newPos.setY(y);
-                                                
-                                                currentPosition = MapCellFactory
-                                                        .getInstance().buildCell(newPos);
-                                                knownMap.addCell(currentPosition);
+                                try {
+                                    Serializable content = response.getContentObject();
+                                    if (content instanceof MapCell) {
+                                        currentPosition = (MapCell) content;
+                                        knownMap.addCell(currentPosition);
                                                 handler.onReceivedStartingPosition();
-                                                log(Level.FINE, "Starting position at "
-                                                        + currentPosition);
-                                            }
-                                            else {
-                                                log(Level.FINE, "Already knows"
-                                                        + " starting position");
-                                            }
-                                        }
+                                        log(Level.FINE, "Starting position at "
+                                                + currentPosition);
                                     }
-                                } catch (Codec.CodecException | OntologyException ex) {
-                                    log(Level.WARNING, "could not receive message"
-                                            + " (" + ex + ")");
+                                    else {
+                                        log(Level.WARNING, "Could not retrieve starting position");
+                                    }
+                                } catch (UnreadableException ex) {
+                                    log(Level.WARNING, "Could not retrieve starting position (" + ex + ")");
                                 }
                             }
 

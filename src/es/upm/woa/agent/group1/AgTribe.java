@@ -6,6 +6,7 @@ package es.upm.woa.agent.group1;
  * and open the template in the editor.
  */
 import es.upm.woa.agent.group1.map.MapCell;
+import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
@@ -108,6 +109,20 @@ public class AgTribe extends GroupAgent {
                                             + newUnitInfo.getLocation().getX()
                                             + ", "
                                             + newUnitInfo.getLocation().getY());
+                                    Cell startingPosition = newUnitInfo
+                                            .getLocation();
+                                    // TODO: this cell should be indicated on
+                                    // game start with the rest of resources
+                                    MapCell knownCell;
+                                    try {
+                                        knownCell = knownMap.getCellAt(startingPosition.getX()
+                                               , startingPosition.getY());
+                                    } catch (NoSuchElementException ex) {
+                                        knownCell = MapCellFactory
+                                                .getInstance().buildCell(startingPosition);
+                                        knownMap.addCell(knownCell);
+                                    }
+                                    
                                     registerNewUnit(newUnitInfo);
                                 }
                             }
@@ -149,13 +164,13 @@ public class AgTribe extends GroupAgent {
                             respondMessage(response, ACLMessage.REFUSE);
                         }
                         else {
-                            WhereAmI whereAmI = new WhereAmI();
-                            whereAmI.setXCoord(requesterUnit.getCoordX());
-                            whereAmI.setYCoord(requesterUnit.getCoordY());
-                            
-                            whereAmIAction.setAction(whereAmI);
-                            
-                            respondMessage(response, ACLMessage.INFORM);
+                            try {
+                                MapCell knownCell = knownMap.getCellAt(requesterUnit
+                                        .getCoordX(), requesterUnit.getCoordY());
+                                respondMessage(response, ACLMessage.INFORM, knownCell);
+                            } catch (NoSuchElementException ex) {
+                                respondMessage(response, ACLMessage.REFUSE);
+                            }
                         } 
 
                     }

@@ -1,4 +1,4 @@
-; Thu May 09 17:48:52 CEST 2019
+; Fri May 10 10:34:09 CEST 2019
 ; 
 ;+ (version "3.5")
 ;+ (build "Build 663")
@@ -15,6 +15,10 @@
 		(type INTEGER)
 ;+		(cardinality 0 1)
 		(create-accessor read-write))
+	(single-slot group1_ontology_Class0
+		(type STRING)
+;+		(cardinality 0 1)
+		(create-accessor read-write))
 	(single-slot knownMap
 		(type SYMBOL)
 ;+		(allowed-parents)
@@ -27,15 +31,7 @@
 
 (defclass WhereAmI
 	(is-a AgentAction)
-	(role concrete)
-	(single-slot yCoord
-		(type INTEGER)
-;+		(cardinality 0 1)
-		(create-accessor read-write))
-	(single-slot xCoord
-		(type INTEGER)
-;+		(cardinality 0 1)
-		(create-accessor read-write)))
+	(role concrete))
 
 (defclass NotifyUnitOwnership
 	(is-a AgentAction)

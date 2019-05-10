@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: NotifyUnitOwnership
 * @author ontology bean generator
-* @version 2019/05/8, 21:15:33
+* @version 2019/05/10, 10:20:42
 */
 public class NotifyUnitOwnership implements AgentAction {
 

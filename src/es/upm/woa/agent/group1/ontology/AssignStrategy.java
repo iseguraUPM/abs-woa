@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: AssignStrategy
 * @author ontology bean generator
-* @version 2019/05/9, 17:48:53
+* @version 2019/05/10, 10:20:42
 */
 public class AssignStrategy implements AgentAction {
 

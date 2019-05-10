@@ -118,14 +118,23 @@ public abstract class Conversation extends SimpleBehaviour {
      * Reply a message from one conversation
      * @param message
      * @param performative 
+     * @param object 
      */
-    protected void respondMessage(ACLMessage message, int performative) {
+    protected void respondMessage(ACLMessage message, int performative, Serializable object) {
         myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
             @Override
             public void action() {
 
                 ACLMessage newMsg = message.createReply();
                 newMsg.setPerformative(performative);
+                
+                if (object != null) {
+                    try {
+                        newMsg.setContentObject(object);
+                    } catch (IOException ex) {
+                        Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
+                    }
+                }
 
                 try {
                     if (action.getAction() != null) {
@@ -138,6 +147,15 @@ public abstract class Conversation extends SimpleBehaviour {
                 myAgent.send(newMsg);
             }
         });
+    }
+    
+    /**
+     * Reply a message from one conversation
+     * @param message
+     * @param performative 
+     */
+    protected void respondMessage(ACLMessage message, int performative) {
+        respondMessage(message, performative, null);
     }
 
     /**
