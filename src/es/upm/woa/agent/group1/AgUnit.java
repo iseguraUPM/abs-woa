@@ -7,7 +7,6 @@ package es.upm.woa.agent.group1;
  */
 import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
@@ -16,7 +15,7 @@ import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.agent.group1.strategy.StrategicUnitBehaviour;
-import es.upm.woa.ontology.Cell;
+import es.upm.woa.agent.group1.strategy.Strategy;
 
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.Empty;
@@ -27,12 +26,9 @@ import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAAgentManagement.UnexpectedArgument;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.content.Concept;
-import jade.content.ContentElement;
-import jade.content.lang.Codec;
-import jade.content.onto.OntologyException;
 import jade.lang.acl.UnreadableException;
 import java.io.Serializable;
 
@@ -50,9 +46,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private static final int MAX_REQUEST_POSITION_TRIES = 3;
     private static final int BETWEEN_REQUEST_POSITION_TRIES_TIME_MILLIS = 1000;
-    
-    // TODO: temporary
-    private static int UNIT_TEST_MODE = 0;
 
     private GraphGameMap knownMap;
     private CommunicationStandard gameComStandard;
@@ -61,6 +54,9 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private MapCell currentPosition;
     private AID ownerTribe;
     private SendMapDataSharingHelper mapDataSharingHelper;
+    
+    private StrategicUnitBehaviour strategyBehaviour;
+    private StrategyFactory strategyFactory;
 
     private WoaLogger logger;
 
@@ -108,7 +104,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
         initializeAgent(() -> {
             log(Level.INFO, "Unit initialized");
-            startStrategy();
+            startStrategicUnitBehaviour();
+            startAssignStrategyBehaviour();
         });
 
     }
@@ -142,7 +139,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
-
+        strategyFactory = StrategyFactory.getInstance(this, gameComStandard
+                , knownMap, worldAgentServiceDescription.getName(), this);
         
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
@@ -250,6 +248,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         });
     }
 
+    // TODO: move to strategy
     private void startCreateTownHallBehaviour() {
         CreateBuilding createBuilding = new CreateBuilding();
         createBuilding.setBuildingType(WoaDefinitions.TOWN_HALL);
@@ -312,27 +311,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
         });
     }
-
-    private void startStrategy() {
-        // TODO: the test mode is so the first unit creates a town hall and
-        //  the second one explores
-        if (UNIT_TEST_MODE == 1) {
-            startCreateTownHallBehaviour();
-        }
-        else if (UNIT_TEST_MODE == 0) {
-            StrategicUnitBehaviour unitBehaviour = new StrategicUnitBehaviour(this);
-            
-            //unitBehaviour.addStrategy(new CreateUnitStrategy(this, eventDispatcher));
-            addFreeExploreStrategy(unitBehaviour);
-            addBehaviour(unitBehaviour);
-        }
-        UNIT_TEST_MODE++;
-    }
-
-    private void addFreeExploreStrategy(StrategicUnitBehaviour unitBehaviour) {
-        unitBehaviour.addStrategy(new FreeExploreStrategy(this, gameComStandard
-                , knownMap, worldAgentServiceDescription.getName(), this));
-    }
     
     @Override
     public void log(Level logLevel, String message) {
@@ -358,6 +336,24 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     void onUnitPassby(MapCell cell, String tribeId) {
         log(Level.FINER, "Unit from tribe " + tribeId + " at "
                                 + cell);
+    }
+
+    private void startAssignStrategyBehaviour() {
+        new ReceiveAssignStrategyBehaviourHelper(this, gameComStandard
+                , (StrategyEnvelop strategyEnvelop) -> {
+            try {
+                Strategy incomingStrategy = strategyFactory.getStrategy(strategyEnvelop);
+                strategyBehaviour.addStrategy(incomingStrategy);
+            } catch (UnexpectedArgument ex) {
+                log(Level.WARNING, "Error while retrieving new strategy ("
+                        + ex + ")");
+            }
+        }).startAssignStrategyBehaviour();
+    }
+
+    private void startStrategicUnitBehaviour() {
+        strategyBehaviour = new StrategicUnitBehaviour(this);
+        addBehaviour(strategyBehaviour);
     }
     
     private interface OnReceivedOwnershipHandler {
