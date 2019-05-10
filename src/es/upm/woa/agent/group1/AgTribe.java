@@ -5,6 +5,7 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import static es.upm.woa.agent.group1.AgUnit.WORLD;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
@@ -16,10 +17,14 @@ import es.upm.woa.agent.group1.protocol.DelayTickBehaviour;
 import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.Cell;
+import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.InitalizeTribe;
 import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
+import es.upm.woa.ontology.NotifyUnitPosition;
+import es.upm.woa.ontology.RegisterTribe;
 
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -27,6 +32,10 @@ import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
@@ -41,24 +50,28 @@ import java.util.stream.Collectors;
  * @author ISU
  */
 public class AgTribe extends GroupAgent {
+    public static final String REGISTRATION_DESK = "REGISTRATION_DESK";
     
+    private int tribeNumber;
     private CommunicationStandard gameComStandard;
     private CommunicationStandard group1ComStandard;
     private Collection<Unit> units;
     private GraphGameMap knownMap;
     private WoaLogger logger;
-    
+    private DFAgentDescription registrationDeskServiceDescription;
+
     private SendMapDataSharingHelper mapDataSharingHelper;
     private DelayTickBehaviour delayedShareMapDataBehaviour;
 
     @Override
-    protected void setup() {       
+    protected void setup() {
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.ALL);
         
         initializeAgent();
         initializeTribe();
         
+        startInformRegistrationBehaviour();
         startInformNewUnitBehaviour();
         startInformCellDetailBehaviour();
         startWhereAmIBehaviour();
@@ -66,6 +79,70 @@ public class AgTribe extends GroupAgent {
         startShareMapDataBehaviour();
     }
 
+    private void startInformRegistrationBehaviour() {
+        final Action registerTribe = new Action(this.getAID(), new RegisterTribe());
+
+        addBehaviour(new Conversation(this, gameComStandard, registerTribe, GameOntology.REGISTERTRIBE) {
+            @Override
+            public void onStart() {
+                AID registrationDeskAID = (AID) registrationDeskServiceDescription.getName();
+
+                sendMessage(registrationDeskAID, ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
+
+                    @Override
+                    public void onSent(String conversationID) {
+
+                        log(Level.FINER, "sent RegisterTribe request");
+                        receiveResponse(conversationID, new Conversation.ResponseHandler() {
+
+                            @Override
+                            public void onAgree(ACLMessage response) {
+                                try {
+                                    handleRegisterTribeMessage(response);
+                                    log(Level.FINE, "receive RegisterTribe agree from "
+                                        + response.getSender().getLocalName() + "and this tribe's number is " + tribeNumber);
+                                } catch (Codec.CodecException | OntologyException ex) {
+                                    log(Level.WARNING, "could not receive message"
+                                            + " (" + ex + ")");
+                                }
+                            }
+
+                            @Override
+                            public void onNotUnderstood(ACLMessage response) {
+                                log(Level.FINE, "receive RegisterTribe not understood from "
+                                      + response.getSender().getLocalName());
+                            }
+
+                            @Override
+                            public void onRefuse(ACLMessage response) {
+                                log(Level.FINE, "receive RegisterTribe refuse from "
+                                        + response.getSender().getLocalName());
+                            }
+
+                        });
+                    }
+                });
+
+            }
+
+        });
+    }
+    
+    private void handleRegisterTribeMessage(ACLMessage response)
+            throws OntologyException, Codec.CodecException {
+        ContentElement ce = this.getContentManager().extractContent(response);
+        if (ce instanceof Action) {
+
+            Action agAction = (Action) ce;
+            Concept conc = agAction.getAction();
+
+            if (conc instanceof RegisterTribe) {
+                RegisterTribe registerTribe = (RegisterTribe) conc;
+                tribeNumber = registerTribe.getTeamNumber();              
+            }
+        }
+    }
+    
     private void startInformCellDetailBehaviour() {
         new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
                 , knownMap).startInformCellDetailBehaviour();
@@ -181,6 +258,22 @@ public class AgTribe extends GroupAgent {
     }
 
     private void initializeAgent() {
+        //Finds the Registration Desk in the DF
+        try {
+            DFAgentDescription dfdRegistrationDesk = new DFAgentDescription();
+            ServiceDescription sdRegistrationDesk = new ServiceDescription();
+            sdRegistrationDesk.setType(REGISTRATION_DESK);
+            dfdRegistrationDesk.addServices(sdRegistrationDesk);
+            // It finds agents of the required type
+            DFAgentDescription[] descriptions = DFService.search(this, dfdRegistrationDesk);
+            if (descriptions.length == 0) {
+                log(Level.SEVERE, "Registration Desk service description not found");
+            } else {
+                registrationDeskServiceDescription = descriptions[0];
+            }
+        } catch (FIPAException ex) {
+            log(Level.WARNING, " the REGISTRATION_DESK agent was not found (" + ex + ")");
+        }
         
     }
 
