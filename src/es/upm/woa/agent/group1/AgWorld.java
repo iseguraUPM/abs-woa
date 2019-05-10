@@ -90,7 +90,7 @@ public class AgWorld extends WoaAgent implements
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.FINE);
         log(Level.INFO, "has entered the system");
-
+        
         initializeAgent();
         
         if (!initializeWorld()) {
@@ -130,7 +130,8 @@ public class AgWorld extends WoaAgent implements
             startingTribeNames.add("TribeD");
             startingTribeNames.add("TribeE");
             startingTribeNames.add("TribeF");
-        
+            
+            
         } catch (FIPAException ex) {
             log(Level.WARNING, "could not register in the DF (" + ex + ")");
         }
@@ -142,7 +143,7 @@ public class AgWorld extends WoaAgent implements
         
         tribeCollection = new HashSet<>();
         activeTransactions = new ArrayList<>();
-        
+
         launchAgentRegistrationDesk();
         
         return true;
@@ -402,11 +403,12 @@ public class AgWorld extends WoaAgent implements
             configurator = WorldMapConfigurator
                     .getInstance();
             
+            worldMap = configurator.generateWorldMap();
+            
             log(Level.INFO, "Starting game...");
 
             // TODO: temp
             final int MAX_TRIBES = 1;
-            
             for(Tribe tribe: tribeCollection){
                 MapCell townHallCell = configurator.addNewTribe(worldMap, tribe.getAID());
                 handInitialTribeResources(townHallCell, tribe);

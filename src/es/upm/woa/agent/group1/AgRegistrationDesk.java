@@ -42,7 +42,6 @@ public class AgRegistrationDesk extends WoaAgent {
     private CommunicationStandard woaComStandard;
 
     private WoaLogger logger;
-    private WoaAgent woaAgent;
     private Collection<Tribe> registeredTribes;
     private StartGameInformer startGameInformer;
     private boolean registrationOpen;
@@ -62,9 +61,6 @@ public class AgRegistrationDesk extends WoaAgent {
     protected void setup() {       
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.ALL);
-
-        woaAgent = this;
-        registeredTribes = new HashSet<>();
         
         woaComStandard = new WoaCommunicationStandard();
         woaComStandard.register(getContentManager());
@@ -128,18 +124,18 @@ public class AgRegistrationDesk extends WoaAgent {
         RegisterTribe registerTribe = new RegisterTribe();
         registerTribe.setTeamNumber(registeredTribes.size()+1);
         
-        final Action  action= new Action(woaAgent.getAID(),registerTribe);
+        final Action  action = new Action(getAID(),registerTribe);
         
         this.addBehaviour(new Conversation(this, woaComStandard
                , action, GameOntology.REGISTERTRIBE) {
             @Override
             public void onStart() {
-                Action action = new Action(woaAgent.getAID(), new RegisterTribe());
+                Action action = new Action(getAID(), new RegisterTribe());
 
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        woaAgent.log(Level.FINE, "received Tribe request from"
+                        log(Level.FINE, "received Tribe request from"
                                 + message.getSender().getLocalName());
 
                         if (registeredTribes.stream().anyMatch(
@@ -170,10 +166,11 @@ public class AgRegistrationDesk extends WoaAgent {
             protected final void handleElapsedTimeout() {
                 registrationOpen = false;
                 startGameInformer.startGame();
+                System.out.println(registeredTribes);
             }
             
         };
-        woaAgent.addBehaviour(behaviour);
+        addBehaviour(behaviour);
     }
     
     @Override
