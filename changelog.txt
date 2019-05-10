@@ -381,3 +381,21 @@
     the game starting.
   6. [FEATURE]
     Added GoToStrategy so that the tribe can command a unit (or several) to go to certain known place.
+----------------------------------------------------------------------------------------------------------------
+ (32) {10/05/2019 17:00} Create building strategy and construction site finder : Inaki
+  1. [FEATURE]
+    Added create building strategy so the AgUnit goes to the construction site and request a building creation
+    There is two ways of operation:
+    - Tell the unit which is the construction site. The unit will travel to the site regradless of the conditions
+      and if it's able to reach it it will request a building construction.
+    - Don't indicate construction site. The unit will look for the closest possible construction site depending
+      on the building type.
+  2. [FEATURE]
+    Created the ConstructionSiteFinder. This class allows the tribe or unit to find candidate construction site 
+    depending on the building type. Note that candidates depend heavily on the discovered map when doing the 
+    request. Also, having a candidate does not mean that the building can be created at that site, there can be 
+    unknown cells that don't meet the conditions.
+  3. [FIX]
+    Fixed the methods using the follow path behaviour when the path was empty. An empty path can mean
+    that the destination position is the same as the current or that there is no possible path to travel.
+    In the first case, a check was added to allow for continuation.
