@@ -122,6 +122,15 @@ public class AgWorld extends WoaAgent implements
             // Registers its description in the DF
             DFService.register(this, dfd);
             log(Level.INFO, "registered in the DF");
+            
+            startingTribeNames = new ArrayList<>();
+            startingTribeNames.add("TribeA");
+            startingTribeNames.add("TribeB");
+            startingTribeNames.add("TribeC");
+            startingTribeNames.add("TribeD");
+            startingTribeNames.add("TribeE");
+            startingTribeNames.add("TribeF");
+        
         } catch (FIPAException ex) {
             log(Level.WARNING, "could not register in the DF (" + ex + ")");
         }

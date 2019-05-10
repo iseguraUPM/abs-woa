@@ -37,7 +37,7 @@ import java.util.logging.LogRecord;
  */
 public class AgRegistrationDesk extends WoaAgent {
     public static final String REGISTRATION_DESK = "REGISTRATION_DESK";
-    private static final int REGISTRATION_PERIOD_TICKS = 100;
+    private static final int REGISTRATION_PERIOD_TICKS = 10;
 
     private CommunicationStandard woaComStandard;
 
@@ -98,13 +98,6 @@ public class AgRegistrationDesk extends WoaAgent {
     
     // TODO: temporal solutions before registration
     private void launchTribes(){
-        startingTribeNames = new ArrayList<>();
-        startingTribeNames.add("TribeA");
-        startingTribeNames.add("TribeB");
-        startingTribeNames.add("TribeC");
-        startingTribeNames.add("TribeD");
-        startingTribeNames.add("TribeE");
-        startingTribeNames.add("TribeF");
         
         for (int i = 0; i < MAX_TRIBES; i++) {
             String tribeName = startingTribeNames.get(i);
@@ -171,7 +164,7 @@ public class AgRegistrationDesk extends WoaAgent {
     }
     
     private void informWorldToStartGame(){
-        new DelayTickBehaviour(this, REGISTRATION_PERIOD_TICKS) {
+        DelayTickBehaviour behaviour = new DelayTickBehaviour(this, REGISTRATION_PERIOD_TICKS) {
             
             @Override
             protected final void handleElapsedTimeout() {
@@ -180,6 +173,7 @@ public class AgRegistrationDesk extends WoaAgent {
             }
             
         };
+        woaAgent.addBehaviour(behaviour);
     }
     
     @Override
