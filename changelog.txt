@@ -340,3 +340,25 @@
   3. [NOTE]
     Now that whole maps are sent to the tribe the cell discovery event has changed. If the tribe or unit does not
     know a discovered cell it will ignore it. If they do, it will get updated if necessary.
+----------------------------------------------------------------------------------------------------------------
+ (30) {10/05/2019 12:00} Changes in strategy : Inaki
+  1. [REMOVE]
+    Removed event dispatcher in strategies. It's simpler to have the AgTribe send each unit which strategy to
+    take next instead of these triggering on their own.
+  2. [NEW]
+    Added "oneShot" strategies. The StrategicBehaviour will remove those strategies that have completed that
+    respond "true" to "isOneShot". These strategies are the ones like CreateUnitStrategy that are needed in a
+    specific moment.
+  3. [FEATURE]
+    In order for the tribe to send strategies to the AgUnits a new protocol was added: AssignStrategy. To send
+    an strategy the tribe must send a serialized StrategyEnvelop which indicates the StrategyFactory which is
+    the correct strategy to create. Then the AgUnit shall receive this and add it to the strategy queue.
+  4. [TODO]
+    The tribe is not currently sending strategies at startup. Currently, the units only wait when created 
+    (default WaitStrategy);
+  5. [TODO]
+    Currently the starting position of the units are given by the WhereAmI protocol. This starting position
+    is created by the tribe using coordinates. This should be created by the world and sent to the tribe upon 
+    the game starting.
+  6. [FEATURE]
+    Added GoToStrategy so that the tribe can command a unit (or several) to go to certain known place.
