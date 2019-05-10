@@ -92,6 +92,13 @@ public class GoToStrategy extends Strategy {
     }
     
     private void moveToDestination(MapCell destination) {
+        if (agentUnit.getCurrentPosition().equals(destination)) {
+            woaAgent.log(Level.FINE, "Already at destination : "
+                        + destination);
+            finishStrategy();
+            return;
+        }
+        
         List<CellTranslation> pathToTownHall
                 = findShortestPathToDestination(agentUnit.getCurrentPosition(), destination);
         

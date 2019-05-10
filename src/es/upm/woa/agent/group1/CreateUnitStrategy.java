@@ -115,6 +115,16 @@ class CreateUnitStrategy extends Strategy {
     }
     
     private void moveToNearestTownHall(OnArrivedToTownHallHandler handler) {
+        if (agentUnit.getCurrentPosition().getContent() instanceof Building) {
+            Building nearBuilding = (Building) agentUnit.getCurrentPosition()
+                    .getContent();
+            if (nearBuilding.getType().equals(WoaDefinitions.TOWN_HALL)
+                    && nearBuilding.getOwner().equals(agentUnit.getTribeAID())) {
+                handler.onArrivedToTownHall();
+                return;
+            }
+        }
+        
         List<CellTranslation> pathToTownHall
                 = findShortestPathToTownHall(agentUnit.getCurrentPosition());
         

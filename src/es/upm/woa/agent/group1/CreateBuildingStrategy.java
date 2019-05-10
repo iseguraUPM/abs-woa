@@ -92,7 +92,7 @@ class CreateBuildingStrategy extends Strategy {
     }
     
     private void createBuilding() {
-        startCreateUnitBehaviour(new OnCreatedUnitHandler() {
+        startCreateBuildingBehaviour(new OnCreatedUnitHandler() {
             @Override
             public void onCreatedBuilding() {
                 finishStrategy();
@@ -135,18 +135,23 @@ class CreateBuildingStrategy extends Strategy {
                 return;
             }
         }
-       
-        moveToConstructionSite(new OnArrivedToConstructionSiteHandler() {
-            @Override
-            public void onArrivedToConstuctionSite() {
-                createBuilding();
-            }
+        
+        if (constructionSite.equals(agentUnit.getCurrentPosition())) {
+            createBuilding();
+        }
+        else {
+            moveToConstructionSite(new OnArrivedToConstructionSiteHandler() {
+                @Override
+                public void onArrivedToConstuctionSite() {
+                    createBuilding();
+                }
 
-            @Override
-            public void onCouldntArriveToConstructionSite() {
-               finishStrategy();
-            }
-        });
+                @Override
+                public void onCouldntArriveToConstructionSite() {
+                   finishStrategy();
+                }
+            });
+        }
     }
     
     private void moveToConstructionSite(OnArrivedToConstructionSiteHandler handler) {
@@ -201,7 +206,7 @@ class CreateBuildingStrategy extends Strategy {
         return shortestPath;
     }
     
-    private void startCreateUnitBehaviour(OnCreatedUnitHandler handler) {
+    private void startCreateBuildingBehaviour(OnCreatedUnitHandler handler) {
         CreateBuilding createBuilding = new CreateBuilding();
         createBuilding.setBuildingType(buildingType);
         
