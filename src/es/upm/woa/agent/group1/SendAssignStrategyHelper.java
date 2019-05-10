@@ -31,20 +31,18 @@ class SendAssignStrategyHelper {
         this.comStandard = comStandard;
     }
     
-    public void multicastStrategy(AID[] receipts, String strategy) {
-        AssignStrategy assignStrategyAction = new AssignStrategy();
-        assignStrategyAction.setStrategy(strategy);
-        
-        Action action = new Action(groupAgent.getAID(), assignStrategyAction);
+    public void multicastStrategy(AID[] receipts, StrategyEnvelop strategyEnvelop) {
+        Action action = new Action(groupAgent.getAID(), new AssignStrategy());
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard, action
                 , Group1Ontology.ASSIGNSTRATEGY ) {
             @Override
             public void onStart() {
-                sendMessage(receipts, ACLMessage.INFORM, new SentMessageHandler() {
+                sendMessage(receipts, ACLMessage.INFORM, strategyEnvelop
+                        , new SentMessageHandler() {
                     
                     @Override
                     public void onSent(String conversationID) {
-                        groupAgent.log(Level.FINER, "Assigned "  + strategy + " to "+ printReceipts(receipts));
+                        groupAgent.log(Level.FINER, "Assigned strategy to " + printReceipts(receipts));
                     }
                     
                     @Override
@@ -57,8 +55,8 @@ class SendAssignStrategyHelper {
         });
     }
     
-    public void unicastStrategy(AID receipt, String strategy) {
-        multicastStrategy(new AID[]{receipt}, strategy);
+    public void unicastStrategy(AID receipt, StrategyEnvelop strategyEnvelop) {
+        multicastStrategy(new AID[]{receipt}, strategyEnvelop);
     }
     
     private String printReceipts(AID[] receipts) {

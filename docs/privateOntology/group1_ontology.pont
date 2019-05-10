@@ -1,4 +1,4 @@
-; Fri May 10 10:34:09 CEST 2019
+; Fri May 10 11:14:59 CEST 2019
 ; 
 ;+ (version "3.5")
 ;+ (build "Build 663")
@@ -18,6 +18,10 @@
 	(single-slot group1_ontology_Class0
 		(type STRING)
 ;+		(cardinality 0 1)
+		(create-accessor read-write))
+	(single-slot priority
+		(type INTEGER)
+;+		(cardinality 1 1)
 		(create-accessor read-write))
 	(single-slot knownMap
 		(type SYMBOL)
@@ -43,8 +47,4 @@
 
 (defclass AssignStrategy
 	(is-a AgentAction)
-	(role concrete)
-	(single-slot strategy
-		(type STRING)
-;+		(cardinality 1 1)
-		(create-accessor read-write)))
+	(role concrete))

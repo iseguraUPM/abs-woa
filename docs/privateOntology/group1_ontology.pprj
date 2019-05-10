@@ -1,4 +1,4 @@
-; Fri May 10 10:34:09 CEST 2019
+; Fri May 10 11:14:59 CEST 2019
 ; 
 ;+ (version "3.5")
 ;+ (build "Build 663")
@@ -19,7 +19,7 @@
 
 ([BROWSER_SLOT_NAMES] of  Property_List
 
-	(properties [group1_ontology_ProjectKB_Class10193]))
+	(properties [group1_ontology_ProjectKB_Class10196]))
 
 ([CLSES_TAB] of  Widget
 
@@ -39,7 +39,7 @@
 	(is_hidden FALSE)
 	(widget_class_name "edu.stanford.smi.protege.widget.FormsTab"))
 
-([group1_ontology_ProjectKB_Class10193] of  String
+([group1_ontology_ProjectKB_Class10196] of  String
 
 	(name ":INSTANCE-ANNOTATION")
 	(string_value "%3AANNOTATION-TEXT"))

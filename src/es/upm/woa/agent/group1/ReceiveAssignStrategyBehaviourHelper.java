@@ -5,18 +5,17 @@
  */
 package es.upm.woa.agent.group1;
 
-import es.upm.woa.agent.group1.ontology.AssignStrategy;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
-import jade.content.Concept;
-import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 
+import java.io.Serializable;
 import java.util.logging.Level;
 
 /**
@@ -72,28 +71,23 @@ class ReceiveAssignStrategyBehaviourHelper {
 
     private void handleStrategyData(ACLMessage response)
             throws OntologyException, Codec.CodecException {
-        ContentElement ce = groupAgent.getContentManager().extractContent(response);
-        if (ce instanceof Action) {
-
-            Action agAction = (Action) ce;
-            Concept conc = agAction.getAction();
-
-            if (conc instanceof AssignStrategy) {
-                groupAgent.log(Level.FINER, "receive AssignStrategy inform from "
-                        + response.getSender().getLocalName());
-
-                AssignStrategy assignStrategy = (AssignStrategy) conc;
-
-                
+        try {
+            Serializable content = response.getContentObject();
+            if (content instanceof StrategyEnvelop) {
                 receivedStrategyHandler
-                        .onReceivedStrategy(assignStrategy.getStrategy());
+                        .onReceivedStrategy((StrategyEnvelop) content);
             }
+            else {
+                groupAgent.log(Level.WARNING, "Could not retrieve strategy");
+            }
+        } catch (UnreadableException ex) {
+            groupAgent.log(Level.WARNING, "Could not retrieve strategy (" + ex + ")");
         }
     }
     
     interface OnReceivedStrategyHandler {
     
-        void onReceivedStrategy(String strategy);
+        void onReceivedStrategy(StrategyEnvelop strategyEnvelop);
     
     }
     

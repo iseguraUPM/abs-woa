@@ -27,8 +27,6 @@ import java.util.logging.Level;
  */
 class CreateUnitStrategy extends Strategy {
     
-    public final String STRATEGY_CREATE_UNIT = "CreateUnit";
-    
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
     private final GraphGameMap graphKnownMap;
