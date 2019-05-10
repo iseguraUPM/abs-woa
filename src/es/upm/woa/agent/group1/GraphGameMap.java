@@ -288,4 +288,15 @@ class GraphGameMap implements GameMap {
         }
     }
     
+    Set<MapCell> getNeighbours(MapCell mapCell) {
+        if (!mapGraph.containsVertex(mapCell)) {
+            return new HashSet<>();
+        }
+        
+        Set<CellTranslation> connections = mapGraph.outgoingEdgesOf(mapCell);
+        
+        return connections.stream().map(c -> mapGraph.getEdgeTarget(c))
+                .collect(Collectors.toSet());
+    }
+    
 }
