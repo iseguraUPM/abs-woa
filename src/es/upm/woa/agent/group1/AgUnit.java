@@ -54,6 +54,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private MapCell currentPosition;
     private AID ownerTribe;
     private SendMapDataSharingHelper mapDataSharingHelper;
+    private ConstructionSiteFinder constructionSiteFinder;
     
     private StrategicUnitBehaviour strategyBehaviour;
     private StrategyFactory strategyFactory;
@@ -131,16 +132,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     private void initializeUnit(OnUnitInitializedHandler handler) {
-        gameComStandard = new WoaCommunicationStandard();
-        gameComStandard.register(getContentManager());
-        
-        group1ComStandard = new Group1CommunicationStandard();
-        group1ComStandard.register(getContentManager());
-
-        knownMap = GraphGameMap.getInstance();
-        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
-        strategyFactory = StrategyFactory.getInstance(this, gameComStandard
-                , knownMap, worldAgentServiceDescription.getName(), this);
+        initializeDependencies();
         
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
@@ -150,6 +142,22 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                 handler.onUnitInitialized();
             });
         });
+    }
+
+    private void initializeDependencies() {
+        gameComStandard = new WoaCommunicationStandard();
+        gameComStandard.register(getContentManager());
+        
+        group1ComStandard = new Group1CommunicationStandard();
+        group1ComStandard.register(getContentManager());
+
+        knownMap = GraphGameMap.getInstance();
+        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
+        constructionSiteFinder = ConstructionSiteFinder.getInstance(ownerTribe
+                , knownMap);
+        strategyFactory = StrategyFactory.getInstance(this, gameComStandard
+                , knownMap, worldAgentServiceDescription.getName(), this
+                , constructionSiteFinder);
     }
 
     private void startInformUnitPositionBehaviour() {

@@ -23,6 +23,7 @@ class StrategyFactory {
     private static final int FREE_EXPLORE = 0;
     private static final int CREATE_UNIT = 1;
     private static final int GOTO = 2;
+    private static final int CREATE_BUILDING = 3;
     
     private WoaAgent woaAgent;
     private CommunicationStandard comStandard;
@@ -30,18 +31,21 @@ class StrategyFactory {
     private AID worldAID;
     
     private PositionedAgentUnit agentUnit;
+    private ConstructionSiteFinder constructionSiteFinder;
     
     private StrategyFactory() {}
     
     public static StrategyFactory getInstance(WoaAgent woaAgent
             , CommunicationStandard comStandard, GraphGameMap graphKnownMap
-            , AID worldAID, PositionedAgentUnit agentUnit) {
+            , AID worldAID, PositionedAgentUnit agentUnit
+            , ConstructionSiteFinder constructionSiteFinder) {
         StrategyFactory instance = new StrategyFactory();
         instance.woaAgent = woaAgent;
         instance.comStandard = comStandard;
         instance.graphKnownMap = graphKnownMap;
         instance.worldAID = worldAID;
         instance.agentUnit = agentUnit;
+        instance.constructionSiteFinder = constructionSiteFinder;
         
         return instance;
     }
@@ -62,6 +66,8 @@ class StrategyFactory {
                 return getCreateUnitStrategy(envelope);
             case GOTO:
                 return getGoToStrategy(envelope);
+            case CREATE_BUILDING:
+                return getCreateBuildingStrategy(envelope);
             default:
                 throw new UnexpectedArgument();
         }
@@ -77,6 +83,27 @@ class StrategyFactory {
                 , worldAID, agentUnit);
     }
     
+    private Strategy getCreateBuildingStrategy(StrategyEnvelop envelope)
+            throws UnexpectedArgument {
+        if (envelope.getContent() instanceof CreateBuildingRequest) {
+            CreateBuildingRequest request = (CreateBuildingRequest)
+                    envelope.getContent();
+            if (request.constructionSite != null) {
+                return new CreateBuildingStrategy(woaAgent, comStandard
+                        , graphKnownMap, worldAID, agentUnit
+                        , request.buildingType, request.constructionSite);
+            }
+            else {
+                return new CreateBuildingStrategy(woaAgent, comStandard
+                        , graphKnownMap, worldAID, agentUnit, request.buildingType
+                        , constructionSiteFinder);
+            }
+        }
+        else {
+            throw new UnexpectedArgument("Could not find map cell argument");
+        }
+    }
+    
     private Strategy getGoToStrategy(StrategyEnvelop envelope)
             throws UnexpectedArgument {
         if (envelope.getContent() instanceof MapCell) {
@@ -84,8 +111,7 @@ class StrategyFactory {
                     , worldAID, (MapCell) envelope.getContent(), agentUnit);
         }
         else {
-            throw new UnexpectedArgument("Could not find map cell argument");
-                    
+            throw new UnexpectedArgument("Could not find map cell argument");  
         }
     }
     
@@ -100,6 +126,27 @@ class StrategyFactory {
     public static StrategyEnvelop envelopGoToStrategy(int priority
             , MapCell destination) {
         return new Envelop(GOTO, priority, destination);
+    }
+    
+    public static StrategyEnvelop envelopCreateBuildingStrategy(int priority
+            , String buildingType, MapCell destination) {
+        CreateBuildingRequest request = new CreateBuildingRequest();
+        request.buildingType = buildingType;
+        request.constructionSite = destination;
+        
+        return new Envelop(CREATE_BUILDING, priority, request);
+    }
+    
+    public static StrategyEnvelop envelopCreateBuildingStrategy(int priority
+            , String buildingType) {
+        return envelopCreateBuildingStrategy(priority, buildingType, null);
+    }
+    
+    private static class CreateBuildingRequest implements Serializable {
+        
+        String buildingType;
+        MapCell constructionSite;
+        
     }
     
     private static class Envelop implements StrategyEnvelop {
