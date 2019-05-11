@@ -7,7 +7,6 @@ package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.ontology.Building;
-import es.upm.woa.ontology.Empty;
 
 import jade.core.AID;
 
@@ -31,13 +30,13 @@ class OtherBuildingSiteEvaluator implements MapCellEvaluator {
     public boolean match(MapCell candidate) {
         Set<MapCell> neighbours = graphMap.getNeighbours(candidate);
         
-        return neighbours.parallelStream().allMatch((MapCell n) -> {
+        return neighbours.parallelStream().anyMatch((MapCell n) -> {
             if (n.getContent() instanceof Building) {
                 Building neighbourBuilding = (Building) n.getContent();
                 return neighbourBuilding.getOwner().equals(tribeAID);
             }
             else {
-                return n.getContent() instanceof Empty;
+                return false;
             }
         });
     }
