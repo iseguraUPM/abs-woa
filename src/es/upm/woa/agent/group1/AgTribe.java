@@ -25,6 +25,7 @@ import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
 import es.upm.woa.ontology.NotifyUnitPosition;
 import es.upm.woa.ontology.RegisterTribe;
+import es.upm.woa.ontology.ResourceAccount;
 
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -77,6 +78,7 @@ public class AgTribe extends GroupAgent {
         startWhereAmIBehaviour();
         startInformUnitPositionBehaviour();
         startShareMapDataBehaviour();
+        startInitialResourcesBehaviour();
     }
 
     private void startInformRegistrationBehaviour() {
@@ -386,6 +388,47 @@ public class AgTribe extends GroupAgent {
             };
             addBehaviour(delayedShareMapDataBehaviour);
         }
+    }
+    
+    
+    
+    /**
+     * Listen to the initial resources being sent by the registration desk
+     */
+    public void startInitialResourcesBehaviour() {
+        Action initialResourcesAction = new Action(getAID(), new ResourceAccount());
+        addBehaviour(new Conversation(this, gameComStandard
+                , initialResourcesAction, GameOntology.INITALIZETRIBE_STARTINGRESOURCES) {
+            @Override
+            public void onStart() {
+                listenMessages(new Conversation.ResponseHandler() {
+                    @Override
+                    public void onInform(ACLMessage response) {
+                        try {
+                            ContentElement ce = getContentManager().extractContent(response);
+                            if (ce instanceof Action) {
+
+                                Action agAction = (Action) ce;
+                                Concept conc = agAction.getAction();
+
+                                if (conc instanceof ResourceAccount) {
+                                    log(Level.FINER, "receive ResourceAccount inform from "
+                                            + response.getSender().getLocalName());
+
+                                    ResourceAccount resourceAccound = (ResourceAccount) conc;
+
+                                }
+                            }
+                        } catch (Codec.CodecException | OntologyException ex) {
+                            log(Level.WARNING, "could not receive message"
+                                    + " (" + ex + ")");
+                        }
+
+                    }
+
+                });
+            }
+        });
     }
 
 

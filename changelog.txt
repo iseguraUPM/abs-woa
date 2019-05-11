@@ -409,3 +409,10 @@
      Fixed the building creation conditions in the Tribe side and in AgWorld. Town Halls can be created when
      the surrounding cells are not buildings (but can be resources). And other buildings must be connected
      to a Tribe town hall or other buildings connected to that.
+----------------------------------------------------------------------------------------------------------------
+ (34) {11/05/2019 20:12} 1.1.1 - Receive initial resources : Juan Pablo
+ 1. [COMPLETE]
+   Communication and file and JSON readings to get the initial resources done.
+ 2. [TODO]
+   In the AgTribe, see where the obtained resources should be stored
+----------------------------------------------------------------------------------------------------------------
