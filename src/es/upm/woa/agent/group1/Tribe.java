@@ -73,7 +73,8 @@ public class Tribe {
      */
     public Unit getUnit(AID unitAID) {
         try {
-            return unitCollection.stream().filter(unit -> unit.getId().equals(unitAID)).findAny().get();
+            return unitCollection.parallelStream()
+                    .filter(unit -> unit.getId().equals(unitAID)).findAny().get();
         } catch (NoSuchElementException ex) {
             return null;
         }
