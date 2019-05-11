@@ -31,14 +31,14 @@ class StrategyFactory {
     private AID worldAID;
     
     private PositionedAgentUnit agentUnit;
-    private ConstructionSiteFinder constructionSiteFinder;
+    private MapCellFinder constructionSiteFinder;
     
     private StrategyFactory() {}
     
     public static StrategyFactory getInstance(WoaAgent woaAgent
             , CommunicationStandard comStandard, GraphGameMap graphKnownMap
             , AID worldAID, PositionedAgentUnit agentUnit
-            , ConstructionSiteFinder constructionSiteFinder) {
+            , MapCellFinder constructionSiteFinder) {
         StrategyFactory instance = new StrategyFactory();
         instance.woaAgent = woaAgent;
         instance.comStandard = comStandard;

@@ -54,7 +54,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private MapCell currentPosition;
     private AID ownerTribe;
     private SendMapDataSharingHelper mapDataSharingHelper;
-    private ConstructionSiteFinder constructionSiteFinder;
+    private MapCellFinder constructionSiteFinder;
     
     private StrategicUnitBehaviour strategyBehaviour;
     private StrategyFactory strategyFactory;
@@ -153,8 +153,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
-        constructionSiteFinder = ConstructionSiteFinder.getInstance(ownerTribe
-                , knownMap);
+        constructionSiteFinder = MapCellFinder.getInstance(knownMap);
         strategyFactory = StrategyFactory.getInstance(this, gameComStandard
                 , knownMap, worldAgentServiceDescription.getName(), this
                 , constructionSiteFinder);
