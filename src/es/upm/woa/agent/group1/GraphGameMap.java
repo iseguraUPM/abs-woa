@@ -36,6 +36,9 @@ class GraphGameMap implements GameMap {
     // Non-serializable
     transient private DijkstraShortestPath<MapCell, CellTranslation> dijkstraShortestPath;
     
+    private int maxWidth;
+    private int maxHeight;
+    
     private GraphGameMap() {
     }
     
@@ -64,6 +67,8 @@ class GraphGameMap implements GameMap {
         
         GraphGameMap newInstance = new GraphGameMap();
         newInstance.mapGraph = new DirectedPseudograph<>(CellTranslation.class);
+        newInstance.maxHeight = 0;
+        newInstance.maxWidth = 0;
         
         return newInstance;
     }
@@ -162,12 +167,15 @@ class GraphGameMap implements GameMap {
                     + " exceed map dimensions");
         }
         
-        if (mapGraph.containsVertex(mapCell)) {
-            return false;
+        if (mapGraph.addVertex(mapCell)) {
+            maxHeight = mapCell.getXCoord() > maxHeight
+                    ? mapCell.getXCoord() : maxHeight;
+            maxWidth = mapCell.getYCoord()> maxWidth
+                    ? mapCell.getYCoord(): maxWidth;
+            return true;
         }
         else {
-            mapGraph.addVertex(mapCell);
-            return true;
+            return false;
         }
     }
     
