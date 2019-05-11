@@ -188,7 +188,8 @@ public class AgWorld extends WoaAgent implements
     @Override
     public Tribe findOwnerTribe(AID requesterUnAid) {
         Optional<Tribe> tribe;
-        tribe = tribeCollection.stream().filter(currentTribe -> currentTribe.getUnit(requesterUnAid) != null).findAny();
+        tribe = tribeCollection.parallelStream()
+                .filter(currentTribe -> currentTribe.getUnit(requesterUnAid) != null).findAny();
         if (!tribe.isPresent()) {
             return null;
         } else {

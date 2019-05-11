@@ -303,7 +303,7 @@ class GraphGameMap implements GameMap {
         
         Set<CellTranslation> connections = mapGraph.outgoingEdgesOf(mapCell);
         
-        return connections.stream().map(c -> mapGraph.getEdgeTarget(c))
+        return connections.parallelStream().map(c -> mapGraph.getEdgeTarget(c))
                 .collect(Collectors.toSet());
     }
     

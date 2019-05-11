@@ -235,7 +235,7 @@ public class AgTribe extends GroupAgent {
                         
                         
                         AID senderAid = response.getSender();
-                        Unit requesterUnit = units.stream().filter(u -> u.getId()
+                        Unit requesterUnit = units.parallelStream().filter(u -> u.getId()
                                 .equals(senderAid)).findAny().orElse(null);
                         if (requesterUnit == null) {
                             respondMessage(response, ACLMessage.REFUSE);
