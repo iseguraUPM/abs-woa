@@ -33,7 +33,7 @@ class CreateBuildingStrategy extends Strategy {
     
     private final String buildingType;
     private MapCell constructionSite;
-    private final ConstructionSiteFinder constructionSiteFinder;
+    private final MapCellFinder constructionSiteFinder;
     
     private final PositionedAgentUnit agentUnit;
     
@@ -61,7 +61,7 @@ class CreateBuildingStrategy extends Strategy {
     CreateBuildingStrategy(WoaAgent agent, CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit, String buildingType
-            , ConstructionSiteFinder constructionSiteFinder) {
+            , MapCellFinder constructionSiteFinder) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
@@ -69,7 +69,7 @@ class CreateBuildingStrategy extends Strategy {
         this.worldAID = worldAID;
         this.buildingType = buildingType;
         this.constructionSite = null;
-        this.constructionSiteFinder = constructionSiteFinder;;
+        this.constructionSiteFinder = constructionSiteFinder;
         this.agentUnit = agentUnit;
         
         this.priority = HIGH_PRIORITY;
@@ -278,9 +278,20 @@ class CreateBuildingStrategy extends Strategy {
     }
 
     private MapCell findCandidateConstructionSite() {
-        return constructionSiteFinder
-                .findConstructionCloseTo(agentUnit.getCurrentPosition()
-                        , buildingType);
+        switch (buildingType) {
+            case WoaDefinitions.TOWN_HALL:
+                return constructionSiteFinder.findMatchingSiteCloseTo(agentUnit
+                    .getCurrentPosition()
+                    , new TownHallSiteEvaluator(graphKnownMap));
+            case WoaDefinitions.FARM:
+            case WoaDefinitions.STORE:
+                return constructionSiteFinder.findMatchingSiteCloseTo(agentUnit
+                    .getCurrentPosition()
+                    , new OtherBuildingSiteEvaluator(graphKnownMap
+                            , agentUnit.getTribeAID()));
+            default:
+                return null;
+        }
     }
 
     private interface OnArrivedToConstructionSiteHandler {

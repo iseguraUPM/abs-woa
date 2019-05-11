@@ -222,13 +222,14 @@ public class CreateBuildingBehaviourHelper {
         }
     }
 
+    // NOTE: not surrounded by any building
     private boolean canPlaceNewTownHall(Unit requester) {
         for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
             int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap.getWidth(), worldMap.getHeight(), requester.getCoordX()
                     , requester.getCoordY(), translationVector);
             try {
                 MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
-                if (!(adjacentCell.getContent() instanceof Empty)) {
+                if (adjacentCell.getContent() instanceof Building) {
                     return false;
                 }
             } catch (NoSuchElementException ex) {
@@ -239,6 +240,8 @@ public class CreateBuildingBehaviourHelper {
         return true;
     }
 
+    // NOTE: at least connected to a building from their tribe
+    // which is connected to a Town Hall
     private boolean canPlaceNewBuilding(Unit requester, Tribe owner) {
         for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
             int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap

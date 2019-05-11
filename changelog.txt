@@ -399,3 +399,13 @@
     Fixed the methods using the follow path behaviour when the path was empty. An empty path can mean
     that the destination position is the same as the current or that there is no possible path to travel.
     In the first case, a check was added to allow for continuation.
+----------------------------------------------------------------------------------------------------------------
+ (33) {11/05/2019 10:00} Generalized site finder : Inaki
+  1. [REFACT]
+     Generalized the construction site finder to allow for any condition to match in the map. The finder works
+     with the same ways of operation than stated in [FEATURE 32.1]. This can be used to find resources. Larger
+     empty areas... anything that could be useful can be implemented as a MapCellEvaluator.
+  2. [FIX]
+     Fixed the building creation conditions in the Tribe side and in AgWorld. Town Halls can be created when
+     the surrounding cells are not buildings (but can be resources). And other buildings must be connected
+     to a Tribe town hall or other buildings connected to that.
