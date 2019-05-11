@@ -6,7 +6,7 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.ontology.Empty;
+import es.upm.woa.ontology.Building;
 
 import java.util.Set;
 
@@ -28,7 +28,7 @@ class TownHallSiteEvaluator implements MapCellEvaluator {
         Set<MapCell> neighbours = graphMap.getNeighbours(candidate);
         
         return neighbours.parallelStream().allMatch(n -> {
-            return n.getContent() instanceof Empty;
+            return !(n.getContent() instanceof Building);
         });
     }
     
