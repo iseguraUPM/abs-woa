@@ -166,64 +166,11 @@ public class AgTribe extends GroupAgent {
     
     
     private void startInformNewUnitBehaviour() {
-        Action informNewUnitAction = new Action(getAID(), new NotifyNewUnit());
-        addBehaviour(new Conversation(this, gameComStandard, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
-            @Override
-            public void onStart() {
-                listenMessages(new ResponseHandler() {
-                    @Override
-                    public void onInform(ACLMessage response) {
-                        try {
-                            ContentElement ce = getContentManager().extractContent(response);
-                            if (ce instanceof Action) {
-                                
-                                Action agAction = (Action) ce;
-                                Concept conc = agAction.getAction();
-                                
-                                if (conc instanceof NotifyNewUnit) {
-                                    log(Level.FINER, "receive NotifyNewUnit inform from "
-                                        + response.getSender().getLocalName());
-                                    NotifyNewUnit newUnitInfo = (NotifyNewUnit) conc;
-                                    log(Level.FINE, "new unit created at " + 
-                                            + newUnitInfo.getLocation().getX()
-                                            + ", "
-                                            + newUnitInfo.getLocation().getY());
-                                    Cell startingPosition = newUnitInfo
-                                            .getLocation();
-                                    // TODO: this cell should be indicated on
-                                    // game start with the rest of resources
-                                    MapCell knownCell;
-                                    try {
-                                        knownCell = knownMap.getCellAt(startingPosition.getX()
-                                               , startingPosition.getY());
-                                    } catch (NoSuchElementException ex) {
-                                        knownCell = MapCellFactory
-                                                .getInstance().buildCell(startingPosition);
-                                        knownMap.addCell(knownCell);
-                                    }
-                                    
-                                    registerNewUnit(newUnitInfo);
-                                }
-                            }
-                        } catch (Codec.CodecException | OntologyException ex) {
-                            log(Level.WARNING, "could not receive message"
-                                    + " (" + ex + ")");
-                        }
-
-                    }
-
-                });
-            }
-        });
+        new ReceiveInformNewUnitPositionBehaviourHelper(this, gameComStandard
+                , group1ComStandard, knownMap, units, mapDataSharingHelper)
+                .startInformCellDetailBehaviour();
     }
-    
-    private void registerNewUnit(NotifyNewUnit newUnitInfo) {
-        Unit newUnit = new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY());
-        units.add(newUnit);
-        informNewUnitOwnership(newUnit);
-        informNewUnitOfKnownMap(newUnit);
-    }
-    
+
     private void startWhereAmIBehaviour() {
         final Action whereAmIAction = new Action(getAID(), new WhereAmI());
         addBehaviour(new Conversation(this, group1ComStandard, whereAmIAction, Group1Ontology.WHEREAMI) {
@@ -289,59 +236,6 @@ public class AgTribe extends GroupAgent {
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
-    }
-        
-    private void informNewUnitOwnership(Unit unit) {
-        Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
-        addBehaviour(new Conversation(this, group1ComStandard, informOwnershipAction
-                , Group1Ontology.NOTIFYUNITOWNERSHIP) {
-            @Override
-            public void onStart() {
-                sendMessage(unit.getId(), ACLMessage.INFORM
-                        , new Conversation.SentMessageHandler() {
-                    @Override
-                    public void onSent(String conversationID) {
-                        log(Level.FINE, "Informed unit " + unit.getId().getLocalName() + " of ownership");
-                        informOfStartingPosition(unit);
-                    }
-                    
-                });
-            }
-        });
-    }
-
-    private void informNewUnitOfKnownMap(Unit newUnit) {
-        mapDataSharingHelper.unicastMapData(newUnit.getId());
-    }
-    
-    private void informOfStartingPosition(Unit newUnit) {
-        Cell knownCell = new Cell();
-        knownCell.setX(newUnit.getCoordX());
-        knownCell.setY(newUnit.getCoordY());
-        
-        NotifyCellDetail newCellDiscovery = new NotifyCellDetail();
-        newCellDiscovery.setNewCell(knownCell);
-        
-        Action informCellDiscoveryAction = new Action(getAID(), newCellDiscovery);
-        addBehaviour(new Conversation(this, gameComStandard, informCellDiscoveryAction
-            , GameOntology.NOTIFYCELLDETAIL) {
-                
-                @Override
-                public void onStart() {
-                    
-                    sendMessage(newUnit.getId(), ACLMessage.INFORM, new SentMessageHandler() {
-                        @Override
-                        public void onSent(String conversationID) {
-                            log(Level.FINER, "Informed unit "
-                                    + newUnit.getId().getLocalName()
-                                    + " of starting position");
-                        }
-                        
-                    });
-                    
-                }
-                
-            });
     }
     
     @Override
