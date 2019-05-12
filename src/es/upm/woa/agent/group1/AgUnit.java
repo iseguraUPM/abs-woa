@@ -20,6 +20,9 @@ import es.upm.woa.agent.group1.strategy.Strategy;
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
+import jade.content.onto.OntologyException;
 
 import jade.content.onto.basic.Action;
 import jade.core.AID;
@@ -35,6 +38,7 @@ import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -55,7 +59,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private AID ownerTribe;
     private SendMapDataSharingHelper mapDataSharingHelper;
     private MapCellFinder constructionSiteFinder;
-    
+
     private StrategicUnitBehaviour strategyBehaviour;
     private StrategyFactory strategyFactory;
 
@@ -70,8 +74,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     public void updateCurrentPosition(CellTranslation direction, MapCell newPosition) {
         MapCell myCell;
         try {
-            myCell = knownMap.getCellAt(newPosition.getXCoord()
-                    , newPosition.getYCoord());
+            myCell = knownMap.getCellAt(newPosition.getXCoord(),
+                     newPosition.getYCoord());
             updateCellContents(myCell, newPosition);
             knownMap.connectPath(currentPosition, myCell, direction);
         } catch (NoSuchElementException ex) {
@@ -82,10 +86,10 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         }
 
         mapDataSharingHelper.unicastMapData(ownerTribe);
-        
+
         currentPosition = myCell;
     }
-    
+
     private void updateCellContents(MapCell myCell, MapCell updatedCell) {
         if (myCell.getContent() instanceof Empty && !(updatedCell.getContent() instanceof Empty)) {
             myCell.setContent(updatedCell.getContent());
@@ -96,7 +100,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     public AID getTribeAID() {
         return ownerTribe;
     }
-
 
     @Override
     protected void setup() {
@@ -133,10 +136,10 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void initializeUnit(OnUnitInitializedHandler handler) {
         initializeDependencies();
-        
+        startShareMapDataBehaviour();
+
         startInformOwnershipBehaviour(() -> {
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
-                startShareMapDataBehaviour();
                 startInformCellDetailBehaviour();
                 startInformUnitPositionBehaviour();
                 handler.onUnitInitialized();
@@ -147,34 +150,34 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private void initializeDependencies() {
         gameComStandard = new WoaCommunicationStandard();
         gameComStandard.register(getContentManager());
-        
+
         group1ComStandard = new Group1CommunicationStandard();
         group1ComStandard.register(getContentManager());
 
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
         constructionSiteFinder = MapCellFinder.getInstance(knownMap);
-        strategyFactory = StrategyFactory.getInstance(this, gameComStandard
-                , knownMap, worldAgentServiceDescription.getName(), this
-                , constructionSiteFinder);
+        strategyFactory = StrategyFactory.getInstance(this, gameComStandard,
+                 knownMap, worldAgentServiceDescription.getName(), this,
+                 constructionSiteFinder);
     }
 
     private void startInformUnitPositionBehaviour() {
-        new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard
-                , knownMap)
+        new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard,
+                 knownMap)
                 .startInformCellDetailBehaviour();
     }
 
     private void startShareMapDataBehaviour() {
         new ReceiveShareMapDataBehaviourHelper(this,
-                gameComStandard, knownMap, () -> {
+                group1ComStandard, knownMap, () -> {
                     log(Level.FINE, "Updated known map");
                 }).startShareMapDataBehaviour();
     }
 
     private void startInformCellDetailBehaviour() {
-        new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
-                , knownMap).startInformCellDetailBehaviour();
+        new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard,
+                 knownMap).startInformCellDetailBehaviour();
     }
 
     private void startInformOwnershipBehaviour(OnReceivedOwnershipHandler handler) {
@@ -216,20 +219,24 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                             @Override
                             public void onInform(ACLMessage response) {
                                 log(Level.FINER, "receive WhereAmI inform from "
-                                                    + response.getSender().getLocalName());
+                                        + response.getSender().getLocalName());
                                 try {
-                                    Serializable content = response.getContentObject();
-                                    if (content instanceof MapCell) {
-                                        currentPosition = (MapCell) content;
-                                        knownMap.addCell(currentPosition);
-                                                handler.onReceivedStartingPosition();
-                                        log(Level.FINE, "Starting position at "
-                                                + currentPosition);
-                                    }
-                                    else {
-                                        log(Level.WARNING, "Could not retrieve starting position");
-                                    }
-                                } catch (UnreadableException ex) {
+                                    ContentElement ce = getContentManager()
+                                            .extractContent(response);
+
+                                    Action action = (Action) ce;
+                                    WhereAmI whereAmI = (WhereAmI) action
+                                            .getAction();
+
+                                    currentPosition = knownMap
+                                            .getCellAt(whereAmI
+                                                    .getXPosition(),
+                                                     whereAmI.getYPosition());
+                                    log(Level.FINE, "Starting position at "
+                                            + currentPosition);
+
+                                } catch (Codec.CodecException | NoSuchElementException
+                                        | OntologyException ex) {
                                     log(Level.WARNING, "Could not retrieve starting position (" + ex + ")");
                                 }
                             }
@@ -318,7 +325,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
         });
     }
-    
+
     @Override
     public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
@@ -338,31 +345,31 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
             // We do nothing. Other units will send us the information
         }
     }
-    
+
     @Override
     void onUnitPassby(MapCell cell, String tribeId) {
         log(Level.FINER, "Unit from tribe " + tribeId + " at "
-                                + cell);
+                + cell);
     }
 
     private void startAssignStrategyBehaviour() {
-        new ReceiveAssignStrategyBehaviourHelper(this, gameComStandard
-                , (StrategyEnvelop strategyEnvelop) -> {
-            try {
-                Strategy incomingStrategy = strategyFactory.getStrategy(strategyEnvelop);
-                strategyBehaviour.addStrategy(incomingStrategy);
-            } catch (UnexpectedArgument ex) {
-                log(Level.WARNING, "Error while retrieving new strategy ("
-                        + ex + ")");
-            }
-        }).startAssignStrategyBehaviour();
+        new ReceiveAssignStrategyBehaviourHelper(this, gameComStandard,
+                 (StrategyEnvelop strategyEnvelop) -> {
+                    try {
+                        Strategy incomingStrategy = strategyFactory.getStrategy(strategyEnvelop);
+                        strategyBehaviour.addStrategy(incomingStrategy);
+                    } catch (UnexpectedArgument ex) {
+                        log(Level.WARNING, "Error while retrieving new strategy ("
+                                + ex + ")");
+                    }
+                }).startAssignStrategyBehaviour();
     }
 
     private void startStrategicUnitBehaviour() {
         strategyBehaviour = new StrategicUnitBehaviour(this);
         addBehaviour(strategyBehaviour);
     }
-    
+
     private interface OnReceivedOwnershipHandler {
 
         void onReceivedOwnership();
@@ -380,6 +387,5 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         void onUnitInitialized();
 
     }
-    
-    
+
 }

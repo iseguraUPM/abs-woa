@@ -68,6 +68,7 @@ class ReceiveShareMapDataBehaviourHelper {
         try {
             Serializable content = response.getContentObject();
             if (content instanceof GraphGameMap) {
+                groupAgent.log(Level.FINER, "Received shared map data");
                 learnNewGraphMapData((GraphGameMap) content);
             }
             else {

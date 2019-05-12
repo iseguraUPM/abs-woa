@@ -14,7 +14,6 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.lang.acl.UnreadableException;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -126,6 +125,7 @@ public abstract class Conversation extends SimpleBehaviour {
             public void action() {
 
                 ACLMessage newMsg = message.createReply();
+                
                 newMsg.setPerformative(performative);
                 
                 if (object != null) {
@@ -133,6 +133,7 @@ public abstract class Conversation extends SimpleBehaviour {
                         newMsg.setContentObject(object);
                     } catch (IOException ex) {
                         Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
+                        return;
                     }
                 }
 
@@ -142,6 +143,7 @@ public abstract class Conversation extends SimpleBehaviour {
                     }
                 } catch (Codec.CodecException | OntologyException ex) {
                     Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
+                    return;
                 }
 
                 myAgent.send(newMsg);

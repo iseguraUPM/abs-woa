@@ -8,6 +8,7 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
+import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -161,13 +162,35 @@ public class AgTribe extends GroupAgent {
     
     
     private void startInformNewUnitBehaviour() {
-        new ReceiveInformNewUnitPositionBehaviourHelper(this, gameComStandard
-                , group1ComStandard, knownMap, units, mapDataSharingHelper)
-                .startInformCellDetailBehaviour();
+        new ReceiveInformNewUnitBehaviourHelper(this, gameComStandard
+                , knownMap, units
+                , (Unit newUnit) -> {
+                        informNewUnitOwnership(newUnit);
+                        mapDataSharingHelper.unicastMapData(newUnit.getId());
+        }).startInformNewUnitBehaviour();
+    }
+    
+    private void informNewUnitOwnership(Unit unit) {
+        Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
+        addBehaviour(new Conversation(this, group1ComStandard, informOwnershipAction
+                , Group1Ontology.NOTIFYUNITOWNERSHIP) {
+            @Override
+            public void onStart() {
+                sendMessage(unit.getId(), ACLMessage.INFORM
+                        , new Conversation.SentMessageHandler() {
+                    @Override
+                    public void onSent(String conversationID) {
+                        log(Level.FINE, "Informed unit " + unit.getId()
+                                .getLocalName() + " of ownership");
+                    }
+                    
+                });
+            }
+        });
     }
 
     private void startWhereAmIBehaviour() {
-        final Action whereAmIAction = new Action(getAID(), new WhereAmI());
+        final Action whereAmIAction = new Action(getAID(), null);
         addBehaviour(new Conversation(this, group1ComStandard, whereAmIAction, Group1Ontology.WHEREAMI) {
             @Override
             public void onStart() {
@@ -188,7 +211,12 @@ public class AgTribe extends GroupAgent {
                             try {
                                 MapCell knownCell = knownMap.getCellAt(requesterUnit
                                         .getCoordX(), requesterUnit.getCoordY());
-                                respondMessage(response, ACLMessage.INFORM, knownCell);
+                                WhereAmI whereAmI = new WhereAmI();
+                                whereAmI.setXPosition(knownCell.getXCoord());
+                                whereAmI.setYPosition(knownCell.getYCoord());
+                                whereAmIAction.setAction(whereAmI);
+                                
+                                respondMessage(response, ACLMessage.INFORM);
                             } catch (NoSuchElementException ex) {
                                 respondMessage(response, ACLMessage.REFUSE);
                             }
@@ -233,11 +261,6 @@ public class AgTribe extends GroupAgent {
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
     }
     
-    @Override
-    public void log(Level logLevel, String message) {
-        logger.log(logLevel, message);
-    }
-
     @Override
     void onCellDiscovered(MapCell newCell) {
         try {
@@ -314,17 +337,19 @@ public class AgTribe extends GroupAgent {
                                             startingResources.getFood(), 
                                             startingResources.getGold());
                                     
-                                    knownMap.addCell(MapCellFactory.getInstance().buildCell(initializeTribe.getStartingPosition()));
+                                    MapCell startingPosition = MapCellFactory
+                                            .getInstance().buildCell(initializeTribe.getStartingPosition());
+                                    knownMap.addCell(startingPosition);
                                     
-                                    for(Object a : initializeTribe.getUnitList().toArray()){
-                                        Unit unitAux = new Unit((AID) a, initializeTribe.getStartingPosition().getX(), initializeTribe.getStartingPosition().getY());
-                                        units.add(unitAux);
+                                    for(Object aidObject : initializeTribe.getUnitList().toArray()){
+                                        AID unitAID = (AID) aidObject;
+                                        Unit newUnit = new Unit(unitAID
+                                                , startingPosition.getXCoord()
+                                                , startingPosition.getYCoord());
+                                        units.add(newUnit);
+                                        mapDataSharingHelper.unicastMapData(unitAID);
+                                        informNewUnitOwnership(newUnit);
                                     }
-                                    mapDataSharingHelper.multicastMapData(getMyUnitsAIDs());
-                                    
-                                    
-                                    
-                                    System.out.println("------------------------------------" + units);
                                     
                                 }
                             }
@@ -339,6 +364,10 @@ public class AgTribe extends GroupAgent {
             }
         });
     }
-
+    
+    @Override
+    public void log(Level logLevel, String message) {
+        logger.log(logLevel, message);
+    }
 
 }
