@@ -149,6 +149,7 @@ public class WorldMapConfigurator {
      * 
      * @param gameMap will have a new town hall where the tribe is placed
      * @param tribeAID of the tribe to be added
+     * @param resources for the tribe
      * @return the location of the initial cell
      * @throws ConfigurationException if any of the conditions do not meet to
      *  add a new tribe:
@@ -157,7 +158,7 @@ public class WorldMapConfigurator {
      *  - The position configured is not occupied by a building or resource
      *  - The position configured is already present in the map
      */
-    public MapCell addNewTribe(GameMap gameMap, AID tribeAID) throws ConfigurationException {
+    public MapCell getNewTribeInitialCell(GameMap gameMap, AID tribeAID) throws ConfigurationException {
         if (initialTribePositions == null) {
             initialTribePositions = loadInitialTribePositions();
         }

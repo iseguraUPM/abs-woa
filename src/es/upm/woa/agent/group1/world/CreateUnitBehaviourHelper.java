@@ -17,8 +17,10 @@ import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.Building;
+import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.NotifyNewUnit;
 
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
@@ -120,7 +122,7 @@ public class CreateUnitBehaviourHelper {
                 // hall. Thus, the request would already be refused later and
                 // checking whether is building or not is unnecessary.
                 
-                ownerTribe.purchaseUnit();
+                ownerTribe.getResources().purchaseUnit();
                 respondMessage(message, ACLMessage.AGREE);
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
@@ -135,18 +137,30 @@ public class CreateUnitBehaviourHelper {
                     @Override
                     public void commit() {
                         if (!finished) {
-                            boolean success = unitCreator
-                                    .launchNewAgentUnit(unitPosition, ownerTribe);
-                            if (!success) {
-                                ownerTribe.refundUnit();
+                            unitCreator
+                                    .launchNewAgentUnit(unitPosition, ownerTribe, new OnCreatedUnitHandler() {
+                                @Override
+                                public void onCreatedUnit(Unit createdUnit) {
+                                    respondMessage(message, ACLMessage.INFORM);
+                                    informTribeAboutNewUnit(ownerTribe, createdUnit);
+                                    unitMovementInformer.informAboutUnitPassby(ownerTribe
+                                             , unitPosition);
+                                    woaAgent.log(Level.FINE, "Created unit "
+                                     + createdUnit.getId().getLocalName() + " at "
+                                     + unitPosition);
+                                }
 
-                                respondMessage(message, ACLMessage.FAILURE);
+                                @Override
+                                public void onCouldNotCreateUnit() {
+                                    ownerTribe.getResources().refundUnit();
 
-                            } else {
-                                respondMessage(message, ACLMessage.INFORM);
-                                unitMovementInformer.informAboutUnitPassby(ownerTribe
-                                        , unitPosition);
-                            }
+                                    respondMessage(message, ACLMessage.FAILURE);
+                                    
+                                    woaAgent.log(Level.FINE, "Could not create"
+                                            + " unit for tribe "
+                                            + ownerTribe.getAID().getLocalName());
+                                }
+                            });
                         }
 
                         finished = true;
@@ -157,7 +171,7 @@ public class CreateUnitBehaviourHelper {
                         if (!finished) {
                             woaAgent.log(Level.INFO, "refunded unit to "
                                     + ownerTribe.getAID().getLocalName());
-                            ownerTribe.refundUnit();
+                            ownerTribe.getResources().refundUnit();
                             respondMessage(message, ACLMessage.FAILURE);
                         }
                         finished = true;
@@ -176,7 +190,8 @@ public class CreateUnitBehaviourHelper {
             return false;
         }
 
-        return tribe.canAffordUnit() && thereIsATownHall(requesterPosition, tribe);
+        return tribe.getResources().canAffordUnit()
+                && thereIsATownHall(requesterPosition, tribe);
     }
     
     private boolean thereIsATownHall(MapCell position, Tribe tribe) {
@@ -192,15 +207,53 @@ public class CreateUnitBehaviourHelper {
         }
     }
     
+    
+    private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit) {
+
+        NotifyNewUnit notifyNewUnit = new NotifyNewUnit();
+        Cell cell = new Cell();
+        cell.setX(newUnit.getCoordX());
+        cell.setY(newUnit.getCoordY());
+
+        notifyNewUnit.setLocation(cell);
+        notifyNewUnit.setNewUnit(newUnit.getId());
+
+        Action informNewUnitAction = new Action(ownerTribe.getAID(), notifyNewUnit);
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
+            @Override
+            public void onStart() {
+                sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+
+                });
+            }
+        });
+
+        try {
+            MapCell discoveredCell = worldMap.getCellAt(cell.getX(), cell.getY());
+            unitMovementInformer.processCellOfInterest(ownerTribe, discoveredCell);
+        } catch (NoSuchElementException ex) {
+            woaAgent.log(Level.WARNING, "Unit in unknown starting position (" + ex + ")");
+        }
+    }
+    
     public interface UnitCreator {
         
         /**
          * 
-         * @param unitPosition
+         * @param unitPosition starting position for the unit
          * @param ownerTribe
-         * @return if the creation of the unit agent was successful
+         * @param handler
          */
-        boolean launchNewAgentUnit(MapCell unitPosition, Tribe ownerTribe);
+        void launchNewAgentUnit(MapCell unitPosition, Tribe ownerTribe
+                , OnCreatedUnitHandler handler);
+        
+    }
+    
+    public interface OnCreatedUnitHandler {
+        
+        void onCreatedUnit(Unit unit);
+        
+        void onCouldNotCreateUnit();
         
     }
     

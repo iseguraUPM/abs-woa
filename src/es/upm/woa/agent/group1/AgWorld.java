@@ -24,11 +24,8 @@ import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
-import es.upm.woa.ontology.InitalizeTribe;
 import es.upm.woa.ontology.NotifyCellDetail;
-import es.upm.woa.ontology.NotifyNewUnit;
 import es.upm.woa.ontology.NotifyUnitPosition;
-import es.upm.woa.ontology.ResourceAccount;
 
 import jade.content.onto.basic.Action;
 import jade.core.AID;
@@ -39,22 +36,17 @@ import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
-import java.io.File;
-import java.io.FileInputStream;
 
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 
 // TODO: change docs
@@ -84,6 +76,8 @@ public class AgWorld extends WoaAgent implements
     private Collection<Tribe> tribeCollection;
     private GameMap worldMap;
     private WoaGUIWrapper guiEndpoint;
+    private WorldMapConfigurator woaConfigurator;
+    private TribeResources initialTribeResources;
 
     // TODO: temporal solution before registration
     private List<String> startingTribeNames;
@@ -99,23 +93,9 @@ public class AgWorld extends WoaAgent implements
         log(Level.INFO, "has entered the system");
         
         initializeAgent();
+        initializeWorld();
         
-        if (!initializeWorld()) {
-            try {
-                getContainerController().kill();
-            } catch (StaleProxyException ex) {
-                log(Level.SEVERE, "Could not shut down agent properly");
-            }
-            return;
-        }
-
-        new CreateUnitBehaviourHelper(this, woaComStandard
-                , worldMap, activeTransactions, this, this, this).startUnitCreationBehaviour();
-        new MoveUnitBehaviourHelper(this, woaComStandard, guiEndpoint
-                , worldMap, activeTransactions, this, this).startMoveToCellBehaviour();
-        new CreateBuildingBehaviourHelper(this, woaComStandard, guiEndpoint
-                , worldMap, activeTransactions, this, this)
-                .startBuildingCreationBehaviour();
+        launchAgentRegistrationDesk();
     }
 
     private void initializeAgent() {
@@ -140,20 +120,32 @@ public class AgWorld extends WoaAgent implements
             
             
         } catch (FIPAException ex) {
-            log(Level.WARNING, "could not register in the DF (" + ex + ")");
+            log(Level.SEVERE, "could not register in the DF (" + ex + ")");
         }
     }
 
-    private boolean initializeWorld() {
+    private void initializeWorld() {
         woaComStandard = new WoaCommunicationStandard();
         woaComStandard.register(getContentManager());
         
         tribeCollection = new HashSet<>();
         activeTransactions = new ArrayList<>();
 
-        launchAgentRegistrationDesk();
+        connectToGuiEndpoint();
         
-        return true;
+        try {
+            woaConfigurator = WorldMapConfigurator
+                    .getInstance();
+            
+            log(Level.INFO, "Generating world map...");
+            worldMap = woaConfigurator.generateWorldMap();
+            
+            initialTribeResources = woaConfigurator.getInitialResources();
+    
+        } catch (ConfigurationException ex) {
+            log(Level.SEVERE, "Could not load the configuration");
+        }
+        
     }
 
     @Override
@@ -178,7 +170,9 @@ public class AgWorld extends WoaAgent implements
     private void launchAgentRegistrationDesk() {
         try {
             ContainerController cc = getContainerController();
-            AgRegistrationDesk agRegistrationDesk = new AgRegistrationDesk(startingTribeNames, tribeCollection, this);
+            AgRegistrationDesk agRegistrationDesk
+                    = new AgRegistrationDesk(startingTribeNames
+                            , initialTribeResources, tribeCollection, this);
             AgentController ac = cc.acceptNewAgent("Registartion Desk", agRegistrationDesk);
             ac.start();
         } catch (StaleProxyException ex) {
@@ -187,9 +181,23 @@ public class AgWorld extends WoaAgent implements
         }
     }
 
-    private void handInitialTribeResources(MapCell townHallCell, Tribe tribe) {
+    private void launchInitialTribeUnits(MapCell townHallCell, Tribe tribe) {
         for (int i = 0; i < STARTING_UNIT_NUMBER; i++) {
-            launchNewAgentUnit(townHallCell, tribe);
+            launchNewAgentUnit(townHallCell, tribe
+                    , new CreateUnitBehaviourHelper.OnCreatedUnitHandler() {
+                @Override
+                public void onCreatedUnit(Unit unit) {
+                    log(Level.FINE, "Created initial unit "
+                            + unit.getId().getLocalName() + " at "
+                            + townHallCell);
+                }
+
+                @Override
+                public void onCouldNotCreateUnit() {
+                    log(Level.WARNING, "could not launch initial unit for tribe"
+                            + tribe.getAID().getLocalName());
+                }
+            });
         }
     }
 
@@ -211,7 +219,8 @@ public class AgWorld extends WoaAgent implements
     }
 
     @Override
-    public boolean launchNewAgentUnit(MapCell startingPosition, Tribe ownerTribe) {
+    public void launchNewAgentUnit(MapCell startingPosition, Tribe ownerTribe
+            , CreateUnitBehaviourHelper.OnCreatedUnitHandler handler) {
         try {
             ContainerController cc = getContainerController();
             AgUnit newUnit = new AgUnit();
@@ -223,52 +232,21 @@ public class AgWorld extends WoaAgent implements
 
             if (!ownerTribe.createUnit(newUnitRef)) {
                 ac.kill();
-                return false;
+                handler.onCouldNotCreateUnit();
             } else {
-                informTribeAboutNewUnit(ownerTribe, newUnitRef);
                 guiEndpoint.apiCreateAgent(ownerTribe.getAID().getLocalName(),
                          newUnitRef.getId().getLocalName(), newUnitRef.getCoordX(),
                          newUnitRef.getCoordY());
-                return true;
+                handler.onCreatedUnit(newUnitRef);
             }
 
         } catch (StaleProxyException ex) {
-            log(Level.WARNING, "could not launch new unit (" + ex
-                    + ")");
-            return false;
+            handler.onCouldNotCreateUnit();
         }
     }
 
     private String generateNewUnitName(Tribe ownerTribe) {
         return ownerTribe.getUnitNamePrefix() + ownerTribe.getNumberUnits();
-    }
-
-    private void informTribeAboutNewUnit(Tribe ownerTribe, Unit newUnit) {
-
-        NotifyNewUnit notifyNewUnit = new NotifyNewUnit();
-        Cell cell = new Cell();
-        cell.setX(newUnit.getCoordX());
-        cell.setY(newUnit.getCoordY());
-
-        notifyNewUnit.setLocation(cell);
-        notifyNewUnit.setNewUnit(newUnit.getId());
-
-        Action informNewUnitAction = new Action(ownerTribe.getAID(), notifyNewUnit);
-        addBehaviour(new Conversation(this, woaComStandard, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
-            @Override
-            public void onStart() {
-                sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new SentMessageHandler() {
-
-                });
-            }
-        });
-
-        try {
-            MapCell discoveredCell = worldMap.getCellAt(cell.getX(), cell.getY());
-            processCellOfInterest(ownerTribe, discoveredCell);
-        } catch (NoSuchElementException ex) {
-            log(Level.WARNING, "Unit in unknown starting position (" + ex + ")");
-        }
     }
 
     @Override
@@ -398,6 +376,50 @@ public class AgWorld extends WoaAgent implements
 
     @Override
     public void startGame() {
+        try {
+            for(Tribe tribe : tribeCollection) { 
+                MapCell startingCell = woaConfigurator
+                        .getNewTribeInitialCell(worldMap, tribe.getAID());
+                launchInitialTribeUnits(startingCell, tribe);
+                tribe.getUnitsIterable();
+                List<Unit> startingTribeUnits = new ArrayList<>();
+                tribe.getUnitsIterable().forEach(u -> startingTribeUnits.add(u));
+                
+                initializeTribe(tribe.getAID(), initialTribeResources
+                        , startingTribeUnits
+                        , startingCell);
+            }
+            
+            String[] tribeNames = startingTribeNames
+                    .subList(0, tribeCollection.size())
+                    .toArray(new String[tribeCollection.size()]);
+            
+            try {
+                guiEndpoint.apiStartGame(tribeNames,
+                        woaConfigurator.getMapConfigurationContents());
+            } catch (IOException ex) {
+                log(Level.WARNING, "Could not load configuration to the GUI"
+                        + " endpoint");
+            }
+            
+            startWorldBehaviours();
+        } catch (ConfigurationException ex) {
+            log(Level.SEVERE, "Could not launch tribes");
+        }
+    }
+
+    private void startWorldBehaviours() {
+        new CreateUnitBehaviourHelper(this, woaComStandard
+                , worldMap, activeTransactions, this, this, this)
+                .startUnitCreationBehaviour();
+        new MoveUnitBehaviourHelper(this, woaComStandard, guiEndpoint
+                , worldMap, activeTransactions, this, this).startMoveToCellBehaviour();
+        new CreateBuildingBehaviourHelper(this, woaComStandard, guiEndpoint
+                , worldMap, activeTransactions, this, this)
+                .startBuildingCreationBehaviour();
+    }
+
+    private void connectToGuiEndpoint() {
         guiEndpoint = new WoaGUIWrapper();
         try {
             WoaGUI woaGUI = WoaGUIFactory.getInstance().getGUI();
@@ -405,49 +427,17 @@ public class AgWorld extends WoaAgent implements
         } catch (IOException ex) {
             log(Level.WARNING, "Could not connect to GUI endpoint");
         }
-        
-        WorldMapConfigurator configurator;
-        try {
-            configurator = WorldMapConfigurator
-                    .getInstance();
-            
-            worldMap = configurator.generateWorldMap();
-            
-            log(Level.INFO, "Starting game...");
-
-            
-            List<Unit> unitList = new ArrayList<Unit>();
-            final int MAX_TRIBES = 1;
-            for(Tribe tribe: tribeCollection){
-                MapCell townHallCell = configurator.addNewTribe(worldMap, tribe.getAID());
-                handInitialTribeResources(townHallCell, tribe);
-                tribe.getUnitsIterable();
-                Iterable<Unit> unitListIterable = tribe.getUnitsIterable();
-                for (Unit e:unitListIterable) {
-                    unitList.add(e);
-                }
-                initializeTribe(tribe.getAID(), configurator, unitList, townHallCell);
-            }            
-            
-            String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES).toArray(new String[MAX_TRIBES]);
-            
-            guiEndpoint.apiStartGame(tribeNames,
-                     configurator.getMapConfigurationContents());
-            
-            
-        } catch (ConfigurationException ex) {
-            log(Level.SEVERE, "Could not load the configuration");
-        } catch (IOException ex) {
-            log(Level.SEVERE, "Could not load the map configuration");
-        }
     }
     
     /**
      * Sends an inform with the initial resources
      * to every tribe that has been registered
      */
-    private void initializeTribe(AID tribeAID, WorldMapConfigurator configurator, List<Unit> unitList, MapCell initialMapCell) throws ConfigurationException {
-        new SendInformInitializeTribeHelper(this, woaComStandard, tribeAID, configurator, unitList, initialMapCell).initializeTribe();
+    private void initializeTribe(AID tribeAID, TribeResources initialTribeResources
+            , List<Unit> unitList, MapCell initialMapCell) {
+        new SendInformInitializeTribeHelper(this, woaComStandard
+                , tribeAID, initialTribeResources, unitList, initialMapCell)
+                .initializeTribe();
     }
 
 }

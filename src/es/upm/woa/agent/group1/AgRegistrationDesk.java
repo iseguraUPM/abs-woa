@@ -11,6 +11,7 @@ import es.upm.woa.agent.group1.protocol.DelayTickBehaviour;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.RegisterTribe;
+
 import jade.content.onto.basic.Action;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -20,6 +21,7 @@ import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -36,16 +38,21 @@ public class AgRegistrationDesk extends WoaAgent {
     private CommunicationStandard woaComStandard;
 
     private WoaLogger logger;
-    private Collection<Tribe> registeredTribes;
-    private StartGameInformer startGameInformer;
+    private final Collection<Tribe> registeredTribes;
+    private final StartGameInformer startGameInformer;
+    private final List<String> startingTribeNames;
+    private final TribeResources initialTribeResources;
+    
+    final int MAX_TRIBES = 1;
+    
     private boolean registrationOpen;
     
-    // TODO: temporal solutions before registration
-    final int MAX_TRIBES = 1;
-    private List<String> startingTribeNames;
-    
-    public AgRegistrationDesk(List<String> startingTribeNames, Collection<Tribe> registeredTribes, StartGameInformer startGameInformer){
+    public AgRegistrationDesk(List<String> startingTribeNames
+            , TribeResources initialResources
+            , Collection<Tribe> registeredTribes
+            , StartGameInformer startGameInformer) {
         this.startingTribeNames = startingTribeNames;
+        this.initialTribeResources = initialResources;
         this.registeredTribes = registeredTribes;
         this.startGameInformer = startGameInformer;
         this.registrationOpen = true;
@@ -65,7 +72,6 @@ public class AgRegistrationDesk extends WoaAgent {
         
         informWorldToStartGame();
                 
-        // TODO: temporal solutions before registration
         launchTribes();
     }
     
@@ -86,7 +92,6 @@ public class AgRegistrationDesk extends WoaAgent {
     }
  
     
-    // TODO: temporal solutions before registration
     private void launchTribes(){
         
         for (int i = 0; i < MAX_TRIBES; i++) {
@@ -95,7 +100,6 @@ public class AgRegistrationDesk extends WoaAgent {
         }
     }
     
-    // TODO: temporal solutions before registration
     private void launchAgentTribe(String tribeName) {
         try {
             ContainerController cc = getContainerController();
@@ -135,10 +139,18 @@ public class AgRegistrationDesk extends WoaAgent {
                         if (registeredTribes.stream().anyMatch(
                                 tribe -> message.getSender().equals(tribe.getAID())) || !registrationOpen) {
                             respondMessage(message, ACLMessage.REFUSE);
-                            return;
                         }else{
-                            Tribe newTribe = new Tribe(message.getSender());
-                            registeredTribes.add(newTribe);
+                            Tribe newTribe;
+                            
+                            try {
+                                newTribe = new Tribe(message.getSender()
+                                        , (TribeResources) initialTribeResources.clone());
+                                registeredTribes.add(newTribe);
+                            } catch (CloneNotSupportedException ex) {
+                                log(Level.SEVERE, "Could not create new tribe ("
+                                        + ex + ")");
+                            }
+                            
                             respondMessage(message, ACLMessage.AGREE);
                         }
                     }

@@ -17,20 +17,12 @@ public class Tribe {
     private final AID agentID;
     private final Collection<Unit> unitCollection = new HashSet<>();
     private final GameMap knownMap;
-    private int currentGold;
-    private int currentFood;
-    private int currentStone;
-    private int currentWood;
+    private final TribeResources resources;
 
-    public Tribe(AID pId) {
-        agentID = pId;
-        knownMap = GraphGameMap.getInstance();
-        
-        //TODO: define how many units of currentGold/food/stone/wood
-        currentGold = 250;
-        currentFood = 250;
-        currentStone = 250;
-        currentWood = 250;
+    public Tribe(AID pId, TribeResources resources) {
+        this.agentID = pId;
+        this.knownMap = GraphGameMap.getInstance();
+        this.resources = resources;
     }
     
     /**
@@ -88,68 +80,8 @@ public class Tribe {
         return getAID().getLocalName() + "_Unit";
     }
     
-    /**
-     * 
-     * @return the tribe can afford creation of a new unit
-     */
-    public boolean canAffordUnit() {
-        return currentGold >= WoaDefinitions.UNIT_GOLD_COST
-                && currentFood >= WoaDefinitions.UNIT_FOOD_COST;
-    }
-    
-    /**
-     * Spend resources to create a new unit
-     * @return if the tribe can afford creation of a new unit
-     */
-    public boolean purchaseUnit() {
-        if (!canAffordUnit()) {
-            return false;
-        }
-        currentGold -= WoaDefinitions.UNIT_GOLD_COST;
-        currentFood -= WoaDefinitions.UNIT_FOOD_COST;
-        return true;
-    }
-    
-    /**
-     * Return resources spent for a new unit creation
-     */
-    public void refundUnit() {
-        currentGold += WoaDefinitions.UNIT_GOLD_COST;
-        currentFood += WoaDefinitions.UNIT_FOOD_COST;
-    }
-    
-        
-    /**
-     * Spend resources to create a new town hall
-     * @return if the tribe can afford creation of a new unit
-     */
-    public boolean purchaseTownHall() {
-        if (!canAffordTownHall()) {
-            return false;
-        }
-        currentGold -= WoaDefinitions.TOWN_HALL_GOLD_COST;
-        currentStone -= WoaDefinitions.TOWN_HALL_STONE_COST;
-        currentWood -= WoaDefinitions.TOWN_HALL_WOOD_COST;
-        return true;
-    }
-    
-    /**
-     * 
-     * @return the tribe can afford creation of a new town hall
-     */
-    public boolean canAffordTownHall() {
-        return currentGold >= WoaDefinitions.TOWN_HALL_GOLD_COST
-                && currentStone >= WoaDefinitions.TOWN_HALL_STONE_COST
-                && currentWood >= WoaDefinitions.TOWN_HALL_WOOD_COST;
-    }
-    
-    /**
-    * Return resources spent for a new town hall creation
-    */
-    public void refundTownHall() {
-        currentGold += WoaDefinitions.TOWN_HALL_GOLD_COST;
-        currentStone += WoaDefinitions.TOWN_HALL_STONE_COST;
-        currentWood += WoaDefinitions.TOWN_HALL_WOOD_COST;
+    public TribeResources getResources() {
+        return resources;
     }
         
 }

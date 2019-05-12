@@ -5,20 +5,19 @@
  */
 package es.upm.woa.agent.group1;
 
-import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.agent.group1.map.WorldMapConfigurator;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.InitalizeTribe;
 import es.upm.woa.ontology.ResourceAccount;
+
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+
 import java.util.List;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 
 /**
  *
@@ -28,18 +27,20 @@ public class SendInformInitializeTribeHelper {
     private final AgWorld groupAgent;
     private final CommunicationStandard comStandard;
     private final AID tribeAID;
-    private final WorldMapConfigurator configurator;
+    private final TribeResources initialTribeResources;
     private final List<Unit> unitList;
     private final MapCell initialMapCell;
     
     
     
     public SendInformInitializeTribeHelper(AgWorld groupAgent
-            , CommunicationStandard comStandard, AID tribeAID, WorldMapConfigurator configurator, List<Unit> unitList, MapCell initialMapCell) {
+            , CommunicationStandard comStandard, AID tribeAID
+            , TribeResources initialTribeResources, List<Unit> unitList
+            , MapCell initialMapCell) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;
         this.tribeAID = tribeAID;
-        this.configurator = configurator;
+        this.initialTribeResources = initialTribeResources;
         this.unitList = unitList;
         this.initialMapCell = initialMapCell;
     }
@@ -48,19 +49,18 @@ public class SendInformInitializeTribeHelper {
      * Sends an inform with the initial resources
      * to every tribe that has been registered
      */
-    public void initializeTribe() throws ConfigurationException {
+    public void initializeTribe() {
         InitalizeTribe initializeTribe = new InitalizeTribe();
         
-        TribeResources readInitialResources = configurator.getInitialResources();
         ResourceAccount resourceAccount = new ResourceAccount();
-        resourceAccount.setFood(readInitialResources.getFood());
-        resourceAccount.setGold(readInitialResources.getGold());
-        resourceAccount.setStone(readInitialResources.getStone());
-        resourceAccount.setWood(readInitialResources.getWood());
+        resourceAccount.setFood(initialTribeResources.getFood());
+        resourceAccount.setGold(initialTribeResources.getGold());
+        resourceAccount.setStone(initialTribeResources.getStone());
+        resourceAccount.setWood(initialTribeResources.getWood());
 
-        for(Unit u : unitList){
+        unitList.forEach((u) -> {
             initializeTribe.addUnitList(u.getId());
-        }
+        });
         
         Cell startingCell = new Cell();
         startingCell.setContent(initialMapCell.getContent());
@@ -69,7 +69,6 @@ public class SendInformInitializeTribeHelper {
         initializeTribe.setStartingPosition(startingCell);
         
         initializeTribe.setStartingResources(resourceAccount);
-
 
         Action initializeTribeAction = new Action(groupAgent.getAID(), initializeTribe);
 

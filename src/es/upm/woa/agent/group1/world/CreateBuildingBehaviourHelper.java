@@ -20,7 +20,6 @@ import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateBuilding;
-import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 
 import jade.content.Concept;
@@ -160,7 +159,7 @@ public class CreateBuildingBehaviourHelper {
                        
                     });
 
-                    ownerTribe.purchaseTownHall();
+                    ownerTribe.getResources().purchaseTownHall();
                     respondMessage(message, ACLMessage.AGREE);
                     activeTransactions.add(buildTransaction);
                 } catch (CellBuildingConstructor.CellOccupiedException ex) {
@@ -205,7 +204,7 @@ public class CreateBuildingBehaviourHelper {
     private boolean canAffordBuilding(String buildingType, Tribe ownerTribe) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
-                return ownerTribe.canAffordTownHall();
+                return ownerTribe.getResources().canAffordTownHall();
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
                 return false;
@@ -215,7 +214,7 @@ public class CreateBuildingBehaviourHelper {
     private void refundBuilding(String buildingType, Tribe ownerTribe) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
-                ownerTribe.refundTownHall();
+                ownerTribe.getResources().refundTownHall();
                 break;
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
