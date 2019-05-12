@@ -417,7 +417,8 @@ public class AgTribe extends GroupAgent {
 
                                     InitalizeTribe initializeTribe = (InitalizeTribe) conc;
                                     
-                                    System.out.println("----------------------------" + ((InitalizeTribe) conc).getStartingResources().getFood());
+                                    //TODO: Donde guardar todo lo recibido?
+                                    
                                 }
                             }
                         } catch (Codec.CodecException | OntologyException ex) {

@@ -427,10 +427,7 @@ public class AgWorld extends WoaAgent implements
                     unitList.add(e);
                 }
                 initializeTribe(tribe.getAID(), configurator, unitList, townHallCell);
-            }
-
-            //TODO: Inform tribes about resources, initial position and initial units
-            
+            }            
             
             String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES).toArray(new String[MAX_TRIBES]);
             
@@ -450,40 +447,7 @@ public class AgWorld extends WoaAgent implements
      * to every tribe that has been registered
      */
     private void initializeTribe(AID tribeAID, WorldMapConfigurator configurator, List<Unit> unitList, MapCell initialMapCell) throws ConfigurationException {
-        InitalizeTribe initializeTribe = new InitalizeTribe();
-        
-        TribeResources readInitialResources = configurator.getInitialResources();
-        ResourceAccount resourceAccount = new ResourceAccount();
-        resourceAccount.setFood(readInitialResources.getFood());
-        resourceAccount.setGold(readInitialResources.getGold());
-        resourceAccount.setStone(readInitialResources.getStone());
-        resourceAccount.setWood(readInitialResources.getWood());
-
-        for(Unit u : unitList){
-            initializeTribe.addUnitList(u.getId());
-        }
-        
-        Cell startingCell = new Cell();
-        startingCell.setContent(initialMapCell.getContent());
-        startingCell.setX(initialMapCell.getXCoord());
-        startingCell.setY(initialMapCell.getYCoord());
-        initializeTribe.setStartingPosition(startingCell);
-        
-        initializeTribe.setStartingResources(resourceAccount);
-
-
-        Action initializeTribeAction = new Action(this.getAID(), initializeTribe);
-
-        addBehaviour(new Conversation(this, woaComStandard, initializeTribeAction, GameOntology.INITALIZETRIBE) {
-            @Override
-            public void onStart() {
-                sendMessage(tribeAID, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
-                });
-            }
-
-        });
-        
-        
+        new SendInformInitializeTribeHelper(this, woaComStandard, tribeAID, configurator, unitList, initialMapCell).initializeTribe();
     }
 
 }
