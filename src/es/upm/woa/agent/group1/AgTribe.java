@@ -41,6 +41,7 @@ import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -63,6 +64,8 @@ public class AgTribe extends GroupAgent {
 
     private SendMapDataSharingHelper mapDataSharingHelper;
     private DelayTickBehaviour delayedShareMapDataBehaviour;
+    
+    private TribeResources tribeResources;
 
     @Override
     protected void setup() {
@@ -311,7 +314,22 @@ public class AgTribe extends GroupAgent {
 
                                     InitalizeTribe initializeTribe = (InitalizeTribe) conc;
                                     
-                                    //TODO: Donde guardar todo lo recibido?
+                                    tribeResources = new TribeResources(initializeTribe.getStartingResources().getWood(), 
+                                            initializeTribe.getStartingResources().getStone(), 
+                                            initializeTribe.getStartingResources().getFood(), 
+                                            initializeTribe.getStartingResources().getGold());
+                                    
+                                    knownMap.addCell(MapCellFactory.getInstance().buildCell(initializeTribe.getStartingPosition()));
+                                    
+                                    for(Object a : initializeTribe.getUnitList().toArray()){
+                                        Unit unitAux = new Unit((AID) a, initializeTribe.getStartingPosition().getX(), initializeTribe.getStartingPosition().getY());
+                                        units.add(unitAux);
+                                    }
+                                    mapDataSharingHelper.multicastMapData(getMyUnitsAIDs());
+                                    
+                                    
+                                    
+                                    System.out.println("------------------------------------" + units);
                                     
                                 }
                             }
