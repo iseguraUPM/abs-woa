@@ -210,16 +210,16 @@ class CreateBuildingStrategy extends Strategy {
         CreateBuilding createBuilding = new CreateBuilding();
         createBuilding.setBuildingType(buildingType);
         
-        Action createUnitAction = new Action(woaAgent.getAID(), createBuilding);
+        Action createBuildingAction = new Action(woaAgent.getAID(), createBuilding);
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
-                , createUnitAction, GameOntology.CREATEBUILDING) {
+                , GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
                 woaAgent.log(Level.FINE, "Wants to create a building of "
                         + buildingType);
 
                 sendMessage(worldAID, ACLMessage.REQUEST
-                        , new Conversation.SentMessageHandler() {
+                        , createBuildingAction, new Conversation.SentMessageHandler() {
 
                     @Override
                     public void onSent(String conversationID) {

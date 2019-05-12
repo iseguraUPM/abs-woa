@@ -41,9 +41,8 @@ class ReceiveShareMapDataBehaviourHelper {
      * Start listening behaviour for ShareMapData agent inform.
      */
     public void startShareMapDataBehaviour() {
-        Action informCellDetailAction = new Action(groupAgent.getAID(), null);
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
-                , informCellDetailAction, Group1Ontology.SHAREMAPDATA) {
+                , Group1Ontology.SHAREMAPDATA) {
             @Override
             public void onStart() {
                 groupAgent.log(Level.INFO, "listening to ShareMapData messages");

@@ -191,10 +191,11 @@ class FreeExploreStrategy extends Strategy {
 
     private void moveInDirection(CellTranslation direction, OnMovedToNewCellHandler handler) {
         Action moveAction = createMoveToCellAction(direction);
-        myAgent.addBehaviour(new Conversation(myAgent, comStandard, moveAction, GameOntology.MOVETOCELL) {
+        myAgent.addBehaviour(new Conversation(myAgent, comStandard, GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
-                sendMessage(worldAID, ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
+                sendMessage(worldAID, ACLMessage.REQUEST, moveAction
+                        , new Conversation.SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
                         woaAgent.log(Level.FINE, "wants to explore from "

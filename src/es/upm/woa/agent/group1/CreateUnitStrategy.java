@@ -191,12 +191,12 @@ class CreateUnitStrategy extends Strategy {
         
         Action createUnitAction = new Action(woaAgent.getAID(), new CreateUnit());
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
-                , createUnitAction, GameOntology.CREATEUNIT) {
+                , GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
                 woaAgent.log(Level.FINE, "Wants to create a unit");
 
-                sendMessage(worldAID, ACLMessage.REQUEST
+                sendMessage(worldAID, ACLMessage.REQUEST, createUnitAction
                         , new Conversation.SentMessageHandler() {
 
                     @Override

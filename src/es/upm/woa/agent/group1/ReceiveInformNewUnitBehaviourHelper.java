@@ -54,9 +54,8 @@ class ReceiveInformNewUnitBehaviourHelper {
      * Start listening behaviour for NotifyUnitPosition agent inform.
      */
     public void startInformNewUnitBehaviour() {
-        Action informNewUnitAction = new Action(groupAgent.getAID(), new NotifyNewUnit());
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
-                , informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
+                , GameOntology.NOTIFYNEWUNIT) {
             @Override
             public void onStart() {
                 listenMessages(new Conversation.ResponseHandler() {

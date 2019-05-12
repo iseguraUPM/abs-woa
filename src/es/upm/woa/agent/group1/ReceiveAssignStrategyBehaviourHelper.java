@@ -8,6 +8,7 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
+import es.upm.woa.ontology.NotifyCellDetail;
 
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
@@ -41,9 +42,8 @@ class ReceiveAssignStrategyBehaviourHelper {
      * Start listening behaviour for ShareMapData agent inform.
      */
     public void startAssignStrategyBehaviour() {
-        Action informCellDetailAction = new Action(groupAgent.getAID(), null);
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
-                , informCellDetailAction, Group1Ontology.ASSIGNSTRATEGY) {
+                , Group1Ontology.ASSIGNSTRATEGY) {
             @Override
             public void onStart() {
                 groupAgent.log(Level.INFO, "listening to AssignStrategy messages");

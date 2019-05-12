@@ -6,12 +6,10 @@
 package es.upm.woa.agent.group1;
 
 import es.upm.woa.agent.group1.map.GameMap;
-import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
-import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyCellDetail;
 
@@ -46,9 +44,8 @@ class ReceiveInformCellDetailBehaviourHelper {
      * Start listening behaviour for NotifyCellDetail agent inform.
      */
     public void startInformCellDetailBehaviour() {
-        Action informCellDetailAction = new Action(groupAgent.getAID(), new NotifyCellDetail());
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
-                , informCellDetailAction, GameOntology.NOTIFYCELLDETAIL) {
+                , GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
                 groupAgent.log(Level.INFO, "listening to NotifyCellDetail messages");

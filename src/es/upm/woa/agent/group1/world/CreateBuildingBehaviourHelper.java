@@ -67,10 +67,8 @@ public class CreateBuildingBehaviourHelper {
      * Unregistered tribes or units will be refused.
      */
     public void startBuildingCreationBehaviour() {
-        CreateBuilding dummyAction = new CreateBuilding();
-        dummyAction.setBuildingType("");
-        final Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
-        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, createBuildingAction, GameOntology.CREATEBUILDING) {
+        
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
                 Action action = new Action(woaAgent.getAID(), new CreateBuilding());
@@ -78,6 +76,10 @@ public class CreateBuildingBehaviourHelper {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
+                        CreateBuilding dummyAction = new CreateBuilding();
+                        dummyAction.setBuildingType("");
+                        Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
+                        
                         woaAgent.log(Level.FINE, "received CreateBuilding request from"
                                 + message.getSender().getLocalName());
 
@@ -86,7 +88,7 @@ public class CreateBuildingBehaviourHelper {
                         Unit requesterUnit = tribeInfomationHandler
                                 .findUnit(ownerTribe, message.getSender());
                         if (ownerTribe == null || requesterUnit == null) {
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, action);
                             return;
                         }
 
@@ -105,7 +107,8 @@ public class CreateBuildingBehaviourHelper {
                             action.setAction(conc);
                             if (!canCreateBuilding(buildingType
                                     , ownerTribe, requesterUnit)) {
-                                respondMessage(message, ACLMessage.REFUSE);
+                                
+                                respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                             } else {
                                 initiateBuildingCreation(buildingType,
                                          ownerTribe, requesterUnit,
@@ -116,10 +119,10 @@ public class CreateBuildingBehaviourHelper {
                             woaAgent.log(Level.WARNING, "Unit "
                                     + requesterUnit.getId().getLocalName()
                                     + " is at an unknown position");
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                         } catch (Codec.CodecException | OntologyException ex) {
                             woaAgent.log(Level.WARNING, "could not receive message (" + ex + ")");
-                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
+                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD, createBuildingAction);
                         }
 
                     }
@@ -128,13 +131,17 @@ public class CreateBuildingBehaviourHelper {
 
             private void initiateBuildingCreation(String buildingType, Tribe ownerTribe,
                      Unit requesterUnit, MapCell unitPosition, ACLMessage message) {
+                CreateBuilding dummyAction = new CreateBuilding();
+                        dummyAction.setBuildingType("");
+                Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
+                
                 CellBuildingConstructor buildingConstructor = CellBuildingConstructor.getInstance();
                 
                 if (buildingConstructor.isBuilding(requesterUnit)) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " is currently building. Current construction"
                                     + " will be cancelled");
-                    respondMessage(message, ACLMessage.REFUSE);
+                    respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                     return;
                 }
                 
@@ -145,7 +152,7 @@ public class CreateBuildingBehaviourHelper {
                         public void onBuilt() {
                             gui.apiCreateBuilding(ownerTribe.getAID()
                                     .getLocalName(), buildingType);
-                            respondMessage(message, ACLMessage.INFORM);
+                            respondMessage(message, ACLMessage.INFORM, createBuildingAction);
                             knownPositionInformHandler
                                     .informAboutKnownCellDetail(unitPosition);
                         }
@@ -153,25 +160,25 @@ public class CreateBuildingBehaviourHelper {
                         @Override
                         public void onCancel() {
                             refundBuilding(buildingType, ownerTribe);
-                            respondMessage(message, ACLMessage.FAILURE);
+                            respondMessage(message, ACLMessage.FAILURE, createBuildingAction);
                         }
 
                        
                     });
 
                     ownerTribe.getResources().purchaseTownHall();
-                    respondMessage(message, ACLMessage.AGREE);
+                    respondMessage(message, ACLMessage.AGREE, createBuildingAction);
                     activeTransactions.add(buildTransaction);
                 } catch (CellBuildingConstructor.CellOccupiedException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot build on cell " + unitPosition.getXCoord()
                             + ", " + unitPosition.getYCoord() + "(" + ex + ")");
-                    respondMessage(message, ACLMessage.REFUSE);
+                    respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                 } catch (CellBuildingConstructor.UnknownBuildingTypeException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot build on cell " + unitPosition.getXCoord()
                             + ", " + unitPosition.getYCoord() + "(" + ex + ")");
-                    respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
+                    respondMessage(message, ACLMessage.NOT_UNDERSTOOD, createBuildingAction);
                 }
             }
         });

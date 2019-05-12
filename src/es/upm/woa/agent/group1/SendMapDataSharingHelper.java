@@ -34,12 +34,11 @@ class SendMapDataSharingHelper {
     }
     
     public void multicastMapData(AID[] receipts) {
-        Action action = new Action(groupAgent.getAID(), null);
-        groupAgent.addBehaviour(new Conversation(groupAgent, comStandard, action
+        groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
                 , Group1Ontology.SHAREMAPDATA) {
             @Override
             public void onStart() {
-                sendMessage(receipts, ACLMessage.INFORM, knownMap, new SentMessageHandler() {
+                sendMessage(receipts, knownMap, ACLMessage.INFORM, new SentMessageHandler() {
                     
                     @Override
                     public void onSent(String conversationID) {

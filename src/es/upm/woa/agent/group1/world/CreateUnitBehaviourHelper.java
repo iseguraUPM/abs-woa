@@ -66,16 +66,17 @@ public class CreateUnitBehaviourHelper {
      * Unregistered tribes or units will be refused.
      */
     public void startUnitCreationBehaviour() {
-        final Action createUnitAction = new Action(woaAgent.getAID(), new CreateUnit());
+        
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
-               , createUnitAction, GameOntology.CREATEUNIT) {
+               , GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
-                Action action = new Action(woaAgent.getAID(), new CreateUnit());
 
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
+                        final Action createUnitAction
+                                = new Action(woaAgent.getAID(), new CreateUnit());
                         woaAgent.log(Level.FINE, "received CreateUnit request from"
                                 + message.getSender().getLocalName());
 
@@ -84,7 +85,7 @@ public class CreateUnitBehaviourHelper {
                         Unit requesterUnit = tribeInfomationBroker
                                 .findUnit(ownerTribe, message.getSender());
                         if (ownerTribe == null || requesterUnit == null) {
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, createUnitAction);
                             return;
                         }
 
@@ -94,7 +95,7 @@ public class CreateUnitBehaviourHelper {
 
                             if (!canCreateUnit(ownerTribe, requesterUnit,
                                      unitPosition)) {
-                                respondMessage(message, ACLMessage.REFUSE);
+                                respondMessage(message, ACLMessage.REFUSE, createUnitAction);
                             } else {
                                 initiateUnitCreation(requesterUnit, ownerTribe, unitPosition, message);
                             }
@@ -102,7 +103,7 @@ public class CreateUnitBehaviourHelper {
                         } catch (NoSuchElementException ex) {
                             woaAgent.log(Level.WARNING, "Unit "
                                     + requesterUnit.getId().getLocalName() + " is at an unknown position");
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, createUnitAction);
                         }
 
                     }
@@ -110,11 +111,14 @@ public class CreateUnitBehaviourHelper {
             }
 
             private void initiateUnitCreation(Unit requesterUnit, Tribe ownerTribe, MapCell unitPosition, ACLMessage message) {
+                final Action createUnitAction
+                                = new Action(woaAgent.getAID(), new CreateUnit());
+                
                 if (UnitCellPositioner.getInstance()
                         .isMoving(requesterUnit)) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " already moving. Cannot create unit");
-                    respondMessage(message, ACLMessage.REFUSE);
+                    respondMessage(message, ACLMessage.REFUSE, createUnitAction);
                     return;
                 }
                 
@@ -123,7 +127,7 @@ public class CreateUnitBehaviourHelper {
                 // checking whether is building or not is unnecessary.
                 
                 ownerTribe.getResources().purchaseUnit();
-                respondMessage(message, ACLMessage.AGREE);
+                respondMessage(message, ACLMessage.AGREE, createUnitAction);
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
 
@@ -141,7 +145,7 @@ public class CreateUnitBehaviourHelper {
                                     .launchNewAgentUnit(unitPosition, ownerTribe, new OnCreatedUnitHandler() {
                                 @Override
                                 public void onCreatedUnit(Unit createdUnit) {
-                                    respondMessage(message, ACLMessage.INFORM);
+                                    respondMessage(message, ACLMessage.INFORM, createUnitAction);
                                     informTribeAboutNewUnit(ownerTribe, createdUnit);
                                     unitMovementInformer.informAboutUnitPassby(ownerTribe
                                              , unitPosition);
@@ -154,7 +158,7 @@ public class CreateUnitBehaviourHelper {
                                 public void onCouldNotCreateUnit() {
                                     ownerTribe.getResources().refundUnit();
 
-                                    respondMessage(message, ACLMessage.FAILURE);
+                                    respondMessage(message, ACLMessage.FAILURE, createUnitAction);
                                     
                                     woaAgent.log(Level.FINE, "Could not create"
                                             + " unit for tribe "
@@ -172,7 +176,7 @@ public class CreateUnitBehaviourHelper {
                             woaAgent.log(Level.INFO, "refunded unit to "
                                     + ownerTribe.getAID().getLocalName());
                             ownerTribe.getResources().refundUnit();
-                            respondMessage(message, ACLMessage.FAILURE);
+                            respondMessage(message, ACLMessage.FAILURE, createUnitAction);
                         }
                         finished = true;
                     }
@@ -219,10 +223,11 @@ public class CreateUnitBehaviourHelper {
         notifyNewUnit.setNewUnit(newUnit.getId());
 
         Action informNewUnitAction = new Action(ownerTribe.getAID(), notifyNewUnit);
-        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, informNewUnitAction, GameOntology.NOTIFYNEWUNIT) {
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, GameOntology.NOTIFYNEWUNIT) {
             @Override
             public void onStart() {
-                sendMessage(ownerTribe.getAID(), ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+                sendMessage(ownerTribe.getAID(), ACLMessage.INFORM
+                        , informNewUnitAction, new Conversation.SentMessageHandler() {
 
                 });
             }

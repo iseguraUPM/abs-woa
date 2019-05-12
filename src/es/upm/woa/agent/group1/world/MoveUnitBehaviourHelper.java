@@ -64,15 +64,16 @@ public class MoveUnitBehaviourHelper {
     }
     
     public void startMoveToCellBehaviour() {
-        final Action moveToCellAction = new Action(woaAgent.getAID(), new MoveToCell());
+        
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
-                , moveToCellAction, GameOntology.MOVETOCELL) {
+                , GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
 
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
+                        final Action moveToCellAction = new Action(woaAgent.getAID(), new MoveToCell());
                         woaAgent.log(Level.FINE, "received unit MoveToCell"
                                 + " request from " + message.getSender()
                                         .getLocalName());
@@ -83,7 +84,7 @@ public class MoveUnitBehaviourHelper {
                                 .findUnit(ownerTribe, message.getSender());
 
                         if (ownerTribe == null || requesterUnit == null) {
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, moveToCellAction);
                             return;
                         }
                         
@@ -100,15 +101,16 @@ public class MoveUnitBehaviourHelper {
                         } catch (NoSuchElementException ex) {
                             woaAgent.log(Level.WARNING, "Unit "
                                     + requesterUnit.getId().getLocalName() + " is at an unknown position");
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, moveToCellAction);
                         } catch (Codec.CodecException | OntologyException ex) {
                             woaAgent.log(Level.WARNING, "could not receive message (" + ex + ")");
-                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
+                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD, moveToCellAction);
                         }
 
                     }
 
                     private void processMoveToCellAction(MoveToCell targetCell, Unit requesterUnit, ACLMessage message) throws NoSuchElementException {
+                        final Action moveToCellAction = new Action(woaAgent.getAID(), new MoveToCell());
                         int translationCode = targetCell.getTargetDirection();
                         int[] translationVector = getTranslationVectorFromCode(translationCode);
                         
@@ -116,7 +118,7 @@ public class MoveUnitBehaviourHelper {
                             woaAgent.log(Level.FINE, "Unit "
                                     + requesterUnit.getId().getLocalName()
                                     + " used an incorrect translation code");
-                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD);
+                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD, moveToCellAction);
                         }
                         
                         
@@ -129,7 +131,7 @@ public class MoveUnitBehaviourHelper {
                             woaAgent.log(Level.FINE, "Unit "
                                     + requesterUnit.getId().getLocalName()
                                     + " cannot move in target direction");
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, moveToCellAction);
                         }
                         
                         
@@ -172,7 +174,7 @@ public class MoveUnitBehaviourHelper {
                 if (unitPositioner.isMoving(requesterUnit)) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " already moving. Cannot move again");
-                    respondMessage(message, ACLMessage.REFUSE);
+                    respondMessage(message, ACLMessage.REFUSE, action);
                     return;
                 }
                 
@@ -181,7 +183,7 @@ public class MoveUnitBehaviourHelper {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " is currently building. Current construction"
                                     + " will be cancelled");
-                    respondMessage(message, ACLMessage.REFUSE);
+                    respondMessage(message, ACLMessage.REFUSE, action);
                     return;
                 }
 
@@ -204,7 +206,7 @@ public class MoveUnitBehaviourHelper {
 
                             action.setAction(moveToCellAction);
 
-                            respondMessage(message, ACLMessage.INFORM);
+                            respondMessage(message, ACLMessage.INFORM, action);
                             gui.apiMoveAgent(requesterUnit.getId()
                                     .getLocalName(), mapCell.getXCoord(),
                                      mapCell.getYCoord());
@@ -218,18 +220,18 @@ public class MoveUnitBehaviourHelper {
 
                         @Override
                         public void onCancel() {
-                            respondMessage(message, ACLMessage.FAILURE);
+                            respondMessage(message, ACLMessage.FAILURE, action);
                         }
                     });
 
-                    respondMessage(message, ACLMessage.AGREE);
+                    respondMessage(message, ACLMessage.AGREE, action);
                     activeTransactions.add(moveTransaction);
 
                 } catch (IndexOutOfBoundsException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot move to cell " + mapCell.getXCoord()
                             + ", " + mapCell.getYCoord() + "(" + ex + ")");
-                    respondMessage(message, ACLMessage.REFUSE);
+                    respondMessage(message, ACLMessage.REFUSE, action);
                 }
             }
         });

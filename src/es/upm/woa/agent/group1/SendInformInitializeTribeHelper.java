@@ -72,10 +72,10 @@ public class SendInformInitializeTribeHelper {
 
         Action initializeTribeAction = new Action(groupAgent.getAID(), initializeTribe);
 
-        groupAgent.addBehaviour(new Conversation(groupAgent, comStandard, initializeTribeAction, GameOntology.INITALIZETRIBE) {
+        groupAgent.addBehaviour(new Conversation(groupAgent, comStandard, GameOntology.INITALIZETRIBE) {
             @Override
             public void onStart() {
-                sendMessage(tribeAID, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+                sendMessage(tribeAID, ACLMessage.INFORM, initializeTribeAction, new Conversation.SentMessageHandler() {
                 });
             }
 
