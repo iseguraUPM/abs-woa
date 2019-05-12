@@ -317,10 +317,12 @@ public class AgWorld extends WoaAgent implements
     private void multicastNotifyCellDetail(AID[] receipts, Cell cell) {
         NotifyCellDetail notifyCellDetail = new NotifyCellDetail();
         notifyCellDetail.setNewCell(cell);
+        
+        Action action = new Action(getAID(), notifyCellDetail);
         addBehaviour(new Conversation(this, woaComStandard, GameOntology.NOTIFYCELLDETAIL) {
             @Override
             public void onStart() {
-                sendMessage(receipts, notifyCellDetail, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+                sendMessage(receipts, ACLMessage.INFORM, action, new Conversation.SentMessageHandler() {
                 });
             }
         });
@@ -355,11 +357,13 @@ public class AgWorld extends WoaAgent implements
 
         notifyUnitPosition.setTribeId(ownerTribe.getAID().getLocalName());
         notifyUnitPosition.setCell(position);
+        
+        Action action = new Action(getAID(), notifyUnitPosition);
 
         addBehaviour(new Conversation(this, woaComStandard, GameOntology.NOTIFYUNITPOSITION) {
             @Override
             public void onStart() {
-                sendMessage(receipts, notifyUnitPosition, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+                sendMessage(receipts, ACLMessage.INFORM, action, new Conversation.SentMessageHandler() {
                 });
             }
         });

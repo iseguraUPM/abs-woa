@@ -292,7 +292,7 @@ public class AgTribe extends GroupAgent {
 
     private synchronized void shareMapDataWithUnits() {
         if (delayedShareMapDataBehaviour == null) {
-            delayedShareMapDataBehaviour = new DelayTickBehaviour(this, 100) {
+            delayedShareMapDataBehaviour = new DelayTickBehaviour(this, 50) {
                 
                 @Override
                 protected void handleElapsedTimeout() {

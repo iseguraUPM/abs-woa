@@ -102,6 +102,9 @@ public abstract class Conversation extends SimpleBehaviour {
                     newMsg.addReceiver(receiverAID);
                 }
 
+                myAgent.send(newMsg);
+                handler.onSent(conversationID);
+                
             }
         });
     }
