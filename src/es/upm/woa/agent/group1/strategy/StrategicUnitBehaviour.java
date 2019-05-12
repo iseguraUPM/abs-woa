@@ -44,6 +44,9 @@ public final class StrategicUnitBehaviour extends SerialBehaviour {
             if (currentStrategy.isOneShot()) {
                 strategyList.remove(currentStrategy);
             }
+            else {
+                currentStrategy.reset();
+            }
             strategyList.sort(new StrategyComparator());
         }
     }

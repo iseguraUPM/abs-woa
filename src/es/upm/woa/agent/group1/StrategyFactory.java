@@ -158,7 +158,7 @@ class StrategyFactory {
         public Envelop(int s, int p) {
             strategyCode = s;
             priority = p;
-            object = null;
+            object = new Serializable() {};
         }
 
         public Envelop(int s, int p, Serializable o) {

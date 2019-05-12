@@ -31,14 +31,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.UnexpectedArgument;
 import jade.domain.FIPAException;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
-import java.io.Serializable;
 
+import jade.lang.acl.ACLMessage;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -78,10 +75,14 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                      newPosition.getYCoord());
             updateCellContents(myCell, newPosition);
             knownMap.connectPath(currentPosition, myCell, direction);
+            CellTranslation inverse = direction.generateInverse();
+            knownMap.connectPath(myCell, currentPosition, inverse);
         } catch (NoSuchElementException ex) {
             myCell = newPosition;
             if (knownMap.addCell(myCell)) {
                 knownMap.connectPath(currentPosition, myCell, direction);
+                CellTranslation inverse = direction.generateInverse();
+                knownMap.connectPath(myCell, currentPosition, inverse);
             }
         }
 
@@ -234,6 +235,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                                                      whereAmI.getYPosition());
                                     log(Level.FINE, "Starting position at "
                                             + currentPosition);
+                                    
+                                    handler.onReceivedStartingPosition();
 
                                 } catch (Codec.CodecException | NoSuchElementException
                                         | OntologyException ex) {
@@ -353,7 +356,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     private void startAssignStrategyBehaviour() {
-        new ReceiveAssignStrategyBehaviourHelper(this, gameComStandard,
+        new ReceiveAssignStrategyBehaviourHelper(this, group1ComStandard,
                  (StrategyEnvelop strategyEnvelop) -> {
                     try {
                         Strategy incomingStrategy = strategyFactory.getStrategy(strategyEnvelop);

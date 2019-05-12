@@ -91,7 +91,8 @@ class FreeExploreStrategy extends Strategy {
                 }
             });
         } else {
-            woaAgent.log(Level.FINE, "Could not find a cell to explore");
+            woaAgent.log(Level.WARNING, "Could not find a cell to explore");
+            finished = true;
         }
     }
 
@@ -287,7 +288,7 @@ class FreeExploreStrategy extends Strategy {
 
     @Override
     public boolean isOneShot() {
-        return true;
+        return false;
     }
 
     private interface OnMovedToNewCellHandler {

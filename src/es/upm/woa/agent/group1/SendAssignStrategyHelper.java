@@ -32,7 +32,7 @@ class SendAssignStrategyHelper {
     }
     
     public void multicastStrategy(AID[] receipts, StrategyEnvelop strategyEnvelop) {
-        Action action = new Action(groupAgent.getAID(), new AssignStrategy());
+        Action action = new Action(groupAgent.getAID(), null);
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard, action
                 , Group1Ontology.ASSIGNSTRATEGY ) {
             @Override

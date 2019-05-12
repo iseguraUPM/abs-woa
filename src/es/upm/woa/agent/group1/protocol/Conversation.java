@@ -65,7 +65,7 @@ public abstract class Conversation extends SimpleBehaviour {
                 newMsg.setConversationId(conversationID);
                 newMsg.setProtocol(protocol);
                 
-                if (object != null) {
+                if (object != null && action.getAction() == null) {
                     try {
                         newMsg.setContentObject(object);
                     } catch (IOException ex) {
