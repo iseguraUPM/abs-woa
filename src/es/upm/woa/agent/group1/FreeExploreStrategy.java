@@ -287,7 +287,7 @@ class FreeExploreStrategy extends Strategy {
 
     @Override
     public boolean isOneShot() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
 
     private interface OnMovedToNewCellHandler {
