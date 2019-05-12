@@ -119,13 +119,8 @@ public class AgRegistrationDesk extends WoaAgent {
      * - Requests the registration out from the registration period
      */
     public void startTribeRegistrationBehaviour() {
-        RegisterTribe registerTribe = new RegisterTribe();
-        registerTribe.setTeamNumber(registeredTribes.size()+1);
-        
-        final Action  action = new Action(getAID(),registerTribe);
-        
         this.addBehaviour(new Conversation(this, woaComStandard
-               , action, GameOntology.REGISTERTRIBE) {
+               , GameOntology.REGISTERTRIBE) {
             @Override
             public void onStart() {
                 Action action = new Action(getAID(), new RegisterTribe());
@@ -133,12 +128,17 @@ public class AgRegistrationDesk extends WoaAgent {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
+                        RegisterTribe registerTribe = new RegisterTribe();
+                        registerTribe.setTeamNumber(registeredTribes.size()+1);
+
+                        final Action  action = new Action(getAID(),registerTribe);
+                        
                         log(Level.FINE, "received Tribe request from"
                                 + message.getSender().getLocalName());
 
                         if (registeredTribes.stream().anyMatch(
                                 tribe -> message.getSender().equals(tribe.getAID())) || !registrationOpen) {
-                            respondMessage(message, ACLMessage.REFUSE);
+                            respondMessage(message, ACLMessage.REFUSE, action);
                         }else{
                             Tribe newTribe;
                             
@@ -151,7 +151,7 @@ public class AgRegistrationDesk extends WoaAgent {
                                         + ex + ")");
                             }
                             
-                            respondMessage(message, ACLMessage.AGREE);
+                            respondMessage(message, ACLMessage.AGREE, action);
                         }
                     }
                     

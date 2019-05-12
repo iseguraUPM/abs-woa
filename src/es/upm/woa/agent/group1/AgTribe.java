@@ -81,12 +81,12 @@ public class AgTribe extends GroupAgent {
     private void startInformRegistrationBehaviour() {
         final Action registerTribe = new Action(this.getAID(), new RegisterTribe());
 
-        addBehaviour(new Conversation(this, gameComStandard, registerTribe, GameOntology.REGISTERTRIBE) {
+        addBehaviour(new Conversation(this, gameComStandard, GameOntology.REGISTERTRIBE) {
             @Override
             public void onStart() {
                 AID registrationDeskAID = (AID) registrationDeskServiceDescription.getName();
 
-                sendMessage(registrationDeskAID, ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
+                sendMessage(registrationDeskAID, ACLMessage.REQUEST, registerTribe, new Conversation.SentMessageHandler() {
 
                     @Override
                     public void onSent(String conversationID) {
@@ -174,11 +174,11 @@ public class AgTribe extends GroupAgent {
     
     private void informNewUnitOwnership(Unit unit) {
         Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
-        addBehaviour(new Conversation(this, group1ComStandard, informOwnershipAction
+        addBehaviour(new Conversation(this, group1ComStandard
                 , Group1Ontology.NOTIFYUNITOWNERSHIP) {
             @Override
             public void onStart() {
-                sendMessage(unit.getId(), ACLMessage.INFORM
+                sendMessage(unit.getId(), ACLMessage.INFORM, informOwnershipAction
                         , new Conversation.SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
@@ -192,13 +192,13 @@ public class AgTribe extends GroupAgent {
     }
 
     private void startWhereAmIBehaviour() {
-        final Action whereAmIAction = new Action(getAID(), null);
-        addBehaviour(new Conversation(this, group1ComStandard, whereAmIAction, Group1Ontology.WHEREAMI) {
+        addBehaviour(new Conversation(this, group1ComStandard, Group1Ontology.WHEREAMI) {
             @Override
             public void onStart() {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage response) {
+                        final Action whereAmIAction = new Action(getAID(), null);
                         log(Level.FINER, "received WhereAmI request from "
                                         + response.getSender().getLocalName());
                         
@@ -207,7 +207,7 @@ public class AgTribe extends GroupAgent {
                         Unit requesterUnit = units.parallelStream().filter(u -> u.getId()
                                 .equals(senderAid)).findAny().orElse(null);
                         if (requesterUnit == null) {
-                            respondMessage(response, ACLMessage.REFUSE);
+                            respondMessage(response, ACLMessage.REFUSE, whereAmIAction);
                         }
                         else {
                             try {
@@ -218,9 +218,9 @@ public class AgTribe extends GroupAgent {
                                 whereAmI.setYPosition(knownCell.getYCoord());
                                 whereAmIAction.setAction(whereAmI);
                                 
-                                respondMessage(response, ACLMessage.INFORM);
+                                respondMessage(response, ACLMessage.INFORM, whereAmIAction);
                             } catch (NoSuchElementException ex) {
-                                respondMessage(response, ACLMessage.REFUSE);
+                                respondMessage(response, ACLMessage.REFUSE, whereAmIAction);
                             }
                         } 
 
@@ -311,9 +311,8 @@ public class AgTribe extends GroupAgent {
      * Listen to the initial resources being sent by the registration desk
      */
     public void startInitializeTribeBehaviour() {
-        Action initializeTribeAction = new Action(getAID(), new InitalizeTribe());
         addBehaviour(new Conversation(this, gameComStandard
-                , initializeTribeAction, GameOntology.INITALIZETRIBE) {
+                , GameOntology.INITALIZETRIBE) {
             @Override
             public void onStart() {
                 listenMessages(new Conversation.ResponseHandler() {

@@ -182,8 +182,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     private void startInformOwnershipBehaviour(OnReceivedOwnershipHandler handler) {
-        Action informOwnershipAction = new Action(getAID(), new NotifyUnitOwnership());
-        addBehaviour(new Conversation(this, group1ComStandard, informOwnershipAction, Group1Ontology.NOTIFYUNITOWNERSHIP) {
+        addBehaviour(new Conversation(this, group1ComStandard, Group1Ontology.NOTIFYUNITOWNERSHIP) {
             @Override
             public void onStart() {
                 listenMessages(new ResponseHandler() {
@@ -209,10 +208,10 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void attemptCurrentPositionRequest(int tries, OnReceivedStartingPositionHandler handler) {
         final Action whereAmIAction = new Action(getAID(), new WhereAmI());
-        addBehaviour(new Conversation(this, group1ComStandard, whereAmIAction, Group1Ontology.WHEREAMI) {
+        addBehaviour(new Conversation(this, group1ComStandard, Group1Ontology.WHEREAMI) {
             @Override
             public void onStart() {
-                sendMessage(ownerTribe, ACLMessage.REQUEST, new SentMessageHandler() {
+                sendMessage(ownerTribe, ACLMessage.REQUEST, whereAmIAction, new SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
 
@@ -267,15 +266,14 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     // TODO: move to strategy
     private void startCreateTownHallBehaviour() {
-        CreateBuilding createBuilding = new CreateBuilding();
-        createBuilding.setBuildingType(WoaDefinitions.TOWN_HALL);
-        Action createTownHall = new Action(getAID(), createBuilding);
-        addBehaviour(new Conversation(this, gameComStandard, createTownHall, GameOntology.CREATEBUILDING) {
+        addBehaviour(new Conversation(this, gameComStandard, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
                 AID worldAID = (AID) worldAgentServiceDescription.getName();
-
-                sendMessage(worldAID, ACLMessage.REQUEST, new Conversation.SentMessageHandler() {
+                CreateBuilding createBuilding = new CreateBuilding();
+                createBuilding.setBuildingType(WoaDefinitions.TOWN_HALL);
+                Action createTownHall = new Action(getAID(), createBuilding);
+                sendMessage(worldAID, ACLMessage.REQUEST,createTownHall,  new Conversation.SentMessageHandler() {
 
                     @Override
                     public void onSent(String conversationID) {

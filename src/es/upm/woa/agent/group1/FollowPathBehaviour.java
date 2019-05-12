@@ -82,10 +82,10 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
     private void launchMoveConversation(CellTranslation operation) {
         Action moveAction = createMoveToCellAction(operation);
         woaAgent.addBehaviour(new Conversation(myAgent, comStandard,
-                moveAction, GameOntology.MOVETOCELL) {
+                GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
-                sendMessage(worldAID, ACLMessage.REQUEST, new SentMessageHandler() {
+                sendMessage(worldAID, ACLMessage.REQUEST, moveAction, new SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
                         woaAgent.log(Level.FINE, "wants to move from "
