@@ -29,16 +29,14 @@ import java.util.logging.Logger;
 public abstract class Conversation extends SimpleBehaviour {
 
     private final CommunicationStandard comStandard;
-    private final Action action;
     private final String protocol;
     private boolean finished;
 
     public Conversation(Agent agent, CommunicationStandard com
-            , Action action, String protocol) {
+            , String protocol) {
         super(agent);
         this.finished = false;
         this.comStandard = com;
-        this.action = action;
         this.protocol = protocol;
     }
 
@@ -46,13 +44,10 @@ public abstract class Conversation extends SimpleBehaviour {
      * Sends a message to the required recipients
      * @param receivers
      * @param performative action to set the message
+     * @param action
      * @param handler
      */
-    protected void sendMessage(AID[] receivers, int performative, SentMessageHandler handler) {
-        sendMessage(receivers, performative, null, handler);
-    }
-    
-    protected void sendMessage(AID[] receivers, int performative, Serializable object, SentMessageHandler handler) {
+    protected void sendMessage(AID[] receivers, int performative, Action action, SentMessageHandler handler) {
         myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
             @Override
             public void action() {
@@ -64,15 +59,6 @@ public abstract class Conversation extends SimpleBehaviour {
                 newMsg.setLanguage(comStandard.getCodec().getName());
                 newMsg.setConversationId(conversationID);
                 newMsg.setProtocol(protocol);
-                
-                if (object != null && action.getAction() == null) {
-                    try {
-                        newMsg.setContentObject(object);
-                    } catch (IOException ex) {
-                        handler.onSentMessageError();
-                        return;
-                    }
-                }
                 
                 for (AID receiverAID : receivers) {
                     newMsg.addReceiver(receiverAID);
@@ -92,14 +78,43 @@ public abstract class Conversation extends SimpleBehaviour {
         });
     }
     
+    protected void sendMessage(AID[] receivers, Serializable object, int performative, SentMessageHandler handler) {
+        myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
+            @Override
+            public void action() {
+
+                ACLMessage newMsg = new ACLMessage(performative);
+                String conversationID = UUID.randomUUID().toString();
+
+                newMsg.setOntology(comStandard.getOntology().getName());
+                newMsg.setLanguage(comStandard.getCodec().getName());
+                newMsg.setConversationId(conversationID);
+                newMsg.setProtocol(protocol);
+                
+                try {
+                    newMsg.setContentObject(object);
+                } catch (IOException ex) {
+                    handler.onSentMessageError();
+                    return;
+                }
+                
+                for (AID receiverAID : receivers) {
+                    newMsg.addReceiver(receiverAID);
+                }
+
+            }
+        });
+    }
+    
     /**
      * Send message to one recipient
      * @param receiver
      * @param performative
+     * @param action
      * @param handler 
      */
-    protected void sendMessage(AID receiver, int performative, SentMessageHandler handler) {
-        sendMessage(new AID[]{receiver}, performative, handler);
+    protected void sendMessage(AID receiver, int performative, Action action, SentMessageHandler handler) {
+        sendMessage(new AID[]{receiver}, performative, action, handler);
     }
     
     /**
@@ -110,7 +125,7 @@ public abstract class Conversation extends SimpleBehaviour {
      * @param handler 
      */
     protected void sendMessage(AID receiver, int performative, Serializable object, SentMessageHandler handler) {
-        sendMessage(new AID[]{receiver}, performative, object, handler);
+        sendMessage(new AID[]{receiver}, object, performative, handler);
     }
 
     /**
@@ -119,7 +134,7 @@ public abstract class Conversation extends SimpleBehaviour {
      * @param performative 
      * @param object 
      */
-    protected void respondMessage(ACLMessage message, int performative, Serializable object) {
+    protected void respondMessage(ACLMessage message, Serializable object, int performative) {
         myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
             @Override
             public void action() {
@@ -128,20 +143,9 @@ public abstract class Conversation extends SimpleBehaviour {
                 
                 newMsg.setPerformative(performative);
                 
-                if (object != null) {
-                    try {
-                        newMsg.setContentObject(object);
-                    } catch (IOException ex) {
-                        Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
-                        return;
-                    }
-                }
-
                 try {
-                    if (action.getAction() != null) {
-                        myAgent.getContentManager().fillContent(newMsg, action);
-                    }
-                } catch (Codec.CodecException | OntologyException ex) {
+                    newMsg.setContentObject(object);
+                } catch (IOException ex) {
                     Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
                     return;
                 }
@@ -155,9 +159,29 @@ public abstract class Conversation extends SimpleBehaviour {
      * Reply a message from one conversation
      * @param message
      * @param performative 
+     * @param action 
      */
-    protected void respondMessage(ACLMessage message, int performative) {
-        respondMessage(message, performative, null);
+    protected void respondMessage(ACLMessage message, int performative, Action action) {
+        myAgent.addBehaviour(new OneShotBehaviour(myAgent) {
+            @Override
+            public void action() {
+
+                ACLMessage newMsg = message.createReply();
+                
+                newMsg.setPerformative(performative);
+
+                try {
+                    if (action.getAction() != null) {
+                        myAgent.getContentManager().fillContent(newMsg, action);
+                    }
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getGlobal().log(Level.WARNING, "Could not fill contents of message ({0})", ex);
+                    return;
+                }
+
+                myAgent.send(newMsg);
+            }
+        });
     }
 
     /**
