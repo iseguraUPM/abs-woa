@@ -9,7 +9,7 @@ package es.upm.woa.agent.group1;
  *
  * @author juanpamz
  */
-public class TribeResources {
+public class TribeResources implements Cloneable {
     
    private int wood;
    private int stone;
