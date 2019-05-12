@@ -5,20 +5,13 @@
  */
 package es.upm.woa.agent.group1;
 
-import static es.upm.woa.agent.group1.AgWorld.WORLD;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayTickBehaviour;
-import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.RegisterTribe;
-import es.upm.woa.ontology.Resource;
-import es.upm.woa.ontology.ResourceAccount;
-import jade.content.lang.Codec;
-import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
-import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -27,20 +20,10 @@ import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import org.json.JSONObject;
 
 /**
  *
