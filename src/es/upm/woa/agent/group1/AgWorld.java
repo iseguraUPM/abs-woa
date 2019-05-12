@@ -24,6 +24,7 @@ import es.upm.woa.agent.group1.protocol.Transaction;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
+import es.upm.woa.ontology.InitalizeTribe;
 import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
 import es.upm.woa.ontology.NotifyUnitPosition;
@@ -50,11 +51,11 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
-import org.json.JSONObject;
 
 // TODO: change docs
 /**
@@ -414,21 +415,28 @@ public class AgWorld extends WoaAgent implements
             
             log(Level.INFO, "Starting game...");
 
-            // TODO: temp
+            
+            List<Unit> unitList = new ArrayList<Unit>();
             final int MAX_TRIBES = 1;
             for(Tribe tribe: tribeCollection){
                 MapCell townHallCell = configurator.addNewTribe(worldMap, tribe.getAID());
                 handInitialTribeResources(townHallCell, tribe);
+                tribe.getUnitsIterable();
+                Iterable<Unit> unitListIterable = tribe.getUnitsIterable();
+                for (Unit e:unitListIterable) {
+                    unitList.add(e);
+                }
+                initializeTribe(tribe.getAID(), configurator, unitList, townHallCell);
             }
 
             //TODO: Inform tribes about resources, initial position and initial units
+            
             
             String[] tribeNames = startingTribeNames.subList(0, MAX_TRIBES).toArray(new String[MAX_TRIBES]);
             
             guiEndpoint.apiStartGame(tribeNames,
                      configurator.getMapConfigurationContents());
             
-            startInformInitialResources(configurator);
             
         } catch (ConfigurationException ex) {
             log(Level.SEVERE, "Could not load the configuration");
@@ -441,33 +449,39 @@ public class AgWorld extends WoaAgent implements
      * Sends an inform with the initial resources
      * to every tribe that has been registered
      */
-    private void startInformInitialResources(WorldMapConfigurator configurator) throws ConfigurationException {
-            TribeResources tribeResources = configurator.getInitialResources();
-            
-            
-            ResourceAccount resourceAccount = new ResourceAccount();
-            resourceAccount.setFood(tribeResources.getFood());
-            resourceAccount.setGold(tribeResources.getGold());
-            resourceAccount.setStone(tribeResources.getStone());
-            resourceAccount.setWood(tribeResources.getWood());
-            
-            
-            List<AID> receipts = new ArrayList<>();
-            tribeCollection.forEach((targetTribe) -> {
-                receipts.add(targetTribe.getAID());
-            });
+    private void initializeTribe(AID tribeAID, WorldMapConfigurator configurator, List<Unit> unitList, MapCell initialMapCell) throws ConfigurationException {
+        InitalizeTribe initializeTribe = new InitalizeTribe();
+        
+        TribeResources readInitialResources = configurator.getInitialResources();
+        ResourceAccount resourceAccount = new ResourceAccount();
+        resourceAccount.setFood(readInitialResources.getFood());
+        resourceAccount.setGold(readInitialResources.getGold());
+        resourceAccount.setStone(readInitialResources.getStone());
+        resourceAccount.setWood(readInitialResources.getWood());
 
-            Action initialResources = new Action(this.getAID(), resourceAccount);
+        for(Unit u : unitList){
+            initializeTribe.addUnitList(u.getId());
+        }
+        
+        Cell startingCell = new Cell();
+        startingCell.setContent(initialMapCell.getContent());
+        startingCell.setX(initialMapCell.getXCoord());
+        startingCell.setY(initialMapCell.getYCoord());
+        initializeTribe.setStartingPosition(startingCell);
+        
+        initializeTribe.setStartingResources(resourceAccount);
 
-            addBehaviour(new Conversation(this, woaComStandard, initialResources, GameOntology.INITALIZETRIBE_STARTINGRESOURCES) {
-                @Override
-                public void onStart() {
-                    sendMessage(receipts
-                            .toArray(new AID[receipts.size()]), ACLMessage.INFORM, new Conversation.SentMessageHandler() {
-                    });
-                }
 
-            });
+        Action initializeTribeAction = new Action(this.getAID(), initializeTribe);
+
+        addBehaviour(new Conversation(this, woaComStandard, initializeTribeAction, GameOntology.INITALIZETRIBE) {
+            @Override
+            public void onStart() {
+                sendMessage(tribeAID, ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+                });
+            }
+
+        });
         
         
     }

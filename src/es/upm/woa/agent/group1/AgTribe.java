@@ -78,7 +78,7 @@ public class AgTribe extends GroupAgent {
         startWhereAmIBehaviour();
         startInformUnitPositionBehaviour();
         startShareMapDataBehaviour();
-        startInitialResourcesBehaviour();
+        startInitializeTribeBehaviour();
     }
 
     private void startInformRegistrationBehaviour() {
@@ -395,10 +395,10 @@ public class AgTribe extends GroupAgent {
     /**
      * Listen to the initial resources being sent by the registration desk
      */
-    public void startInitialResourcesBehaviour() {
-        Action initialResourcesAction = new Action(getAID(), new ResourceAccount());
+    public void startInitializeTribeBehaviour() {
+        Action initializeTribeAction = new Action(getAID(), new InitalizeTribe());
         addBehaviour(new Conversation(this, gameComStandard
-                , initialResourcesAction, GameOntology.INITALIZETRIBE_STARTINGRESOURCES) {
+                , initializeTribeAction, GameOntology.INITALIZETRIBE) {
             @Override
             public void onStart() {
                 listenMessages(new Conversation.ResponseHandler() {
@@ -411,12 +411,13 @@ public class AgTribe extends GroupAgent {
                                 Action agAction = (Action) ce;
                                 Concept conc = agAction.getAction();
 
-                                if (conc instanceof ResourceAccount) {
-                                    log(Level.FINER, "receive ResourceAccount inform from "
+                                if (conc instanceof InitalizeTribe) {
+                                    log(Level.FINER, "receive InitializeTribe inform from "
                                             + response.getSender().getLocalName());
 
-                                    ResourceAccount resourceAccound = (ResourceAccount) conc;
-
+                                    InitalizeTribe initializeTribe = (InitalizeTribe) conc;
+                                    
+                                    System.out.println("----------------------------" + ((InitalizeTribe) conc).getStartingResources().getFood());
                                 }
                             }
                         } catch (Codec.CodecException | OntologyException ex) {
