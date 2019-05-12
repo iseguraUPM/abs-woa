@@ -124,7 +124,7 @@ public abstract class Conversation extends SimpleBehaviour {
      * @param object
      * @param handler 
      */
-    protected void sendMessage(AID receiver, int performative, Serializable object, SentMessageHandler handler) {
+    protected void sendMessage(AID receiver, Serializable object, int performative, SentMessageHandler handler) {
         sendMessage(new AID[]{receiver}, object, performative, handler);
     }
 
