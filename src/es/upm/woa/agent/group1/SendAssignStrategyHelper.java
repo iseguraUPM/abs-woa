@@ -47,7 +47,7 @@ class SendAssignStrategyHelper {
                     
                     @Override
                     public void onSentMessageError() {
-                        groupAgent.log(Level.FINER, "Error sending strategy");
+                        groupAgent.log(Level.WARNING, "Error sending strategy");
                     }
                     
                 });

@@ -57,6 +57,7 @@ public class AgTribe extends GroupAgent {
 
     private SendMapDataSharingHelper mapDataSharingHelper;
     private DelayTickBehaviour delayedShareMapDataBehaviour;
+    private SendAssignStrategyHelper assignStrategyHelper;
     
     private TribeResources tribeResources;
 
@@ -167,6 +168,7 @@ public class AgTribe extends GroupAgent {
                 , (Unit newUnit) -> {
                         informNewUnitOwnership(newUnit);
                         mapDataSharingHelper.unicastMapData(newUnit.getId());
+                        
         }).startInformNewUnitBehaviour();
     }
     
@@ -259,6 +261,7 @@ public class AgTribe extends GroupAgent {
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
+        assignStrategyHelper = new SendAssignStrategyHelper(this, group1ComStandard);
     }
     
     @Override
@@ -349,7 +352,12 @@ public class AgTribe extends GroupAgent {
                                         units.add(newUnit);
                                         mapDataSharingHelper.unicastMapData(unitAID);
                                         informNewUnitOwnership(newUnit);
+                                        
+                        
                                     }
+                                    
+                                    assignStrategyHelper.multicastStrategy(getMyUnitsAIDs()
+                                , StrategyFactory.envelopFreeExploreStrategy(0));
                                     
                                 }
                             }
