@@ -15,8 +15,6 @@ public class TribeResources {
    private int stone;
    private int food;
    private int gold;
-
-   public TribeResources(){}
    
    public TribeResources(int wood, int stone, int food, int gold){
        this.wood = wood;
@@ -24,34 +22,19 @@ public class TribeResources {
        this.food = food;
        this.gold = gold;
    }
-   
-   public void setWood(int value) { 
-    this.wood=value;
-   }
+
    public int getWood() {
      return this.wood;
    }
 
-
-   public void setStone(int value) { 
-    this.stone=value;
-   }
    public int getStone() {
      return this.stone;
    }
 
-
-   public void setFood(int value) { 
-    this.food=value;
-   }
    public int getFood() {
      return this.food;
    }
 
-
-   public void setGold(int value) { 
-    this.gold=value;
-   }
    public int getGold() {
      return this.gold;
    }
@@ -120,8 +103,14 @@ public class TribeResources {
         wood += WoaDefinitions.TOWN_HALL_WOOD_COST;
     }
    
-   @Override
+    /**
+     *
+     * @return instance with same resource count
+     * @throws CloneNotSupportedException
+     */
+    @Override
     public Object clone() throws CloneNotSupportedException {
+        super.clone();
         return new TribeResources(wood, stone, food, gold);
     }
 }

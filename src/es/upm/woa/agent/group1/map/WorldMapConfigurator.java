@@ -136,13 +136,13 @@ public class WorldMapConfigurator {
         HierarchicalConfiguration<ImmutableNode> configList
                 = initialConfig.configurationAt("initialResources");
         
-        TribeResources tribeResources = new TribeResources();
-        tribeResources.setFood(configList.getInt("food"));
-        tribeResources.setGold(configList.getInt("gold"));
-        tribeResources.setStone(configList.getInt("stone"));
-        tribeResources.setWood(configList.getInt("wood"));
+        int startingFood = configList.getInt("food");
+        int startingGold = configList.getInt("gold");
+        int startingStone = configList.getInt("stone");
+        int startingWood = configList.getInt("wood");
        
-        return tribeResources;
+        return new TribeResources(startingWood, startingStone
+                , startingFood, startingGold);
     }
     
     /**
