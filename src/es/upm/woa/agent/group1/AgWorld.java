@@ -27,6 +27,7 @@ import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyCellDetail;
 import es.upm.woa.ontology.NotifyNewUnit;
 import es.upm.woa.ontology.NotifyUnitPosition;
+import es.upm.woa.ontology.ResourceAccount;
 
 import jade.content.onto.basic.Action;
 import jade.core.AID;
@@ -37,10 +38,13 @@ import jade.lang.acl.ACLMessage;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+import java.io.File;
+import java.io.FileInputStream;
 
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -48,7 +52,9 @@ import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.logging.ConsoleHandler;
+import org.json.JSONObject;
 
 // TODO: change docs
 /**
@@ -422,11 +428,48 @@ public class AgWorld extends WoaAgent implements
             guiEndpoint.apiStartGame(tribeNames,
                      configurator.getMapConfigurationContents());
             
+            startInformInitialResources(configurator);
+            
         } catch (ConfigurationException ex) {
             log(Level.SEVERE, "Could not load the configuration");
         } catch (IOException ex) {
             log(Level.SEVERE, "Could not load the map configuration");
         }
+    }
+    
+    /**
+     * Sends an inform with the initial resources
+     * to every tribe that has been registered
+     */
+    private void startInformInitialResources(WorldMapConfigurator configurator) throws ConfigurationException {
+            TribeResources tribeResources = configurator.getInitialResources();
+            
+            
+            ResourceAccount resourceAccount = new ResourceAccount();
+            resourceAccount.setFood(tribeResources.getFood());
+            resourceAccount.setGold(tribeResources.getGold());
+            resourceAccount.setStone(tribeResources.getStone());
+            resourceAccount.setWood(tribeResources.getWood());
+            
+            
+            List<AID> receipts = new ArrayList<>();
+            tribeCollection.forEach((targetTribe) -> {
+                receipts.add(targetTribe.getAID());
+            });
+
+            Action initialResources = new Action(this.getAID(), resourceAccount);
+
+            addBehaviour(new Conversation(this, woaComStandard, initialResources, GameOntology.INITALIZETRIBE_STARTINGRESOURCES) {
+                @Override
+                public void onStart() {
+                    sendMessage(receipts
+                            .toArray(new AID[receipts.size()]), ACLMessage.INFORM, new Conversation.SentMessageHandler() {
+                    });
+                }
+
+            });
+        
+        
     }
 
 }

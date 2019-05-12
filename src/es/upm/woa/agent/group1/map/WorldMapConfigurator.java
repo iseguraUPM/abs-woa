@@ -5,6 +5,7 @@
  */
 package es.upm.woa.agent.group1.map;
 
+import es.upm.woa.agent.group1.TribeResources;
 import es.upm.woa.agent.group1.WoaDefinitions;
 import es.upm.woa.ontology.Empty;
 
@@ -120,6 +121,28 @@ public class WorldMapConfigurator {
         
         
         return worldMap;
+    }
+    
+    /**
+     * 
+     * @return the resource-populated world map
+     * @throws ConfigurationException if the configuration file does not meet
+     *  the required format
+     */
+    public TribeResources getInitialResources() throws ConfigurationException {
+        JSONConfiguration initialConfig = configs.fileBased(JSONConfiguration.class
+                , mapConfigurationFile);
+        
+        HierarchicalConfiguration<ImmutableNode> configList
+                = initialConfig.configurationAt("initialResources");
+        
+        TribeResources tribeResources = new TribeResources();
+        tribeResources.setFood(configList.getInt("food"));
+        tribeResources.setGold(configList.getInt("gold"));
+        tribeResources.setStone(configList.getInt("stone"));
+        tribeResources.setWood(configList.getInt("wood"));
+       
+        return tribeResources;
     }
     
     /**

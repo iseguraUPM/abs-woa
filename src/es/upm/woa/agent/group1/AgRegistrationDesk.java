@@ -177,7 +177,6 @@ public class AgRegistrationDesk extends WoaAgent {
             protected final void handleElapsedTimeout() {
                 registrationOpen = false;
                 startGameInformer.startGame();
-                startInformInitialResources();
             }
             
         };
@@ -188,61 +187,5 @@ public class AgRegistrationDesk extends WoaAgent {
     public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
 
-    }
-    
-    /**
-     * Sends an inform with the initial resources
-     * to every tribe that has been registered
-     */
-    
-    private void startInformInitialResources() {
-        try (InputStream input = new FileInputStream(WoaDefinitions.CONFIG_FILENAME)) {
-            Properties prop = new Properties();
-            prop.load(input);
-            
-            File file = new File(prop.getProperty("woa.map_directory") + prop.getProperty("woa.map_filename"));
-            FileInputStream fis = new FileInputStream(file);
-            byte[] data = new byte[(int) file.length()];
-            fis.read(data);
-            fis.close();
-
-            String readJson = new String(data, "UTF-8");
-            
-            JSONObject obj = new JSONObject(readJson);
-            int gold = obj.getJSONObject("initialResources").getInt("gold");
-            int stone = obj.getJSONObject("initialResources").getInt("stone");
-            int wood = obj.getJSONObject("initialResources").getInt("wood");
-            int food = obj.getJSONObject("initialResources").getInt("food");
-            
-            ResourceAccount resourceAccount = new ResourceAccount();
-            resourceAccount.setFood(food);
-            resourceAccount.setGold(gold);
-            resourceAccount.setStone(stone);
-            resourceAccount.setWood(wood);
-            
-            
-            List<AID> receipts = new ArrayList<>();
-            registeredTribes.forEach((targetTribe) -> {
-                receipts.add(targetTribe.getAID());
-            });
-
-            Action initialResources = new Action(this.getAID(), resourceAccount);
-
-            addBehaviour(new Conversation(this, woaComStandard, initialResources, GameOntology.INITALIZETRIBE_STARTINGRESOURCES) {
-                @Override
-                public void onStart() {
-                    sendMessage(receipts
-                            .toArray(new AID[receipts.size()]), ACLMessage.INFORM, new Conversation.SentMessageHandler() {
-                    });
-                }
-
-            });
-
-        } catch (IOException ex) {
-            log(Level.WARNING, "Could not load the configuration file.");
-        }
-        
-        
-    }
-    
+    }    
 }
