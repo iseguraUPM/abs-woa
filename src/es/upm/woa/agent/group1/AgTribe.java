@@ -5,25 +5,18 @@ package es.upm.woa.agent.group1;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import static es.upm.woa.agent.group1.AgUnit.WORLD;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.MapCellFactory;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
-import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 import es.upm.woa.agent.group1.protocol.DelayTickBehaviour;
 import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
-import es.upm.woa.ontology.Cell;
-import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.InitalizeTribe;
-import es.upm.woa.ontology.NotifyCellDetail;
-import es.upm.woa.ontology.NotifyNewUnit;
-import es.upm.woa.ontology.NotifyUnitPosition;
 import es.upm.woa.ontology.RegisterTribe;
 import es.upm.woa.ontology.ResourceAccount;
 
@@ -41,7 +34,6 @@ import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -314,10 +306,13 @@ public class AgTribe extends GroupAgent {
 
                                     InitalizeTribe initializeTribe = (InitalizeTribe) conc;
                                     
-                                    tribeResources = new TribeResources(initializeTribe.getStartingResources().getWood(), 
-                                            initializeTribe.getStartingResources().getStone(), 
-                                            initializeTribe.getStartingResources().getFood(), 
-                                            initializeTribe.getStartingResources().getGold());
+                                    ResourceAccount startingResources
+                                            = initializeTribe.getStartingResources();
+                                    
+                                    tribeResources = new TribeResources(startingResources.getWood(), 
+                                            startingResources.getStone(), 
+                                            startingResources.getFood(), 
+                                            startingResources.getGold());
                                     
                                     knownMap.addCell(MapCellFactory.getInstance().buildCell(initializeTribe.getStartingPosition()));
                                     
