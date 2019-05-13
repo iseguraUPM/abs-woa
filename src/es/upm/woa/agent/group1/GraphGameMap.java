@@ -228,6 +228,8 @@ class GraphGameMap implements GameMap {
      * @param otherGraph 
      */
     public void mergeMapData(GraphGameMap otherGraph) {
+        int mapGraphSize = mapGraph.vertexSet().size();
+        
         if (mapGraph.vertexSet().isEmpty()) {
             mergeAll(otherGraph);
         }
@@ -241,6 +243,9 @@ class GraphGameMap implements GameMap {
                 mergeMissingMapData(otherGraph, unknownCells);
             }
         }
+        
+        System.err.println("Merged map data " + mapGraphSize + " -> "
+                + mapGraph.vertexSet().size());
         
         updateDijskstraPath();
     }
@@ -278,8 +283,10 @@ class GraphGameMap implements GameMap {
             , GraphGameMap otherGraph, Collection<MapCell> newAdditions) {
         MapCell target = otherGraph.mapGraph.getEdgeTarget(direction);
         try {
-            MapCell myKnownTarget = getCellAt(myCell.getXCoord(), myCell.getYCoord());
+            MapCell myKnownTarget = getCellAt(target.getXCoord(), target.getYCoord());
             mapGraph.addEdge(myCell, myKnownTarget, direction);
+            CellTranslation inverse = direction.generateInverse();
+            mapGraph.addEdge(myKnownTarget, myCell, inverse);
         } catch (NoSuchElementException ex) {
             newAdditions.add(target);
         }
