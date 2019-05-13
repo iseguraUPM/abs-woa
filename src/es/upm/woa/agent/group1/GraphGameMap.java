@@ -204,6 +204,10 @@ class GraphGameMap implements GameMap {
             throw new NoSuchElementException("Cannot connect unknown map cells");
         }
         
+        if (mapGraph.getEdge(from, to) != null) {
+            return false;
+        }
+        
         boolean success = mapGraph.addEdge(from, to, translation);
         if (!success) {
             return false;
