@@ -226,20 +226,21 @@ public class AgTribe extends GroupAgent {
             try {
                 DFAgentDescription dfdRegistrationDesk = new DFAgentDescription();
                 ServiceDescription sdRegistrationDesk = new ServiceDescription();
-                sdRegistrationDesk.setType(REGISTRATION_DESK);
+                sdRegistrationDesk.setType(AgRegistrationDesk.REGISTRATION_DESK);
                 dfdRegistrationDesk.addServices(sdRegistrationDesk);
                 // It finds agents of the required type
                 DFAgentDescription[] descriptions = DFService.search(this, dfdRegistrationDesk);
                 if (descriptions.length == 0) {
                     log(Level.SEVERE, "Registration Desk service description not found");
+                    Thread.sleep(1000);
                 } else {
                     registrationDeskServiceDescription = descriptions[0];
                     break;
                 }
             } catch (FIPAException ex) {
                 log(Level.WARNING, " the REGISTRATION_DESK agent was not found (" + ex + ")");
+                Thread.sleep(1000);
             }
-            Thread.sleep(1000);
         }
     }
 
