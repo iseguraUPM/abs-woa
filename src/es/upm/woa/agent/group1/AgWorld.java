@@ -373,35 +373,35 @@ public class AgWorld extends WoaAgent implements
 
     @Override
     public void startGame() {
-        try {
-            for(Tribe tribe : tribeCollection) { 
+        tribeCollection.forEach((Tribe tribe) -> {
+            try {
                 MapCell startingCell = woaConfigurator
                         .getNewTribeInitialCell(worldMap, tribe.getAID());
                 launchInitialTribeUnits(startingCell, tribe);
-                
+
                 initializeTribe(tribe, initialTribeResources, startingCell);
+            } catch (ConfigurationException ex) {
+                log(Level.SEVERE, "Could not launch tribes");
             }
-            
-            
-            try {
-                guiEndpoint.apiStartGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
-                        woaConfigurator.getMapConfigurationContents());
-                tribeCollection.forEach((Tribe tribe) -> {
-                    tribe.getUnits().forEach((unit) -> {
-                        guiEndpoint.apiCreateAgent(tribe.getAID().getLocalName()
-                                , unit.getId().getLocalName(), unit.getCoordX()
-                                , unit.getCoordY());
-                    });
+        });
+
+
+        try {
+            guiEndpoint.apiStartGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
+                    woaConfigurator.getMapConfigurationContents());
+            tribeCollection.parallelStream().forEach((Tribe tribe) -> {
+                tribe.getUnits().forEach((unit) -> {
+                    guiEndpoint.apiCreateAgent(tribe.getAID().getLocalName()
+                            , unit.getId().getLocalName(), unit.getCoordX()
+                            , unit.getCoordY());
                 });
-            } catch (IOException ex) {
-                log(Level.WARNING, "Could not load configuration to the GUI"
-                        + " endpoint");
-            }
-            
-            startWorldBehaviours();
-        } catch (ConfigurationException ex) {
-            log(Level.SEVERE, "Could not launch tribes");
+            });
+        } catch (IOException ex) {
+            log(Level.WARNING, "Could not load configuration to the GUI"
+                    + " endpoint");
         }
+
+        startWorldBehaviours();
     }
 
     private void startWorldBehaviours() {

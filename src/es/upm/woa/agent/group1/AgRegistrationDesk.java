@@ -43,7 +43,7 @@ public class AgRegistrationDesk extends WoaAgent {
     private final List<String> startingTribeNames;
     private final TribeResources initialTribeResources;
     
-    final int MAX_TRIBES = 1;
+    final int MAX_TRIBES = 6;
     
     private boolean registrationOpen;
     
