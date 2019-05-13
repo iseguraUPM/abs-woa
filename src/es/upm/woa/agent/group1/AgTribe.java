@@ -12,7 +12,6 @@ import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
-import es.upm.woa.agent.group1.protocol.DelayTickBehaviour;
 import es.upm.woa.agent.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.Empty;
@@ -34,8 +33,10 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Stack;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -45,7 +46,6 @@ import java.util.stream.Collectors;
  * @author ISU
  */
 public class AgTribe extends GroupAgent {
-    public static final String REGISTRATION_DESK = "REGISTRATION_DESK";
     
     private int tribeNumber;
     private CommunicationStandard gameComStandard;
@@ -59,6 +59,8 @@ public class AgTribe extends GroupAgent {
     private SendAssignStrategyHelper assignStrategyHelper;
     
     private TribeResources tribeResources;
+    
+    private Stack<Integer> groupNumbers;
 
     @Override
     protected void setup() {
@@ -78,7 +80,9 @@ public class AgTribe extends GroupAgent {
     }
 
     private void startInformRegistrationBehaviour() {
-        final Action registerTribe = new Action(this.getAID(), new RegisterTribe());
+        RegisterTribe dummyAction = new RegisterTribe();
+        dummyAction.setTeamNumber(getGroupNumber());
+        final Action registerTribe = new Action(this.getAID(), dummyAction);
 
         addBehaviour(new Conversation(this, gameComStandard, GameOntology.REGISTERTRIBE) {
             @Override
@@ -95,14 +99,8 @@ public class AgTribe extends GroupAgent {
 
                             @Override
                             public void onAgree(ACLMessage response) {
-                                try {
-                                    handleRegisterTribeMessage(response);
-                                    log(Level.FINE, "receive RegisterTribe agree from "
-                                        + response.getSender().getLocalName() + "and this tribe's number is " + tribeNumber);
-                                } catch (Codec.CodecException | OntologyException ex) {
-                                    log(Level.WARNING, "could not receive message"
-                                            + " (" + ex + ")");
-                                }
+                                log(Level.FINE, "receive RegisterTribe agree from "
+                                    + response.getSender().getLocalName());
                             }
 
                             @Override
@@ -124,21 +122,6 @@ public class AgTribe extends GroupAgent {
             }
 
         });
-    }
-    
-    private void handleRegisterTribeMessage(ACLMessage response)
-            throws OntologyException, Codec.CodecException {
-        ContentElement ce = this.getContentManager().extractContent(response);
-        if (ce instanceof Action) {
-
-            Action agAction = (Action) ce;
-            Concept conc = agAction.getAction();
-
-            if (conc instanceof RegisterTribe) {
-                RegisterTribe registerTribe = (RegisterTribe) conc;
-                tribeNumber = registerTribe.getTeamNumber();              
-            }
-        }
     }
     
     private void startInformCellDetailBehaviour() {
@@ -237,7 +220,7 @@ public class AgTribe extends GroupAgent {
         try {
             DFAgentDescription dfdRegistrationDesk = new DFAgentDescription();
             ServiceDescription sdRegistrationDesk = new ServiceDescription();
-            sdRegistrationDesk.setType(REGISTRATION_DESK);
+            sdRegistrationDesk.setType(AgRegistrationDesk.REGISTRATION_DESK);
             dfdRegistrationDesk.addServices(sdRegistrationDesk);
             // It finds agents of the required type
             DFAgentDescription[] descriptions = DFService.search(this, dfdRegistrationDesk);
@@ -252,6 +235,10 @@ public class AgTribe extends GroupAgent {
         
     }
 
+    private int getGroupNumber() {
+        return groupNumbers.pop();
+    }
+    
     private void initializeTribe() {
         gameComStandard = new WoaCommunicationStandard();
         gameComStandard.register(getContentManager());
@@ -263,6 +250,10 @@ public class AgTribe extends GroupAgent {
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard);
         assignStrategyHelper = new SendAssignStrategyHelper(this, group1ComStandard);
+        
+        groupNumbers = new Stack<>();
+        for (int i = 1; i <= 6; i++)
+            groupNumbers.add(i);
     }
     
     @Override
