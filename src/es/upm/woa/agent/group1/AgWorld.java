@@ -387,12 +387,9 @@ public class AgWorld extends WoaAgent implements
                         , startingCell);
             }
             
-            String[] tribeNames = startingTribeNames
-                    .subList(0, tribeCollection.size())
-                    .toArray(new String[tribeCollection.size()]);
             
             try {
-                guiEndpoint.apiStartGame(tribeNames,
+                guiEndpoint.apiStartGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
                         woaConfigurator.getMapConfigurationContents());
                 tribeCollection.forEach((Tribe tribe) -> {
                     for (Unit unit : tribe.getUnitsIterable()) {
