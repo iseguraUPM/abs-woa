@@ -32,7 +32,7 @@ import java.util.logging.Level;
  * @author Martin
  */
 public class AgRegistrationDesk extends WoaAgent {
-    public static final String REGISTRATION_DESK = "REGISTRATION_DESK";
+    public static final String REGISTRATION_DESK = "REGISTRATION DESK";
     private static final int REGISTRATION_PERIOD_TICKS = 4;
 
     private CommunicationStandard woaComStandard;
@@ -123,7 +123,6 @@ public class AgRegistrationDesk extends WoaAgent {
                , GameOntology.REGISTERTRIBE) {
             @Override
             public void onStart() {
-                Action action = new Action(getAID(), new RegisterTribe());
 
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
