@@ -58,8 +58,6 @@ public class AgTribe extends GroupAgent {
     private SendMapDataSharingHelper mapDataSharingHelper;
     private SendAssignStrategyHelper assignStrategyHelper;
     
-    private Unit constructorUnit;
-    
     private TribeResources tribeResources;
 
     @Override
@@ -265,8 +263,6 @@ public class AgTribe extends GroupAgent {
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard);
         assignStrategyHelper = new SendAssignStrategyHelper(this, group1ComStandard);
-        
-        constructorUnit = null;
     }
     
     @Override
@@ -370,13 +366,7 @@ public class AgTribe extends GroupAgent {
     }
 
     private void executeStrategy() {
-        if (knownMap.getHeight() >= 9 && knownMap.getWidth() >= 9
-                && constructorUnit == null) {
-            constructorUnit = (Unit) units.toArray()[0];
-            assignStrategyHelper.unicastStrategy(constructorUnit.getId()
-                    , StrategyFactory.envelopCreateBuildingStrategy(0
-                            , WoaDefinitions.TOWN_HALL));
-        }
+        
     }
 
 }
