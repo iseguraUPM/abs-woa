@@ -81,7 +81,7 @@ public class CreateUnitBehaviourHelper {
                     public void onRequest(ACLMessage message) {
                         final Action createUnitAction
                                 = new Action(woaAgent.getAID(), new CreateUnit());
-                        woaAgent.log(Level.FINE, "received CreateUnit request from"
+                        woaAgent.log(Level.FINER, "received CreateUnit request from"
                                 + message.getSender().getLocalName());
 
                         final Tribe ownerTribe = tribeInfomationBroker

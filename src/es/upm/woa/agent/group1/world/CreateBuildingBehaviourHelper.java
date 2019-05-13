@@ -80,7 +80,7 @@ public class CreateBuildingBehaviourHelper {
                         dummyAction.setBuildingType("");
                         Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
                         
-                        woaAgent.log(Level.FINE, "received CreateBuilding request from"
+                        woaAgent.log(Level.FINER, "received CreateBuilding request from"
                                 + message.getSender().getLocalName());
 
                         final Tribe ownerTribe = tribeInfomationHandler

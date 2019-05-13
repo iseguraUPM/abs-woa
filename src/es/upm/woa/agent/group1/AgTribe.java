@@ -151,7 +151,7 @@ public class AgTribe extends GroupAgent {
     private void startShareMapDataBehaviour() {
         new ReceiveShareMapDataBehaviourHelper(this,
                 group1ComStandard, knownMap, (NewGraphConnection newConnection) -> {
-                    log(Level.FINE, "Updated known map");
+                    log(Level.FINER, "Updated known map");
                     shareNewConnectionWithUnits(newConnection);
                     executeStrategy();
                     

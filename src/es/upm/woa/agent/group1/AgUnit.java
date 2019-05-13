@@ -348,8 +348,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
             }
             log(Level.FINER, "Cell updated at " + newCell);
         } catch (NoSuchElementException ex) {
-            //log(Level.FINER, "Cell discovery at " + newCell);
-            // We do nothing. Other units will send us the information
+            log(Level.FINER, "Cell discovery at " + newCell);
+            knownMap.addCell(newCell);
         }
     }
 

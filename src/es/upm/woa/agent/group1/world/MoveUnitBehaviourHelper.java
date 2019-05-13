@@ -74,7 +74,7 @@ public class MoveUnitBehaviourHelper {
                     @Override
                     public void onRequest(ACLMessage message) {
                         final Action moveToCellAction = new Action(woaAgent.getAID(), new MoveToCell());
-                        woaAgent.log(Level.FINE, "received unit MoveToCell"
+                        woaAgent.log(Level.FINER, "received unit MoveToCell"
                                 + " request from " + message.getSender()
                                         .getLocalName());
 
