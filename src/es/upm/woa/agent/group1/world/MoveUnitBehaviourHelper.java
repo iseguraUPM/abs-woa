@@ -73,7 +73,9 @@ public class MoveUnitBehaviourHelper {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        final Action moveToCellAction = new Action(woaAgent.getAID(), new MoveToCell());
+                        MoveToCell dummyAction = new MoveToCell();
+                        dummyAction.setTargetDirection(0);
+                        final Action moveToCellAction = new Action(woaAgent.getAID(), dummyAction);
                         woaAgent.log(Level.FINER, "received unit MoveToCell"
                                 + " request from " + message.getSender()
                                         .getLocalName());
@@ -110,7 +112,9 @@ public class MoveUnitBehaviourHelper {
                     }
 
                     private void processMoveToCellAction(MoveToCell targetCell, Unit requesterUnit, ACLMessage message) throws NoSuchElementException {
-                        final Action moveToCellAction = new Action(woaAgent.getAID(), new MoveToCell());
+                        MoveToCell dummyAction = new MoveToCell();
+                        dummyAction.setTargetDirection(0);
+                        final Action moveToCellAction = new Action(woaAgent.getAID(), dummyAction);
                         int translationCode = targetCell.getTargetDirection();
                         int[] translationVector = getTranslationVectorFromCode(translationCode);
                         
