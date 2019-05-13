@@ -87,8 +87,8 @@ class ReceiveInformUnitPositionBehaviourHelper {
                                      informedCell.getY());
                     groupAgent.onUnitPassby(knownCell, unitPosition.getTribeId());
                 } catch (NoSuchElementException ex) {
-                    // Should not reach
-                    groupAgent.log(Level.WARNING, "Unit passed by an unknown position");
+                    groupAgent.onCellDiscovered(MapCellFactory
+                            .getInstance().buildCell(informedCell));
                 }
                 
             }
