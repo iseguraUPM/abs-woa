@@ -9,7 +9,6 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
-import es.upm.woa.ontology.Empty;
 
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
@@ -23,7 +22,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.Collection;
 import java.util.HashSet;
 
 /**
@@ -37,19 +35,21 @@ class GraphGameMap implements GameMap {
     transient private DijkstraShortestPath<MapCell, CellTranslation> dijkstraShortestPath;
     
     private int maxWidth;
+    private int minWidth;
     private int maxHeight;
+    private int minHeight;
     
     private GraphGameMap() {
     }
     
     @Override
     public int getWidth() {
-       return 0;
+       return maxWidth - minWidth;
     }
     
     @Override
     public int getHeight() {
-        return 0;
+        return maxHeight - minHeight;
     }
     
     /**
@@ -69,6 +69,8 @@ class GraphGameMap implements GameMap {
         newInstance.mapGraph = new DirectedPseudograph<>(CellTranslation.class);
         newInstance.maxHeight = 0;
         newInstance.maxWidth = 0;
+        newInstance.minHeight = 0;
+        newInstance.minWidth = 0;
         
         return newInstance;
     }
@@ -161,13 +163,23 @@ class GraphGameMap implements GameMap {
     }
     
     @Override
-    public boolean addCell(MapCell mapCell) {
-        if (mapCell.getXCoord() < 1 || mapCell.getYCoord() < 1) {
+    public boolean addCell(MapCell mapCell) {if (mapCell.getXCoord() < 1 || mapCell.getYCoord() < 1) {
             throw new IndexOutOfBoundsException("Coordinates " + mapCell
                     + " exceed map dimensions");
         }
         
         if (mapGraph.addVertex(mapCell)) {
+            if (mapGraph.vertexSet().size() == 1) {
+                minHeight = mapCell.getXCoord() - 1;
+                minWidth = mapCell.getYCoord() - 1;
+            }
+            else {
+                minHeight = mapCell.getXCoord() < minHeight
+                    ? mapCell.getXCoord() - 1 : minHeight;
+                minWidth = mapCell.getYCoord() < minWidth
+                    ? mapCell.getYCoord() - 1: minWidth;
+            }
+            
             maxHeight = mapCell.getXCoord() > maxHeight
                     ? mapCell.getXCoord() : maxHeight;
             maxWidth = mapCell.getYCoord()> maxWidth
