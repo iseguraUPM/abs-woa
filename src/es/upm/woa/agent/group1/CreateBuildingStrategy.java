@@ -256,14 +256,14 @@ class CreateBuildingStrategy extends Strategy {
 
                             @Override
                             public void onNotUnderstood(ACLMessage response) {
-                                woaAgent.log(Level.WARNING, "received CreateUnit not understood from "
+                                woaAgent.log(Level.WARNING, "received CreateBuilding not understood from "
                                         + response.getSender().getLocalName());
                                 handler.onCouldntCreateBuilding();
                             }
 
                             @Override
                             public void onRefuse(ACLMessage response) {
-                                woaAgent.log(Level.FINE, "receive CreateUnit refuse from "
+                                woaAgent.log(Level.FINE, "receive CreateBuilding refuse from "
                                         + response.getSender().getLocalName());
                                 handler.onCouldntCreateBuilding();
                             }
