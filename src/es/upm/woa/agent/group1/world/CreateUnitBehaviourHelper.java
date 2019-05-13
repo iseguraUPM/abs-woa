@@ -9,6 +9,7 @@ import es.upm.woa.agent.group1.Tribe;
 import es.upm.woa.agent.group1.Unit;
 import es.upm.woa.agent.group1.WoaAgent;
 import es.upm.woa.agent.group1.WoaDefinitions;
+import es.upm.woa.agent.group1.gui.WoaGUI;
 import es.upm.woa.agent.group1.map.GameMap;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.map.UnitCellPositioner;
@@ -41,6 +42,7 @@ public class CreateUnitBehaviourHelper {
     private final CommunicationStandard comStandard;
     private final GameMap worldMap;
     private final Collection<Transaction> activeTransactions;
+    private final WoaGUI gui;
     
     private final TribeInfomationBroker tribeInfomationBroker;
     private final UnitMovementInformer unitMovementInformer;
@@ -49,6 +51,7 @@ public class CreateUnitBehaviourHelper {
     public CreateUnitBehaviourHelper(WoaAgent woaAgent
             , CommunicationStandard comStandard, GameMap worldMap
             , Collection<Transaction> activeTransactions
+            , WoaGUI gui
             , TribeInfomationBroker tribeInfomationBroker
             , UnitMovementInformer unitMovementInformer
             , UnitCreator unitCreator) {
@@ -56,6 +59,7 @@ public class CreateUnitBehaviourHelper {
         this.comStandard = comStandard;
         this.worldMap = worldMap;
         this.activeTransactions = activeTransactions;
+        this.gui = gui;
         this.tribeInfomationBroker = tribeInfomationBroker;
         this.unitMovementInformer = unitMovementInformer;
         this.unitCreator = unitCreator;
@@ -147,6 +151,9 @@ public class CreateUnitBehaviourHelper {
                                 public void onCreatedUnit(Unit createdUnit) {
                                     respondMessage(message, ACLMessage.INFORM, createUnitAction);
                                     informTribeAboutNewUnit(ownerTribe, createdUnit);
+                                    gui.apiCreateAgent(ownerTribe.getAID().getLocalName(),
+                                        createdUnit.getId().getLocalName(), createdUnit.getCoordX(),
+                                        createdUnit.getCoordY());
                                     unitMovementInformer.informAboutUnitPassby(ownerTribe
                                              , unitPosition);
                                     woaAgent.log(Level.FINE, "Created unit "

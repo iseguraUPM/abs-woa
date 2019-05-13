@@ -234,9 +234,6 @@ public class AgWorld extends WoaAgent implements
                 ac.kill();
                 handler.onCouldNotCreateUnit();
             } else {
-                guiEndpoint.apiCreateAgent(ownerTribe.getAID().getLocalName(),
-                         newUnitRef.getId().getLocalName(), newUnitRef.getCoordX(),
-                         newUnitRef.getCoordY());
                 handler.onCreatedUnit(newUnitRef);
             }
 
@@ -397,6 +394,13 @@ public class AgWorld extends WoaAgent implements
             try {
                 guiEndpoint.apiStartGame(tribeNames,
                         woaConfigurator.getMapConfigurationContents());
+                tribeCollection.forEach((Tribe tribe) -> {
+                    for (Unit unit : tribe.getUnitsIterable()) {
+                        guiEndpoint.apiCreateAgent(tribe.getAID().getLocalName()
+                                , unit.getId().getLocalName(), unit.getCoordX()
+                                , unit.getCoordY());
+                    }
+                });
             } catch (IOException ex) {
                 log(Level.WARNING, "Could not load configuration to the GUI"
                         + " endpoint");
@@ -410,7 +414,7 @@ public class AgWorld extends WoaAgent implements
 
     private void startWorldBehaviours() {
         new CreateUnitBehaviourHelper(this, woaComStandard
-                , worldMap, activeTransactions, this, this, this)
+                , worldMap, activeTransactions, guiEndpoint, this, this, this)
                 .startUnitCreationBehaviour();
         new MoveUnitBehaviourHelper(this, woaComStandard, guiEndpoint
                 , worldMap, activeTransactions, this, this).startMoveToCellBehaviour();

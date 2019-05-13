@@ -207,6 +207,7 @@ public class MoveUnitBehaviourHelper {
                             action.setAction(moveToCellAction);
 
                             respondMessage(message, ACLMessage.INFORM, action);
+                            
                             gui.apiMoveAgent(requesterUnit.getId()
                                     .getLocalName(), mapCell.getXCoord(),
                                      mapCell.getYCoord());
