@@ -44,7 +44,8 @@ class FreeExploreStrategy extends Strategy {
     
     private final PositionedAgentUnit agentUnit;
     
-    private boolean finished;
+    private boolean finishedRound;
+    private boolean finishExploration;
     private final Set<MapCell> visitedCandidates;
     private MapCell nextCandidate;
 
@@ -57,7 +58,8 @@ class FreeExploreStrategy extends Strategy {
         this.worldAID = worldAID;
         this.agentUnit = agentUnit;
         
-        this.finished = false;
+        this.finishedRound = false;
+        this.finishExploration = false;
         this.visitedCandidates = new HashSet<>();
     }
 
@@ -80,19 +82,20 @@ class FreeExploreStrategy extends Strategy {
                 public void onMoved() {
                     woaAgent.log(Level.FINE, "explored cell "
                             + agentUnit.getCurrentPosition());
-                    finished = true;
+                    finishedRound = true;
                 }
 
                 @Override
                 public void onError() {
                     woaAgent.log(Level.FINE, "error while traveling on direction "
                             + direction);
-                    finished = true;
+                    finishedRound = true;
                 }
             });
         } else {
-            woaAgent.log(Level.WARNING, "Could not find a cell to explore");
-            finished = true;
+            woaAgent.log(Level.INFO, "Could not find a cell to explore");
+            finishedRound = true;
+            finishExploration = true;
         }
     }
 
@@ -117,7 +120,7 @@ class FreeExploreStrategy extends Strategy {
         }
 
         visitedCandidates.add(currentPosition);
-        if (finished || nextCandidate == null) {
+        if (finishedRound || nextCandidate == null) {
             return null;
         } else {
             return findDirectionToExplore(knownMap, nextCandidate);
@@ -126,12 +129,12 @@ class FreeExploreStrategy extends Strategy {
 
     @Override
     public boolean done() {
-        return finished;
+        return finishedRound;
     }
 
     @Override
     protected void resetStrategy() {
-        finished = false;
+        finishedRound = false;
     }
 
     @Override
@@ -289,7 +292,7 @@ class FreeExploreStrategy extends Strategy {
 
     @Override
     public boolean isOneShot() {
-        return false;
+        return finishExploration;
     }
 
     private interface OnMovedToNewCellHandler {

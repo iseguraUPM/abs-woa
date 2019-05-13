@@ -70,13 +70,14 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
     }
 
     private void step() {
-        next++;
         if (next < pathOperations.size()) {
             CellTranslation operation = pathOperations.get(next);
+            next++;
             launchMoveConversation(operation);
         } else {
             finished = true;
         }
+        
     }
 
     private void launchMoveConversation(CellTranslation operation) {
@@ -128,7 +129,7 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                                     
                                     Cell newPosition = extractCellFromMessage(response);
                                     
-                                    if (next + 1 < pathOperations.size()) {
+                                    if (next < pathOperations.size()) {
                                         onStep(operation, MapCellFactory.getInstance()
                                                 .buildCell(newPosition));
                                     }
