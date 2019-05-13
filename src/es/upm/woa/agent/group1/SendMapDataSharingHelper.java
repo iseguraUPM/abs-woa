@@ -5,7 +5,9 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.GameMap;
+import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -13,6 +15,7 @@ import es.upm.woa.agent.group1.protocol.Conversation;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import java.io.Serializable;
 
 import java.util.logging.Level;
 
@@ -24,21 +27,19 @@ class SendMapDataSharingHelper {
     
     private final WoaAgent groupAgent;
     private final CommunicationStandard comStandard;
-    private final GameMap knownMap;
     
     public SendMapDataSharingHelper(WoaAgent groupAgent
-            , CommunicationStandard comStandard, GameMap knownMap) {
+            , CommunicationStandard comStandard) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;
-        this.knownMap = knownMap;
     }
     
-    public void multicastMapData(AID[] receipts) {
+    public void multicastMapData(AID[] receipts, Serializable mapData) {
         groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
                 , Group1Ontology.SHAREMAPDATA) {
             @Override
             public void onStart() {
-                sendMessage(receipts, knownMap, ACLMessage.INFORM, new SentMessageHandler() {
+                sendMessage(receipts, mapData, ACLMessage.INFORM, new SentMessageHandler() {
                     
                     @Override
                     public void onSent(String conversationID) {
@@ -55,8 +56,8 @@ class SendMapDataSharingHelper {
         });
     }
     
-    public void unicastMapData(AID receipt) {
-        multicastMapData(new AID[]{receipt});
+    public void unicastMapData(AID receipt, Serializable mapData) {
+        multicastMapData(new AID[]{receipt}, mapData);
     }
     
     private String printReceipts(AID[] receipts) {
@@ -70,5 +71,6 @@ class SendMapDataSharingHelper {
         
         return stringBuilder.toString();
     }
+    
     
 }

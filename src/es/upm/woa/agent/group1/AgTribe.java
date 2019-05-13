@@ -56,7 +56,6 @@ public class AgTribe extends GroupAgent {
     private DFAgentDescription registrationDeskServiceDescription;
 
     private SendMapDataSharingHelper mapDataSharingHelper;
-    private DelayTickBehaviour delayedShareMapDataBehaviour;
     private SendAssignStrategyHelper assignStrategyHelper;
     
     private TribeResources tribeResources;
@@ -149,10 +148,9 @@ public class AgTribe extends GroupAgent {
 
     private void startShareMapDataBehaviour() {
         new ReceiveShareMapDataBehaviourHelper(this,
-                group1ComStandard, knownMap, () -> {
+                group1ComStandard, knownMap, (NewGraphConnection newConnection) -> {
                     log(Level.FINE, "Updated known map");
-                    shareMapDataWithUnits();
-                    
+                    shareNewConnectionWithUnits(newConnection);
                 }).startShareMapDataBehaviour();
     }
 
@@ -167,7 +165,7 @@ public class AgTribe extends GroupAgent {
                 , knownMap, units
                 , (Unit newUnit) -> {
                         informNewUnitOwnership(newUnit);
-                        mapDataSharingHelper.unicastMapData(newUnit.getId());
+                        mapDataSharingHelper.unicastMapData(newUnit.getId(), knownMap);
                         
         }).startInformNewUnitBehaviour();
     }
@@ -260,7 +258,7 @@ public class AgTribe extends GroupAgent {
 
         units = new HashSet<>();
         knownMap = GraphGameMap.getInstance();
-        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
+        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard);
         assignStrategyHelper = new SendAssignStrategyHelper(this, group1ComStandard);
     }
     
@@ -289,23 +287,6 @@ public class AgTribe extends GroupAgent {
         return units.stream().map(unit -> unit.getId())
                 .collect(Collectors.toList()).toArray(new AID[units.size()]);
     }
-
-    private synchronized void shareMapDataWithUnits() {
-        if (delayedShareMapDataBehaviour == null) {
-            delayedShareMapDataBehaviour = new DelayTickBehaviour(this, 50) {
-                
-                @Override
-                protected void handleElapsedTimeout() {
-                    mapDataSharingHelper.multicastMapData(getMyUnitsAIDs());
-                    delayedShareMapDataBehaviour = null;
-                }
-                
-            };
-            addBehaviour(delayedShareMapDataBehaviour);
-        }
-    }
-    
-    
     
     /**
      * Listen to the initial resources being sent by the registration desk
@@ -349,7 +330,7 @@ public class AgTribe extends GroupAgent {
                                                 , startingPosition.getXCoord()
                                                 , startingPosition.getYCoord());
                                         units.add(newUnit);
-                                        mapDataSharingHelper.unicastMapData(unitAID);
+                                        mapDataSharingHelper.unicastMapData(unitAID, knownMap);
                                         informNewUnitOwnership(newUnit);
                                         
                         
@@ -375,6 +356,10 @@ public class AgTribe extends GroupAgent {
     @Override
     public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
+    }
+
+    private void shareNewConnectionWithUnits(NewGraphConnection newConnection) {
+        mapDataSharingHelper.multicastMapData(getMyUnitsAIDs(), newConnection);
     }
 
 }

@@ -5,15 +5,17 @@
  */
 package es.upm.woa.agent.group1;
 
+import es.upm.woa.agent.group1.map.CellTranslation;
+import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
 
-import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 
 import java.io.Serializable;
+import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
 /**
@@ -66,9 +68,13 @@ class ReceiveShareMapDataBehaviourHelper {
     private void handleShareMapDataInform(ACLMessage response) {
         try {
             Serializable content = response.getContentObject();
-            if (content instanceof GraphGameMap) {
-                groupAgent.log(Level.FINER, "Received shared map data");
-                learnNewGraphMapData((GraphGameMap) content);
+            if (content instanceof NewGraphConnection) {
+                groupAgent.log(Level.FINER, "Received new map connection data");
+                learnNewGraphMapData((NewGraphConnection) content);
+            }
+            else if (content instanceof GraphGameMap) {
+                groupAgent.log(Level.FINER, "Received starting map");
+                knownMap.copyMapData((GraphGameMap) content);
             }
             else {
                 groupAgent.log(Level.WARNING, "Could not retrieve map data");
@@ -78,14 +84,35 @@ class ReceiveShareMapDataBehaviourHelper {
         }
     }
     
-    private void learnNewGraphMapData(GraphGameMap otherGameMap) {
-        knownMap.mergeMapData(otherGameMap);
-        updatedMapHandler.onMapUpdated();
+    private void learnNewGraphMapData(NewGraphConnection newConnection) {
+        MapCell mySource;
+        try {
+            mySource = knownMap.getCellAt(newConnection.source.getXCoord()
+                    , newConnection.source.getYCoord());
+        } catch (NoSuchElementException ex) {
+            mySource = newConnection.source;
+            knownMap.addCell(mySource);
+        }
+        
+        MapCell myTarget;
+        try {
+            myTarget = knownMap.getCellAt(newConnection.target.getXCoord()
+                    , newConnection.target.getYCoord());
+        } catch (NoSuchElementException ex) {
+            myTarget = newConnection.target;
+            knownMap.addCell(myTarget);
+        }
+        
+        knownMap.connectPath(mySource, myTarget, newConnection.direction);
+        CellTranslation inverse = newConnection.direction.generateInverse();
+        knownMap.connectPath(myTarget, mySource, inverse);
+        
+        updatedMapHandler.onMapUpdated(newConnection);
     }
     
     interface OnUpdatedMapHandler {
     
-        void onMapUpdated();
+        void onMapUpdated(NewGraphConnection newConnection);
     
     }
     

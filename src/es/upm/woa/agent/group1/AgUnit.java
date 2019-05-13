@@ -8,7 +8,6 @@ package es.upm.woa.agent.group1;
 import es.upm.woa.agent.group1.map.CellTranslation;
 import es.upm.woa.agent.group1.map.MapCell;
 import es.upm.woa.agent.group1.ontology.Group1Ontology;
-import es.upm.woa.agent.group1.ontology.NotifyUnitOwnership;
 import es.upm.woa.agent.group1.ontology.WhereAmI;
 import es.upm.woa.agent.group1.protocol.CommunicationStandard;
 import es.upm.woa.agent.group1.protocol.Conversation;
@@ -74,21 +73,28 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
             myCell = knownMap.getCellAt(newPosition.getXCoord(),
                      newPosition.getYCoord());
             updateCellContents(myCell, newPosition);
-            knownMap.connectPath(currentPosition, myCell, direction);
-            CellTranslation inverse = direction.generateInverse();
-            knownMap.connectPath(myCell, currentPosition, inverse);
+            connectPath(myCell, direction);
         } catch (NoSuchElementException ex) {
             myCell = newPosition;
             if (knownMap.addCell(myCell)) {
-                knownMap.connectPath(currentPosition, myCell, direction);
-                CellTranslation inverse = direction.generateInverse();
-                knownMap.connectPath(myCell, currentPosition, inverse);
+                connectPath(myCell, direction);
             }
         }
+        
+        NewGraphConnection newConnection = new NewGraphConnection();
+        newConnection.source = currentPosition;
+        newConnection.target = myCell;
+        newConnection.direction = direction;
 
-        mapDataSharingHelper.unicastMapData(ownerTribe);
+        mapDataSharingHelper.unicastMapData(ownerTribe, newConnection);
 
         currentPosition = myCell;
+    }
+
+    private void connectPath(MapCell myCell, CellTranslation direction) {
+        knownMap.connectPath(currentPosition, myCell, direction);
+        CellTranslation inverse = direction.generateInverse();
+        knownMap.connectPath(myCell, currentPosition, inverse);
     }
 
     private void updateCellContents(MapCell myCell, MapCell updatedCell) {
@@ -156,7 +162,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         group1ComStandard.register(getContentManager());
 
         knownMap = GraphGameMap.getInstance();
-        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard, knownMap);
+        mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard);
         constructionSiteFinder = MapCellFinder.getInstance(knownMap);
         strategyFactory = StrategyFactory.getInstance(this, gameComStandard,
                  knownMap, worldAgentServiceDescription.getName(), this,
@@ -171,7 +177,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void startShareMapDataBehaviour() {
         new ReceiveShareMapDataBehaviourHelper(this,
-                group1ComStandard, knownMap, () -> {
+                group1ComStandard, knownMap, (NewGraphConnection newConnection) -> {
                     log(Level.FINE, "Updated known map");
                 }).startShareMapDataBehaviour();
     }
