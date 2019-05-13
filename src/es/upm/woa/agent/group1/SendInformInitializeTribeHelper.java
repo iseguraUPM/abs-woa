@@ -17,7 +17,8 @@ import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 
-import java.util.List;
+import java.util.Collection;
+
 
 /**
  *
@@ -28,20 +29,20 @@ public class SendInformInitializeTribeHelper {
     private final CommunicationStandard comStandard;
     private final AID tribeAID;
     private final TribeResources initialTribeResources;
-    private final List<Unit> unitList;
+    private final Collection<Unit> tribeUnits;
     private final MapCell initialMapCell;
     
     
     
     public SendInformInitializeTribeHelper(AgWorld groupAgent
             , CommunicationStandard comStandard, AID tribeAID
-            , TribeResources initialTribeResources, List<Unit> unitList
+            , TribeResources initialTribeResources, Collection<Unit> unitList
             , MapCell initialMapCell) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;
         this.tribeAID = tribeAID;
         this.initialTribeResources = initialTribeResources;
-        this.unitList = unitList;
+        this.tribeUnits = unitList;
         this.initialMapCell = initialMapCell;
     }
     
@@ -58,7 +59,7 @@ public class SendInformInitializeTribeHelper {
         resourceAccount.setStone(initialTribeResources.getStone());
         resourceAccount.setWood(initialTribeResources.getWood());
 
-        unitList.forEach((u) -> {
+        tribeUnits.forEach((u) -> {
             initializeTribe.addUnitList(u.getId());
         });
         

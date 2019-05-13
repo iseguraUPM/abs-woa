@@ -5,6 +5,7 @@ import es.upm.woa.agent.group1.map.GameMap;
 import jade.core.AID;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 
@@ -42,11 +43,11 @@ public class Tribe {
     }
     
     /**
-     * 
-     * @return units 
+     * Return a unmodifiable collection
+     * @return units
      */
-    public Iterable<Unit> getUnitsIterable() {
-        return unitCollection;
+    public Collection<Unit> getUnits() {
+        return Collections.unmodifiableCollection(unitCollection);
     }
     
     /**

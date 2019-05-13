@@ -279,7 +279,7 @@ public class AgWorld extends WoaAgent implements
             catch (NoSuchElementException ex) {
                 exploredTribeCells.addCell(exploredCell);
                 receipts.add(targetTribe.getAID());
-                targetTribe.getUnitsIterable()
+                targetTribe.getUnits()
                         .forEach(u -> receipts.add(u.getId()));
                 multicastNotifyCellDetail(receipts
                         .toArray(new AID[receipts.size()]), ontologyCell);
@@ -300,7 +300,7 @@ public class AgWorld extends WoaAgent implements
                 targetTribe.getKnownMap().getCellAt(updatedCell.getXCoord()
                         , updatedCell.getYCoord());
                 receipts.add(targetTribe.getAID());
-                targetTribe.getUnitsIterable()
+                targetTribe.getUnits()
                         .forEach(u -> receipts.add(u.getId()));
                 multicastNotifyCellDetail(receipts
                         .toArray(new AID[receipts.size()]), ontologyCell);
@@ -338,7 +338,7 @@ public class AgWorld extends WoaAgent implements
                 targetTribe.getKnownMap().getCellAt(position.getXCoord()
                         , position.getYCoord());
                 receipts.add(targetTribe.getAID());
-                targetTribe.getUnitsIterable()
+                targetTribe.getUnits()
                         .forEach(u -> receipts.add(u.getId()));
                 broadcastNotifyUnitPosition(receipts
                         .toArray(new AID[receipts.size()]), ownerTribe, ontologyCell);
@@ -378,13 +378,8 @@ public class AgWorld extends WoaAgent implements
                 MapCell startingCell = woaConfigurator
                         .getNewTribeInitialCell(worldMap, tribe.getAID());
                 launchInitialTribeUnits(startingCell, tribe);
-                tribe.getUnitsIterable();
-                List<Unit> startingTribeUnits = new ArrayList<>();
-                tribe.getUnitsIterable().forEach(u -> startingTribeUnits.add(u));
                 
-                initializeTribe(tribe.getAID(), initialTribeResources
-                        , startingTribeUnits
-                        , startingCell);
+                initializeTribe(tribe, initialTribeResources, startingCell);
             }
             
             
@@ -392,11 +387,11 @@ public class AgWorld extends WoaAgent implements
                 guiEndpoint.apiStartGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
                         woaConfigurator.getMapConfigurationContents());
                 tribeCollection.forEach((Tribe tribe) -> {
-                    for (Unit unit : tribe.getUnitsIterable()) {
+                    tribe.getUnits().forEach((unit) -> {
                         guiEndpoint.apiCreateAgent(tribe.getAID().getLocalName()
                                 , unit.getId().getLocalName(), unit.getCoordX()
                                 , unit.getCoordY());
-                    }
+                    });
                 });
             } catch (IOException ex) {
                 log(Level.WARNING, "Could not load configuration to the GUI"
@@ -434,10 +429,10 @@ public class AgWorld extends WoaAgent implements
      * Sends an inform with the initial resources
      * to every tribe that has been registered
      */
-    private void initializeTribe(AID tribeAID, TribeResources initialTribeResources
-            , List<Unit> unitList, MapCell initialMapCell) {
+    private void initializeTribe(Tribe tribe, TribeResources initialTribeResources
+            , MapCell initialMapCell) {
         new SendInformInitializeTribeHelper(this, woaComStandard
-                , tribeAID, initialTribeResources, unitList, initialMapCell)
+                , tribe.getAID(), initialTribeResources, tribe.getUnits(), initialMapCell)
                 .initializeTribe();
     }
 
