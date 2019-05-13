@@ -63,7 +63,7 @@ public class AgTribe extends GroupAgent {
     @Override
     protected void setup() {
         logger = new WoaLogger(getAID(), new ConsoleHandler());
-        logger.setLevel(Level.ALL);
+        logger.setLevel(Level.FINE);
         
         initializeAgent();
         initializeTribe();

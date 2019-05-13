@@ -111,7 +111,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     @Override
     protected void setup() {
         logger = new WoaLogger(getAID(), new ConsoleHandler());
-        logger.setLevel(Level.ALL);
+        logger.setLevel(Level.FINE);
 
         initializeAgent(() -> {
             log(Level.INFO, "Unit initialized");
@@ -178,7 +178,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private void startShareMapDataBehaviour() {
         new ReceiveShareMapDataBehaviourHelper(this,
                 group1ComStandard, knownMap, (NewGraphConnection newConnection) -> {
-                    log(Level.FINE, "Updated known map");
+                    log(Level.FINER, "Updated known map");
                 }).startShareMapDataBehaviour();
     }
 
