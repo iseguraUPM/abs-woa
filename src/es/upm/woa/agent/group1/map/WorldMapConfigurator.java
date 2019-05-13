@@ -23,9 +23,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Stack;
+import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +36,7 @@ import java.util.logging.Logger;
  */
 public class WorldMapConfigurator {
     
-    private Stack<Integer[]> initialTribePositions;
+    private Queue<Integer[]> initialTribePositions;
     private Configurations configs;
     private File mapConfigurationFile;
     
@@ -149,7 +150,6 @@ public class WorldMapConfigurator {
      * 
      * @param gameMap will have a new town hall where the tribe is placed
      * @param tribeAID of the tribe to be added
-     * @param resources for the tribe
      * @return the location of the initial cell
      * @throws ConfigurationException if any of the conditions do not meet to
      *  add a new tribe:
@@ -163,11 +163,11 @@ public class WorldMapConfigurator {
             initialTribePositions = loadInitialTribePositions();
         }
         
-        if (initialTribePositions.empty()) {
+        if (initialTribePositions.isEmpty()) {
             throw new ConfigurationException("There are no tribe positions left");
         }
         
-        Integer[] position = initialTribePositions.pop();
+        Integer[] position = initialTribePositions.poll();
         if (position.length != 2) {
             throw new ConfigurationException("Faulty tribe position");
         }
@@ -183,16 +183,13 @@ public class WorldMapConfigurator {
     private MapCell getInitialCell(GameMap gameMap, Integer[] position, AID tribeAID)
             throws ConfigurationException, NoSuchElementException {
         MapCell targetCell = gameMap.getCellAt(position[0], position[1]);
-        if (!(targetCell.getContent() instanceof Empty)) {
-            throw new ConfigurationException("Ocupied cell");
-        }
         
         return targetCell;
     }
 
-    private Stack<Integer[]> loadInitialTribePositions()
+    private Queue<Integer[]> loadInitialTribePositions()
             throws ConfigurationException {
-        Stack<Integer[]> initialPositionStack = new Stack<>();
+        Queue<Integer[]> initialPositions = new LinkedList<>();
         
         JSONConfiguration mapConfig = configs.fileBased(JSONConfiguration.class
                 , mapConfigurationFile);
@@ -200,10 +197,10 @@ public class WorldMapConfigurator {
         List<HierarchicalConfiguration<ImmutableNode>> initialPositionsConfiguration
                 = mapConfig.configurationsAt("initialPositions");
         initialPositionsConfiguration.forEach((initialPosition) -> {
-            initialPositionStack.add(loadPositionFromNode(initialPosition));
+            initialPositions.add(loadPositionFromNode(initialPosition));
         });
         
-        return initialPositionStack;
+        return initialPositions;
     }
     
     private Integer[] loadPositionFromNode(HierarchicalConfiguration<ImmutableNode> node) {
