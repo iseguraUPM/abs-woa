@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +66,11 @@ public class AgTribe extends GroupAgent {
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.FINE);
         
-        initializeAgent();
+        try {
+            initializeAgent();
+        } catch (InterruptedException ex) {
+            log(Level.FINER, "-------- RegistrationDesk error");
+        }
         initializeTribe();
         
         startInformRegistrationBehaviour();
@@ -232,24 +237,27 @@ public class AgTribe extends GroupAgent {
         });
     }
 
-    private void initializeAgent() {
+    private void initializeAgent() throws InterruptedException {
         //Finds the Registration Desk in the DF
-        try {
-            DFAgentDescription dfdRegistrationDesk = new DFAgentDescription();
-            ServiceDescription sdRegistrationDesk = new ServiceDescription();
-            sdRegistrationDesk.setType(REGISTRATION_DESK);
-            dfdRegistrationDesk.addServices(sdRegistrationDesk);
-            // It finds agents of the required type
-            DFAgentDescription[] descriptions = DFService.search(this, dfdRegistrationDesk);
-            if (descriptions.length == 0) {
-                log(Level.SEVERE, "Registration Desk service description not found");
-            } else {
-                registrationDeskServiceDescription = descriptions[0];
+        while(true){
+            try {
+                DFAgentDescription dfdRegistrationDesk = new DFAgentDescription();
+                ServiceDescription sdRegistrationDesk = new ServiceDescription();
+                sdRegistrationDesk.setType(REGISTRATION_DESK);
+                dfdRegistrationDesk.addServices(sdRegistrationDesk);
+                // It finds agents of the required type
+                DFAgentDescription[] descriptions = DFService.search(this, dfdRegistrationDesk);
+                if (descriptions.length == 0) {
+                    log(Level.SEVERE, "Registration Desk service description not found");
+                } else {
+                    registrationDeskServiceDescription = descriptions[0];
+                    break;
+                }
+            } catch (FIPAException ex) {
+                log(Level.WARNING, " the REGISTRATION_DESK agent was not found (" + ex + ")");
             }
-        } catch (FIPAException ex) {
-            log(Level.WARNING, " the REGISTRATION_DESK agent was not found (" + ex + ")");
+            Thread.sleep(1000);
         }
-        
     }
 
     private void initializeTribe() {
