@@ -257,4 +257,18 @@ class GraphGameMap implements GameMap {
                 .collect(Collectors.toSet());
     }
     
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        
+        mapGraph.vertexSet().stream().forEach((MapCell mc) -> {
+            long connections = mapGraph.outgoingEdgesOf(mc).stream().count();
+            sb.append(mc).append(" has ").append(connections).append(" connections\n");
+            sb.append("----------------\n");
+        });
+        
+        return sb.toString();
+        
+    }
+    
 }
