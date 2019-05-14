@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.WoaDefinitions;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;

@@ -7,6 +7,8 @@ package es.upm.woa.group1.agent;
  *
  ****************************************************************
  */
+import es.upm.woa.group1.WoaDefinitions;
+import es.upm.woa.group1.WoaLogger;
 import es.upm.woa.group1.agent.world.WoaGUIWrapper;
 import es.upm.woa.group1.agent.world.TribeInfomationBroker;
 import es.upm.woa.group1.agent.world.UnitMovementInformer;

@@ -8,7 +8,7 @@ package es.upm.woa.group1.agent.world;
 import es.upm.woa.group1.agent.Tribe;
 import es.upm.woa.group1.agent.Unit;
 import es.upm.woa.group1.agent.WoaAgent;
-import es.upm.woa.group1.agent.WoaDefinitions;
+import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.map.CellBuildingConstructor;
 import es.upm.woa.group1.map.GameMap;

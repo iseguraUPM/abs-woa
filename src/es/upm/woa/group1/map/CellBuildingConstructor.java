@@ -7,7 +7,7 @@ package es.upm.woa.group1.map;
 
 import es.upm.woa.group1.agent.Tribe;
 import es.upm.woa.group1.agent.Unit;
-import es.upm.woa.group1.agent.WoaDefinitions;
+import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.group1.protocol.Transaction;
 import es.upm.woa.ontology.Building;

@@ -5,6 +5,8 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.WoaDefinitions;
+import es.upm.woa.group1.WoaLogger;
 import jade.core.Agent;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;

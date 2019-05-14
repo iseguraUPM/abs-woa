@@ -5,6 +5,7 @@ package es.upm.woa.group1.agent;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.group1.WoaLogger;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
 import es.upm.woa.group1.ontology.Group1Ontology;

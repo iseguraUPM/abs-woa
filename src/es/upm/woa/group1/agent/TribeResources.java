@@ -5,6 +5,8 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.WoaDefinitions;
+
 /**
  *
  * @author juanpamz

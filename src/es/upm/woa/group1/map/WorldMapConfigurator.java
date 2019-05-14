@@ -6,7 +6,7 @@
 package es.upm.woa.group1.map;
 
 import es.upm.woa.group1.agent.TribeResources;
-import es.upm.woa.group1.agent.WoaDefinitions;
+import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.ontology.Empty;
 
 import jade.core.AID;

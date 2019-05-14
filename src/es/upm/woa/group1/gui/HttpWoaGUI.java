@@ -5,7 +5,7 @@
  */
 package es.upm.woa.group1.gui;
 
-import es.upm.woa.group1.agent.WoaDefinitions;
+import es.upm.woa.group1.WoaDefinitions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
