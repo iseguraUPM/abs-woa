@@ -14,6 +14,7 @@ import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.group1.protocol.WoaCommunicationStandard;
+
 import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.InitalizeTribe;
@@ -33,13 +34,11 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +46,8 @@ import java.util.stream.Collectors;
  * @author ISU
  */
 public class AgTribe extends GroupAgent {
+    
+    private final int BETWEEN_REGISTRATION_RETRIES_MILLIS = 1000;
     
     private int tribeNumber;
     private CommunicationStandard gameComStandard;
@@ -67,21 +68,22 @@ public class AgTribe extends GroupAgent {
     protected void setup() {
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.FINE);
-        
+            
         try {
+            
             initializeAgent();
+            initializeTribe();
+            
+            startInformRegistrationBehaviour();
+            startInformNewUnitBehaviour();
+            startInformCellDetailBehaviour();
+            startWhereAmIBehaviour();
+            startInformUnitPositionBehaviour();
+            startShareMapDataBehaviour();
+            startInitializeTribeBehaviour();
         } catch (InterruptedException ex) {
-            log(Level.FINER, "-------- RegistrationDesk error");
+            log(Level.SEVERE, "Could not register Tribe. Finalizing...");
         }
-        initializeTribe();
-        
-        startInformRegistrationBehaviour();
-        startInformNewUnitBehaviour();
-        startInformCellDetailBehaviour();
-        startWhereAmIBehaviour();
-        startInformUnitPositionBehaviour();
-        startShareMapDataBehaviour();
-        startInitializeTribeBehaviour();
     }
 
     private void startInformRegistrationBehaviour() {
@@ -221,26 +223,32 @@ public class AgTribe extends GroupAgent {
     }
 
     private void initializeAgent() throws InterruptedException {
+        registrationDeskServiceDescription = null;
+        
         //Finds the Registration Desk in the DF
-        while(true){
-            try {
-                DFAgentDescription dfdRegistrationDesk = new DFAgentDescription();
-                ServiceDescription sdRegistrationDesk = new ServiceDescription();
-                sdRegistrationDesk.setType(AgRegistrationDesk.REGISTRATION_DESK);
-                dfdRegistrationDesk.addServices(sdRegistrationDesk);
-                // It finds agents of the required type
-                DFAgentDescription[] descriptions = DFService.search(this, dfdRegistrationDesk);
-                if (descriptions.length == 0) {
-                    log(Level.SEVERE, "Registration Desk service description not found");
-                    Thread.sleep(1000);
-                } else {
-                    registrationDeskServiceDescription = descriptions[0];
-                    break;
-                }
-            } catch (FIPAException ex) {
-                log(Level.WARNING, " the REGISTRATION_DESK agent was not found (" + ex + ")");
-                Thread.sleep(1000);
+        try {
+            DFAgentDescription dfdRegistrationDesk = new DFAgentDescription();
+            ServiceDescription sdRegistrationDesk = new ServiceDescription();
+            sdRegistrationDesk.setType(AgRegistrationDesk.REGISTRATION_DESK);
+            dfdRegistrationDesk.addServices(sdRegistrationDesk);
+            // It finds agents of the required type
+            DFAgentDescription[] descriptions = DFService.search(this, dfdRegistrationDesk);
+            if (descriptions.length == 0) {
+                log(Level.WARNING, "Registration Desk service description not found");
+            } else {
+                registrationDeskServiceDescription = descriptions[0];
             }
+        } catch (FIPAException ex) {
+            log(Level.WARNING, "Registration Desk service description not found");
+        }
+        
+        if (registrationDeskServiceDescription == null) {
+            Thread.sleep(BETWEEN_REGISTRATION_RETRIES_MILLIS);
+            log(Level.INFO, "Retrying...");
+            initializeAgent();
+        }
+        else {
+            log(Level.INFO, "Registration desk found!");
         }
     }
 

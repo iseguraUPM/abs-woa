@@ -19,10 +19,10 @@ import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.Empty;
 import es.upm.woa.ontology.GameOntology;
+
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
-
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.domain.DFService;
@@ -30,8 +30,8 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAAgentManagement.UnexpectedArgument;
 import jade.domain.FIPAException;
-
 import jade.lang.acl.ACLMessage;
+
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -46,6 +46,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private static final int MAX_REQUEST_POSITION_TRIES = 3;
     private static final int BETWEEN_REQUEST_POSITION_TRIES_TIME_MILLIS = 1000;
+    private static final int BETWEEN_WORLD_RETRIES_MILLIS = 1000;
 
     private GraphGameMap knownMap;
     private CommunicationStandard gameComStandard;
@@ -60,6 +61,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private StrategyFactory strategyFactory;
 
     private WoaLogger logger;
+    
 
     @Override
     public MapCell getCurrentPosition() {
@@ -112,16 +114,21 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     protected void setup() {
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.FINE);
-
-        initializeAgent(() -> {
-            log(Level.INFO, "Unit initialized");
-            startStrategicUnitBehaviour();
-            startAssignStrategyBehaviour();
-        });
+        try {
+            initializeAgent(() -> {
+                log(Level.INFO, "Unit initialized");
+                startStrategicUnitBehaviour();
+                startAssignStrategyBehaviour();
+            });
+        } catch (InterruptedException ex) {
+            log(Level.SEVERE, "Could not find World agent. Finalizing...");
+        }
 
     }
 
-    private void initializeAgent(OnUnitInitializedHandler handler) {
+    private void initializeAgent(OnUnitInitializedHandler handler)
+            throws InterruptedException {
+        worldAgentServiceDescription = null;
         //Finds the World in the DF
         try {
             DFAgentDescription dfdWorld = new DFAgentDescription();
@@ -131,13 +138,19 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
             // It finds agents of the required type
             DFAgentDescription[] descriptions = DFService.search(this, dfdWorld);
             if (descriptions.length == 0) {
-                log(Level.SEVERE, "World service description not found");
+                log(Level.WARNING, "World service description not found");
             } else {
                 worldAgentServiceDescription = descriptions[0];
                 initializeUnit(handler);
             }
         } catch (FIPAException ex) {
-            log(Level.WARNING, " the WORLD agent was not found (" + ex + ")");
+            log(Level.WARNING, "World service description not found");
+        }
+        
+        if (worldAgentServiceDescription == null) {
+            Thread.sleep(BETWEEN_WORLD_RETRIES_MILLIS);
+            log(Level.INFO, "Retrying...");
+            initializeAgent(handler);
         }
     }
 
