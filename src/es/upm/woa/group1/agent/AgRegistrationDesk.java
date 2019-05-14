@@ -11,6 +11,9 @@ import es.upm.woa.group1.protocol.DelayTickBehaviour;
 import es.upm.woa.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.RegisterTribe;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
+import jade.content.onto.OntologyException;
 
 import jade.content.onto.basic.Action;
 import jade.domain.DFService;
@@ -26,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -102,30 +106,38 @@ public class AgRegistrationDesk extends WoaAgent {
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onRequest(ACLMessage message) {
-                        RegisterTribe registerTribe = new RegisterTribe();
-                        registerTribe.setTeamNumber(registeredTribes.size()+1);
+                        handleRequest(message);
+                    }
 
-                        final Action  action = new Action(getAID(),registerTribe);
-                        
-                        log(Level.FINE, "received Tribe request from"
-                                + message.getSender().getLocalName());
-
-                        if (registeredTribes.stream().anyMatch(
-                                tribe -> message.getSender().equals(tribe.getAID())) || !registrationOpen) {
-                            respondMessage(message, ACLMessage.REFUSE, action);
-                        }else{
-                            Tribe newTribe;
+                    private void handleRequest(ACLMessage message) {
+                        try {
+                            ContentElement content = getContentManager().extractContent(message);
+                            Action action = (Action) content;
                             
-                            try {
-                                newTribe = new Tribe(message.getSender()
-                                        , (TribeResources) initialTribeResources.clone());
-                                registeredTribes.add(newTribe);
-                            } catch (CloneNotSupportedException ex) {
-                                log(Level.SEVERE, "Could not create new tribe ("
-                                        + ex + ")");
+                            RegisterTribe registerTribe = (RegisterTribe) action.getAction();
+                            int tribeNumber = registerTribe.getTeamNumber();
+                            
+                            log(Level.FINE, "received Tribe request from"
+                                    + message.getSender().getLocalName());
+                            
+                            if (!canRegister(message, tribeNumber)) {
+                                respondMessage(message, ACLMessage.REFUSE, action);
+                            } else {
+                                Tribe newTribe;
+                                
+                                try {
+                                    newTribe = new Tribe(tribeNumber, message.getSender()
+                                            , (TribeResources) initialTribeResources.clone());
+                                    registeredTribes.add(newTribe);
+                                } catch (CloneNotSupportedException ex) {
+                                    log(Level.SEVERE, "Could not create new tribe ("
+                                            + ex + ")");
+                                }
+                                
+                                respondMessage(message, ACLMessage.AGREE, action);
                             }
-                            
-                            respondMessage(message, ACLMessage.AGREE, action);
+                        } catch (Codec.CodecException | OntologyException | ClassCastException ex) {
+                            log(Level.WARNING, "Could not extract content from RegisterTribe message");
                         }
                     }
                     
@@ -137,6 +149,21 @@ public class AgRegistrationDesk extends WoaAgent {
                 });
             }
         });
+    }
+
+    private boolean canRegister(ACLMessage message, int teamNumber) {
+        if (!registrationOpen)
+            return false;
+        
+        if (registeredTribes.stream().anyMatch(
+                tribe -> {
+                    return message.getSender().equals(tribe.getAID())
+                            || tribe.getTribeNumber() == teamNumber;
+            })) {
+            return false;
+        }
+        
+        return true;
     }
     
     private void informWorldToStartGame(){

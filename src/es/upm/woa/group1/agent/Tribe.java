@@ -15,15 +15,25 @@ import java.util.NoSuchElementException;
  */
 public class Tribe {
     
+    private final int tribeNumber;
     private final AID agentID;
     private final Collection<Unit> unitCollection = new HashSet<>();
     private final GameMap knownMap;
     private final TribeResources resources;
 
-    public Tribe(AID pId, TribeResources resources) {
+    public Tribe(int tribeNumber, AID pId, TribeResources resources) {
+        this.tribeNumber = tribeNumber;
         this.agentID = pId;
         this.knownMap = GraphGameMap.getInstance();
         this.resources = resources;
+    }
+    
+    /**
+     * 
+     * @return tribe number
+     */
+    public int getTribeNumber() {
+        return tribeNumber;
     }
     
     /**
