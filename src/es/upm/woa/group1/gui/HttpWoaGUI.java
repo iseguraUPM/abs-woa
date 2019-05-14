@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import es.upm.woa.group1.map.WoaConfigurator;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -56,18 +57,14 @@ class HttpWoaGUI implements WoaGUI {
      * @return new instance or null if files could not be accessed
      */
     public static HttpWoaGUI getInstance() {
-        Configurations config = new Configurations();
         String address = "";
         
         try {
-            PropertiesConfiguration woaConfig = config.properties(
-                    new File(WoaDefinitions.CONFIG_FILENAME));
-
-            address = woaConfig.getString("gui_endpoint");
+            address = WoaConfigurator.getInstance().getGuiEndpoint();
             
         } catch (ConfigurationException ex) {
-            Logger.getGlobal().log(Level.WARNING, "Could not read configuration"
-                    + " file: {0}", WoaDefinitions.CONFIG_FILENAME);
+            Logger.getGlobal().log(Level.WARNING, "Could not read"
+                    + " configuration gui endpoint");
         }
         
         try {

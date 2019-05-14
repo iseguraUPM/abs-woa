@@ -5,12 +5,11 @@
  */
 package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.WoaDefinitions;
-import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
+import es.upm.woa.group1.map.WoaConfigurator;
+import java.util.logging.Level;
+
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
-import java.io.File;
 import java.util.logging.Logger;
 
 /**
@@ -33,15 +32,14 @@ public class GameClock implements Ticker {
 
     public synchronized static GameClock getInstance() {
         if (instance == null) {
-            Configurations config = new Configurations();
-            int tickDeltaMillis = 0;
+            int tickDeltaMillis;
             try {
-                PropertiesConfiguration woaConfig = config.properties(
-                        new File(WoaDefinitions.CONFIG_FILENAME));
-                
-                tickDeltaMillis = woaConfig.getInt("tick_millis");
+                tickDeltaMillis = WoaConfigurator.getInstance().getTickMillis();
             } catch (ConfigurationException ex) {
-                Logger.getGlobal().warning("Could not read configuration property woa.tick_millis. Using default");
+                Logger.getGlobal().log(Level.WARNING
+                        , "Could not read configuration property"
+                                + " woa.tick_millis. Using default: {0}"
+                        , DEFAULT_TICK_DELTA_MILLIS);
                 tickDeltaMillis = DEFAULT_TICK_DELTA_MILLIS;
             }
             

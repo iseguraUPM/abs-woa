@@ -34,11 +34,20 @@ import java.util.logging.Logger;
  *
  * @author ISU
  */
-public class WorldMapConfigurator {
+public class WoaConfigurator {
+    
+    private final static String CONFIG_FILENAME = "woa.properties";
+    
+    private static WoaConfigurator instance;
     
     private Queue<Integer[]> initialTribePositions;
     private Configurations configs;
-    private File mapConfigurationFile;
+    
+    private String mapFilePath;
+    private int registrationTime;
+    private int gameTime;
+    private int tickMillis;
+    private String guiEndpoint;
     
     /**
      * 
@@ -46,20 +55,40 @@ public class WorldMapConfigurator {
      * @throws ConfigurationException if the configuration file does not meet
      *  the required format
      */
-    public static WorldMapConfigurator getInstance()
+    public static WoaConfigurator getInstance()
             throws ConfigurationException {
-        WorldMapConfigurator newInstance = new WorldMapConfigurator();
-        
-        newInstance.configs = new Configurations();
-        
-        PropertiesConfiguration woaConfig
-                = newInstance.configs.properties(new File(WoaDefinitions.CONFIG_FILENAME));
+        if (instance == null) {
+            instance = new WoaConfigurator();
 
-        String mapConfigPath = woaConfig.getString("map_path");
+            instance.configs = new Configurations();
 
-        newInstance.mapConfigurationFile = new File(mapConfigPath);
+            PropertiesConfiguration properties
+                    = instance.configs.properties(new File(CONFIG_FILENAME));
+            
+            instance.mapFilePath = properties.getString("map_path");
+            instance.registrationTime = properties.getInt("reg_time");
+            instance.gameTime = properties.getInt("game_time");
+            instance.guiEndpoint = properties.getString("gui_endpoint");
+            instance.tickMillis = properties.getInt("tick_millis");
+        }
 
-        return newInstance;
+        return instance;
+    }
+    
+    public int getRegistrationTimeMillis() {
+        return registrationTime;
+    }
+    
+    public int getGameTime() {
+        return gameTime;
+    }
+    
+    public int getTickMillis() {
+        return tickMillis;
+    }
+    
+    public String getGuiEndpoint() {
+        return guiEndpoint;
     }
 
     /**
@@ -74,6 +103,7 @@ public class WorldMapConfigurator {
             , IOException {
         FileInputStream fis = null;
         try {
+            File mapConfigurationFile = new File(mapFilePath);
             fis = new FileInputStream(mapConfigurationFile);
             byte[] data = new byte[(int) mapConfigurationFile.length()];
             fis.read(data);
@@ -99,6 +129,7 @@ public class WorldMapConfigurator {
      *  the required format
      */
     public GameMap generateWorldMap() throws ConfigurationException {
+        File mapConfigurationFile = new File(mapFilePath);
         JSONConfiguration mapConfig = configs.fileBased(JSONConfiguration.class
                 , mapConfigurationFile);
             
@@ -130,6 +161,7 @@ public class WorldMapConfigurator {
      *  the required format
      */
     public TribeResources getInitialResources() throws ConfigurationException {
+        File mapConfigurationFile = new File(mapFilePath);
         JSONConfiguration initialConfig = configs.fileBased(JSONConfiguration.class
                 , mapConfigurationFile);
         
@@ -190,6 +222,7 @@ public class WorldMapConfigurator {
             throws ConfigurationException {
         Queue<Integer[]> initialPositions = new LinkedList<>();
         
+        File mapConfigurationFile = new File(mapFilePath);
         JSONConfiguration mapConfig = configs.fileBased(JSONConfiguration.class
                 , mapConfigurationFile);
         

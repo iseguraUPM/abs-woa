@@ -15,7 +15,7 @@ import es.upm.woa.group1.agent.world.UnitMovementInformer;
 import es.upm.woa.group1.agent.world.CreateUnitBehaviourHelper;
 import es.upm.woa.group1.agent.world.MoveUnitBehaviourHelper;
 import es.upm.woa.group1.agent.world.CreateBuildingBehaviourHelper;
-import es.upm.woa.group1.map.WorldMapConfigurator;
+import es.upm.woa.group1.map.WoaConfigurator;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.gui.WoaGUIFactory;
 import es.upm.woa.group1.map.GameMap;
@@ -82,7 +82,7 @@ public class AgWorld extends WoaAgent implements
     private Collection<Tribe> tribeCollection;
     private GameMap worldMap;
     private WoaGUIWrapper guiEndpoint;
-    private WorldMapConfigurator woaConfigurator;
+    private WoaConfigurator woaConfigurator;
     private TribeResources initialTribeResources;
 
     // TODO: temporal solution before registration
@@ -140,7 +140,7 @@ public class AgWorld extends WoaAgent implements
         connectToGuiEndpoint();
         
         try {
-            woaConfigurator = WorldMapConfigurator
+            woaConfigurator = WoaConfigurator
                     .getInstance();
             
             log(Level.INFO, "Generating world map...");

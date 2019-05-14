@@ -11,7 +11,6 @@ package es.upm.woa.group1;
  */
 public class WoaDefinitions {
     
-    public final static String CONFIG_FILENAME = "woa.properties";
     public final static int UNIT_FOOD_COST = 50;
     public final static int UNIT_GOLD_COST = 150;
     
