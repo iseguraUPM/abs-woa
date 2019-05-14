@@ -416,3 +416,51 @@
  2. [TODO]
    In the AgTribe, see where the obtained resources should be stored
 ----------------------------------------------------------------------------------------------------------------
+ (35) {14/05/2019 14:00} Changelog outdated : Inaki
+ 1. [REFACT]
+   Tribe has now resources which indicate whether something can be purchased and allow to keep accounting.
+ 2. [FIX]
+   Fixed initial position retrieval. Upon registration the tribe shares the map data so when the unit is 
+   initializing it can know about the details of the starting cell just by its coordinates.
+ 3. [NEW]
+   The unit is setup with an StrategicUnitBehaviour which allows to execute the first strategy on the priority
+   list. This strategy is sent by the Tribe and regradless of the type of strategy the unit adds it to the list.
+   So the unit behaves like a drone and all logic is contained in the tribe.
+ 4. [FIX] ref [FIX 29.1]
+   Fixed free explore strategy after the relative positioning change.
+ 5. [FIX]
+   Changed the action argument in Conversation. We detected that when responding multiple times with the same
+   conversation instance this could result in sending the same action to multiple receipts. This caused units
+   moving in different directions to arrive at "the same cell".
+ 6. [FIX]
+   Changed the map data sharing protocol. Jade was getting clogged by the messages containing to much data 
+   (serialized GraphGameMap instances). Now, everytime a Unit makes a discovery while traveling, the information
+   of the new connection (source -> direction -> target) is shared to the tribe which at the same time shares it
+   with the rest of the units.
+ 7. [FIX]
+   Fixed GUI not displaying after game start. If the gui receives other requests before the "Game Start" request
+   it will not display the game. This was caused by sending the "New Unit" gui request while creating the first
+   units.
+ 8. [NEW]
+   Added cell discovery again. The tribe and units will add the cells discovered sent by NotifyCellDetail 
+   and NotifyUnitPosition. Note that the connections are not added! So it cannot know paths to this cell.
+ 9. [REFACT]
+   Moved the classes to the new package order standard discussed (es.upm.woa.group1.agent.*)
+ 10. [FEATURE]
+  Added AgPlatform. This agent should be the only one launched at the start. It creates the AgWorld agent (which
+  in our case launches AgRegistrationDesk) and creates the tribes.
+ 11. [NEW]
+  Added class path based instantiation for tribes and units. The way it works is that it first tries to launch
+  the corresponding class by the classpath string. If it does not succeed it will launch group1 AgTribe and AgUnits.
+  In the case of the tribes it first tries for every group tribe before considering launching only group1's. For
+  units it does so after the first unsuccessful try with the corresponding group number.
+ 12. [NEW]
+  Added a wait loop on the units when looking for AgWorld service description. Like on the tribes looking for the
+  AgRegistrationDesk.
+ 13. [REFACT]
+  Changed configuration file properties woa.properties as discussed. Centralized every configuration parameter in
+  the renamed class WoaConfigurator.
+ 14. [NEW]
+  Added the GUI gain/loss of resources respective calls when creating units or buildings. In the case of buildings
+  only town halls are implemented for now.
+ 
