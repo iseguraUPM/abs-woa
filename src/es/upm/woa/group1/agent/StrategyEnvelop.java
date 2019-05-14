@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @author ISU
  */
-public interface StrategyEnvelop extends Serializable {
+interface StrategyEnvelop extends Serializable {
     
     int getStrategy();
     
