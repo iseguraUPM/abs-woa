@@ -28,79 +28,79 @@ public class WoaGUIWrapper implements WoaGUI {
     }
 
     @Override
-    public void apiStartGame(String[] playerIds, String jsonMapData) {
+    public void startGame(String[] playerIds, String jsonMapData) {
         if (nullableInstance != null) {
-            nullableInstance.apiStartGame(playerIds, jsonMapData);
+            nullableInstance.startGame(playerIds, jsonMapData);
         }
     }
 
     @Override
-    public void apiCreateAgent(String playerId, String newAgentId, int xPos, int yPos) {
+    public void createAgent(String playerId, String newAgentId, int xPos, int yPos) {
         if (nullableInstance != null) {
-            nullableInstance.apiCreateAgent(playerId, newAgentId, xPos, yPos);
+            nullableInstance.createAgent(playerId, newAgentId, xPos, yPos);
         }
     }
 
     @Override
-    public void apiMoveAgent(String agentId, int xPos, int yPos) {
+    public void moveAgent(String agentId, int xPos, int yPos) {
         if (nullableInstance != null) {
-            nullableInstance.apiMoveAgent(agentId, xPos, yPos);
+            nullableInstance.moveAgent(agentId, xPos, yPos);
         }
     }
 
     @Override
-    public void apiAgentDies(String agentId) {
+    public void agentDies(String agentId) {
         if (nullableInstance != null) {
-            nullableInstance.apiAgentDies(agentId);
+            nullableInstance.agentDies(agentId);
         }
     }
 
     @Override
-    public void apiStartAction(String agentId, String actionType) {
+    public void startAction(String agentId, String actionType) {
         if (nullableInstance != null) {
-            nullableInstance.apiStartAction(agentId, actionType);
+            nullableInstance.startAction(agentId, actionType);
         }
     }
 
     @Override
-    public void apiCancelAction(String agentId) {
+    public void cancelAction(String agentId) {
         if (nullableInstance != null) {
-            nullableInstance.apiCancelAction(agentId);
+            nullableInstance.cancelAction(agentId);
         }
     }
 
     @Override
-    public void apiGainResource(String playerId, String agentId, String resourceType, int amount) {
+    public void gainResource(String playerId, String agentId, String resourceType, int amount) {
         if (nullableInstance != null) {
-            nullableInstance.apiGainResource(playerId, agentId, resourceType, amount);
+            nullableInstance.gainResource(playerId, agentId, resourceType, amount);
         }
     }
 
     @Override
-    public void apiLoseResource(String playerId, String agentId, String resourceType, int amount) {
+    public void loseResource(String playerId, String agentId, String resourceType, int amount) {
         if (nullableInstance != null) {
-            nullableInstance.apiLoseResource(playerId, agentId, resourceType, amount);
+            nullableInstance.loseResource(playerId, agentId, resourceType, amount);
         }
     }
 
     @Override
-    public void apiDepleteResource(int xPos, int yPos) {
+    public void depleteResource(int xPos, int yPos) {
         if (nullableInstance != null) {
-            nullableInstance.apiDepleteResource(xPos, yPos);
+            nullableInstance.depleteResource(xPos, yPos);
         }
     }
 
     @Override
-    public void apiCreateBuilding(String playerId, String buildingType) {
+    public void createBuilding(String playerId, String buildingType) {
         if (nullableInstance != null) {
-            nullableInstance.apiCreateBuilding(playerId, buildingType);
+            nullableInstance.createBuilding(playerId, buildingType);
         }
     }
 
     @Override
-    public void apiEndGame() {
+    public void endGame() {
         if (nullableInstance != null) {
-            nullableInstance.apiEndGame();
+            nullableInstance.endGame();
         }
     }
     

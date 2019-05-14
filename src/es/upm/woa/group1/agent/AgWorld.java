@@ -396,11 +396,11 @@ public class AgWorld extends WoaAgent implements
 
 
         try {
-            guiEndpoint.apiStartGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
+            guiEndpoint.startGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
                     woaConfigurator.getMapConfigurationContents());
             tribeCollection.parallelStream().forEach((Tribe tribe) -> {
                 tribe.getUnits().forEach((unit) -> {
-                    guiEndpoint.apiCreateAgent(tribe.getAID().getLocalName()
+                    guiEndpoint.createAgent(tribe.getAID().getLocalName()
                             , unit.getId().getLocalName(), unit.getCoordX()
                             , unit.getCoordY());
                 });

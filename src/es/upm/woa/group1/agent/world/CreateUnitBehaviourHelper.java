@@ -151,7 +151,7 @@ public class CreateUnitBehaviourHelper {
                                 public void onCreatedUnit(Unit createdUnit) {
                                     respondMessage(message, ACLMessage.INFORM, createUnitAction);
                                     informTribeAboutNewUnit(ownerTribe, createdUnit);
-                                    gui.apiCreateAgent(ownerTribe.getAID().getLocalName(),
+                                    gui.createAgent(ownerTribe.getAID().getLocalName(),
                                         createdUnit.getId().getLocalName(), createdUnit.getCoordX(),
                                         createdUnit.getCoordY());
                                     unitMovementInformer.informAboutUnitPassby(ownerTribe

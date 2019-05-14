@@ -150,7 +150,7 @@ public class CreateBuildingBehaviourHelper {
                              buildingType, unitPosition, new CellBuildingConstructor.BuildingConstructionHandler() {
                         @Override
                         public void onBuilt() {
-                            gui.apiCreateBuilding(ownerTribe.getAID()
+                            gui.createBuilding(ownerTribe.getAID()
                                     .getLocalName(), buildingType);
                             respondMessage(message, ACLMessage.INFORM, createBuildingAction);
                             knownPositionInformHandler

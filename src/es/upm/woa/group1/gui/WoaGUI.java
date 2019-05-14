@@ -23,26 +23,26 @@ public interface WoaGUI {
     public static final String BUILDING_FARM = "Farm";
     public static final String BUILDING_STORE = "Store";
     
-    void apiStartGame(String[] playerIds, String jsonMapData);
+    void startGame(String[] playerIds, String jsonMapData);
     
-    void apiCreateAgent(String playerId, String newAgentId, int xPos, int yPos);
+    void createAgent(String playerId, String newAgentId, int xPos, int yPos);
     
-    void apiMoveAgent(String agentId, int xPos, int yPos);
+    void moveAgent(String agentId, int xPos, int yPos);
     
-    void apiAgentDies(String agentId);
+    void agentDies(String agentId);
     
-    void apiStartAction(String agentId, String actionType);
+    void startAction(String agentId, String actionType);
     
-    void apiCancelAction(String agentId);
+    void cancelAction(String agentId);
     
-    void apiGainResource(String playerId, String agentId, String resourceType, int amount);
+    void gainResource(String playerId, String agentId, String resourceType, int amount);
     
-    void apiLoseResource(String playerId, String agentId, String resourceType, int amount);
+    void loseResource(String playerId, String agentId, String resourceType, int amount);
     
-    void apiDepleteResource(int xPos, int yPos);
+    void depleteResource(int xPos, int yPos);
     
-    void apiCreateBuilding(String playerId, String buildingType);
+    void createBuilding(String playerId, String buildingType);
     
-    void apiEndGame();
+    void endGame();
     
 }

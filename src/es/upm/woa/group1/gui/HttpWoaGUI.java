@@ -110,7 +110,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiStartGame(String[] playerIds, String jsonMapData) {
+    public void startGame(String[] playerIds, String jsonMapData) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -148,7 +148,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiCreateAgent(String playerId, String newAgentId, int xPos, int yPos) {
+    public void createAgent(String playerId, String newAgentId, int xPos, int yPos) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -162,7 +162,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiMoveAgent(String agentId, int xPos, int yPos) {
+    public void moveAgent(String agentId, int xPos, int yPos) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -175,7 +175,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiAgentDies(String agentId) {
+    public void agentDies(String agentId) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -185,7 +185,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiStartAction(String agentId, String actionType) {
+    public void startAction(String agentId, String actionType) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -195,7 +195,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiCancelAction(String agentId) {
+    public void cancelAction(String agentId) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -205,7 +205,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiGainResource(String playerId, String agentId, String resourceType, int amount) {
+    public void gainResource(String playerId, String agentId, String resourceType, int amount) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -217,7 +217,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiLoseResource(String playerId, String agentId, String resourceType, int amount) {
+    public void loseResource(String playerId, String agentId, String resourceType, int amount) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -229,7 +229,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiDepleteResource(int xPos, int yPos) {
+    public void depleteResource(int xPos, int yPos) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -239,7 +239,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiCreateBuilding(String playerId, String buildingType) {
+    public void createBuilding(String playerId, String buildingType) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
@@ -249,7 +249,7 @@ class HttpWoaGUI implements WoaGUI {
     }
 
     @Override
-    public void apiEndGame() {
+    public void endGame() {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         sendJsonObjectTo(URI_FINISH_GAME, factory.objectNode());

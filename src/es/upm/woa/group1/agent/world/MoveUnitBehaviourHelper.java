@@ -212,7 +212,7 @@ public class MoveUnitBehaviourHelper {
 
                             respondMessage(message, ACLMessage.INFORM, action);
                             
-                            gui.apiMoveAgent(requesterUnit.getId()
+                            gui.moveAgent(requesterUnit.getId()
                                     .getLocalName(), mapCell.getXCoord(),
                                      mapCell.getYCoord());
 
