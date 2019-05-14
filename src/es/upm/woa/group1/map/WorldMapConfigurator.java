@@ -55,10 +55,9 @@ public class WorldMapConfigurator {
         PropertiesConfiguration woaConfig
                 = newInstance.configs.properties(new File(WoaDefinitions.CONFIG_FILENAME));
 
-        String mapConfigPath = woaConfig.getString("woa.map_directory");
-        String mapConfigFilename = woaConfig.getString("woa.map_filename");
+        String mapConfigPath = woaConfig.getString("map_path");
 
-        newInstance.mapConfigurationFile = new File(mapConfigPath + mapConfigFilename);
+        newInstance.mapConfigurationFile = new File(mapConfigPath);
 
         return newInstance;
     }

@@ -58,14 +58,12 @@ class HttpWoaGUI implements WoaGUI {
     public static HttpWoaGUI getInstance() {
         Configurations config = new Configurations();
         String address = "";
-        int port = 0;
         
         try {
             PropertiesConfiguration woaConfig = config.properties(
                     new File(WoaDefinitions.CONFIG_FILENAME));
 
-            address = woaConfig.getString("woa.interface_endpoint");
-            port = woaConfig.getInt("woa.interface_port");
+            address = woaConfig.getString("gui_endpoint");
             
         } catch (ConfigurationException ex) {
             Logger.getGlobal().log(Level.WARNING, "Could not read configuration"
@@ -73,15 +71,15 @@ class HttpWoaGUI implements WoaGUI {
         }
         
         try {
-            URL serverUrl = new URL("http://" + address + ":" + port);
+            URL serverUrl = new URL("http://" + address);
             testConnection(serverUrl);
             return new HttpWoaGUI(serverUrl);
         } catch (MalformedURLException ex) {
             Logger.getGlobal().log(Level.SEVERE, "Invalid server address: {0}"
-                    , "http://" + address + ":" + port);
+                    , "http://" + address);
         } catch (IOException ex) {
             Logger.getGlobal().log(Level.SEVERE, "Could not connect to server: {0}"
-                    , "http://" + address + ":" + port);
+                    , "http://" + address);
         }
         
         return null;

@@ -38,7 +38,7 @@ public class GameClock implements Ticker {
                 PropertiesConfiguration woaConfig = config.properties(
                         new File(WoaDefinitions.CONFIG_FILENAME));
                 
-                tickDeltaMillis = woaConfig.getInt("woa.tick_millis");
+                tickDeltaMillis = woaConfig.getInt("tick_millis");
             } catch (ConfigurationException ex) {
                 Logger.getGlobal().warning("Could not read configuration property woa.tick_millis. Using default");
                 tickDeltaMillis = DEFAULT_TICK_DELTA_MILLIS;
