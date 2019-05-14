@@ -24,8 +24,6 @@ public class AgPlatform extends WoaAgent {
     
     private WoaLogger logger;
     
-    private final String AGENT_CLASS_PATH_TEMPLATE = "es.upm.woa.group{0}.agent.";
-    private final String AGENT_TRIBE_CLASS_NAME = "AgTribe";
     private final String AGENT_TRIBE_NAME_PREFIX = "Tribe";
     private final int MAX_TRIBES = 2;
     
@@ -64,8 +62,8 @@ public class AgPlatform extends WoaAgent {
         Set<Integer> successfulTribes = new HashSet<>();
         for (int i = 1; i <= MAX_TRIBES; i++) {
             String tribeClassPath = MessageFormat
-                        .format(AGENT_CLASS_PATH_TEMPLATE, i)
-                        .concat(AGENT_TRIBE_CLASS_NAME);
+                        .format(WoaDefinitions.AGENT_CLASS_PATH_TEMPLATE, i)
+                        .concat(WoaDefinitions.AGENT_TRIBE_CLASS_NAME);
                 String tribeName = AGENT_TRIBE_NAME_PREFIX + i;
             try {
                 launchAgentTribe(tribeClassPath, tribeName);
@@ -85,8 +83,8 @@ public class AgPlatform extends WoaAgent {
     private void launchGroup1TribesOnly() {
         log(Level.INFO, "Group1 only mode: launching remaining tribes");
         String tribeClassPath = MessageFormat
-                .format(AGENT_CLASS_PATH_TEMPLATE, 1)
-                .concat(AGENT_TRIBE_CLASS_NAME);
+                .format(WoaDefinitions.AGENT_CLASS_PATH_TEMPLATE, 1)
+                .concat(WoaDefinitions.AGENT_TRIBE_CLASS_NAME);
         for (int i = 2; i <= MAX_TRIBES; i++) {
             String tribeName = AGENT_TRIBE_NAME_PREFIX + i;
             try {

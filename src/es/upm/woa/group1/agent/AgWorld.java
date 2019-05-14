@@ -29,10 +29,12 @@ import es.upm.woa.ontology.NotifyUnitPosition;
 
 import jade.content.onto.basic.Action;
 import jade.core.AID;
+import jade.core.Agent;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -40,6 +42,7 @@ import jade.wrapper.StaleProxyException;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -48,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Logger;
 
 // TODO: change docs
 /**
@@ -222,8 +226,8 @@ public class AgWorld extends WoaAgent implements
     public void launchNewAgentUnit(MapCell startingPosition, Tribe ownerTribe
             , CreateUnitBehaviourHelper.OnCreatedUnitHandler handler) {
         try {
+            Agent newUnit = getAgentClass(ownerTribe.getTribeNumber()).newInstance();
             ContainerController cc = getContainerController();
-            AgUnit newUnit = new AgUnit();
             AgentController ac = cc.acceptNewAgent(generateNewUnitName(ownerTribe), newUnit);
             ac.start();
 
@@ -238,6 +242,9 @@ public class AgWorld extends WoaAgent implements
             }
 
         } catch (StaleProxyException ex) {
+            handler.onCouldNotCreateUnit();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            log(Level.SEVERE, "Could not instantiate agent unit class");
             handler.onCouldNotCreateUnit();
         }
     }
@@ -435,5 +442,32 @@ public class AgWorld extends WoaAgent implements
                 , tribe.getAID(), initialTribeResources, tribe.getUnits(), initialMapCell)
                 .initializeTribe();
     }
+    
+    private Class<? extends Agent> getAgentClass(int tribeNumber) {
+        String agentUnitClassPath = MessageFormat
+                .format(WoaDefinitions.AGENT_CLASS_PATH_TEMPLATE, tribeNumber)
+                .concat(WoaDefinitions.AGENT_UNIT_CLASS_NAME);
+        try {
+            return (Class<? extends Agent>) Class.forName(agentUnitClassPath);
+        } catch (ClassNotFoundException ex) {
+            if (tribeNumber != 1) {
+                log(Level.WARNING, "Could not find agent unit class "
+                        + agentUnitClassPath
+                        + ". Using group 1 agent units instead");
+                log(Level.INFO, "");
+                return getAgentClass(1);
+            }
+            else {
+                log(Level.SEVERE, "Could not find agent unit class " + agentUnitClassPath);
+                return null;
+            }
+        }
+    }
 
+
+    private String getAgentUnitClassPath(Tribe ownerTribe) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    
 }
