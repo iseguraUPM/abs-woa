@@ -130,7 +130,7 @@ public class CreateUnitBehaviourHelper {
                 // hall. Thus, the request would already be refused later and
                 // checking whether is building or not is unnecessary.
                 
-                ownerTribe.getResources().purchaseUnit();
+                purchaseUnit(ownerTribe, requesterUnit);
                 respondMessage(message, ACLMessage.AGREE, createUnitAction);
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
@@ -163,7 +163,7 @@ public class CreateUnitBehaviourHelper {
 
                                 @Override
                                 public void onCouldNotCreateUnit() {
-                                    ownerTribe.getResources().refundUnit();
+                                    refundUnit(ownerTribe, requesterUnit);
 
                                     respondMessage(message, ACLMessage.FAILURE, createUnitAction);
                                     
@@ -182,7 +182,7 @@ public class CreateUnitBehaviourHelper {
                         if (!finished) {
                             woaAgent.log(Level.INFO, "refunded unit to "
                                     + ownerTribe.getAID().getLocalName());
-                            ownerTribe.getResources().refundUnit();
+                            refundUnit(ownerTribe, requesterUnit);
                             respondMessage(message, ACLMessage.FAILURE, createUnitAction);
                         }
                         finished = true;
@@ -192,7 +192,29 @@ public class CreateUnitBehaviourHelper {
                 activeTransactions.add(activeTransaction);
                 woaAgent.addBehaviour(activeTransaction);
             }
+
+            
         });
+    }
+    
+    private void refundUnit(Tribe ownerTribe, Unit requesterUnit) {
+        ownerTribe.getResources().refundUnit();
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+            , requesterUnit.getId().getLocalName()
+            , WoaGUI.RESOURCE_FOOD, WoaDefinitions.UNIT_FOOD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+            , requesterUnit.getId().getLocalName()
+            , WoaGUI.RESOURCE_GOLD, WoaDefinitions.UNIT_GOLD_COST);
+    }
+
+    protected void purchaseUnit(Tribe ownerTribe, Unit requesterUnit) {
+        ownerTribe.getResources().purchaseUnit();
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_FOOD, WoaDefinitions.UNIT_FOOD_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.UNIT_GOLD_COST);
     }
     
     private boolean canCreateUnit(Tribe tribe, Unit requester, MapCell requesterPosition) {

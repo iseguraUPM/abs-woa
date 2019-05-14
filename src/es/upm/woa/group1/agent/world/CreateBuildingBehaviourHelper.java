@@ -159,14 +159,14 @@ public class CreateBuildingBehaviourHelper {
 
                         @Override
                         public void onCancel() {
-                            refundBuilding(buildingType, ownerTribe);
+                            refundBuilding(ownerTribe, buildingType, requesterUnit);
                             respondMessage(message, ACLMessage.FAILURE, createBuildingAction);
                         }
 
                        
                     });
 
-                    ownerTribe.getResources().purchaseTownHall();
+                    purchaseBuilding(ownerTribe, buildingType, requesterUnit);
                     respondMessage(message, ACLMessage.AGREE, createBuildingAction);
                     activeTransactions.add(buildTransaction);
                 } catch (CellBuildingConstructor.CellOccupiedException ex) {
@@ -181,7 +181,19 @@ public class CreateBuildingBehaviourHelper {
                     respondMessage(message, ACLMessage.NOT_UNDERSTOOD, createBuildingAction);
                 }
             }
+
+            
         });
+    }
+
+    private void purchaseBuilding(Tribe ownerTribe, String buildingType, Unit requesterUnit) {
+        switch (buildingType) {
+            case WoaDefinitions.TOWN_HALL:
+                purchaseTownHall(ownerTribe, requesterUnit);
+                break;
+            default:
+                woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
+        }
     }
     
     
@@ -218,14 +230,28 @@ public class CreateBuildingBehaviourHelper {
         }
     }
     
-    private void refundBuilding(String buildingType, Tribe ownerTribe) {
+    private void refundBuilding(Tribe ownerTribe, String buildingType
+            , Unit requesterUnit) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
-                ownerTribe.getResources().refundTownHall();
+                refundTownHall(ownerTribe, requesterUnit);
                 break;
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
         }
+    }
+
+    private void refundTownHall(Tribe ownerTribe, Unit requesterUnit) {
+        ownerTribe.getResources().refundTownHall();
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.TOWN_HALL_GOLD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_STONE, WoaDefinitions.TOWN_HALL_STONE_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
     }
 
     // NOTE: not surrounded by any building
@@ -273,6 +299,19 @@ public class CreateBuildingBehaviourHelper {
         }
         
         return false;
+    }
+
+    private void purchaseTownHall(Tribe ownerTribe, Unit requesterUnit) {
+        ownerTribe.getResources().purchaseTownHall();
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.TOWN_HALL_GOLD_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_STONE, WoaDefinitions.TOWN_HALL_STONE_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
     }
     
     public interface KnownPositionInformer {
