@@ -3,7 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.map;
+package es.upm.woa.group1;
+
+import es.upm.woa.group1.map.GameMap;
+import es.upm.woa.group1.map.MapCell;
 
 import java.util.Map;
 import java.util.NoSuchElementException;

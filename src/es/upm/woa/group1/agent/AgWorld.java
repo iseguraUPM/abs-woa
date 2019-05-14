@@ -15,7 +15,7 @@ import es.upm.woa.group1.agent.world.UnitMovementInformer;
 import es.upm.woa.group1.agent.world.CreateUnitBehaviourHelper;
 import es.upm.woa.group1.agent.world.MoveUnitBehaviourHelper;
 import es.upm.woa.group1.agent.world.CreateBuildingBehaviourHelper;
-import es.upm.woa.group1.map.WoaConfigurator;
+import es.upm.woa.group1.WoaConfigurator;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.gui.WoaGUIFactory;
 import es.upm.woa.group1.map.GameMap;

@@ -5,7 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.map.WoaConfigurator;
+import es.upm.woa.group1.WoaConfigurator;
 import java.util.logging.Level;
 
 import org.apache.commons.configuration2.ex.ConfigurationException;

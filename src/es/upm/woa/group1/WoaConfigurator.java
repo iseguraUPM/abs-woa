@@ -3,10 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.map;
+package es.upm.woa.group1;
 
 import es.upm.woa.group1.agent.TribeResources;
 import es.upm.woa.group1.WoaDefinitions;
+import es.upm.woa.group1.map.GameMap;
+import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.MapCellFactory;
 import es.upm.woa.ontology.Empty;
 
 import jade.core.AID;
