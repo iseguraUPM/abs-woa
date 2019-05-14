@@ -129,6 +129,8 @@ public class AgRegistrationDesk extends WoaAgent {
                                     newTribe = new Tribe(tribeNumber, message.getSender()
                                             , (TribeResources) initialTribeResources.clone());
                                     registeredTribes.add(newTribe);
+                                    log(Level.INFO, "Registered tribe number "
+                                            + newTribe.getTribeNumber());
                                 } catch (CloneNotSupportedException ex) {
                                     log(Level.SEVERE, "Could not create new tribe ("
                                             + ex + ")");
@@ -155,11 +157,25 @@ public class AgRegistrationDesk extends WoaAgent {
         if (!registrationOpen)
             return false;
         
-        return !registeredTribes.stream().anyMatch(
+        if (registeredTribes.stream().anyMatch(
                 tribe -> {
-                    return message.getSender().equals(tribe.getAID())
-                            || tribe.getTribeNumber() == teamNumber;
-                });
+                    return message.getSender().equals(tribe.getAID());
+                }))
+        {
+            log(Level.WARNING, "Tribe " + message.getSender().getLocalName() + " was already registered");
+            return false;
+        }
+        
+        if (registeredTribes.stream().anyMatch(
+                tribe -> {
+                    return tribe.getTribeNumber() == teamNumber;
+                }))
+        {
+            log(Level.WARNING, "Tribe number " + teamNumber + " was already registered");
+            return false;
+        }
+        
+        return true;
     }
     
     private void informWorldToStartGame(){
