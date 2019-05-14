@@ -40,18 +40,13 @@ public class AgRegistrationDesk extends WoaAgent {
     private WoaLogger logger;
     private final Collection<Tribe> registeredTribes;
     private final StartGameInformer startGameInformer;
-    private final List<String> startingTribeNames;
     private final TribeResources initialTribeResources;
-    
-    final int MAX_TRIBES = 6;
     
     private boolean registrationOpen;
     
-    public AgRegistrationDesk(List<String> startingTribeNames
-            , TribeResources initialResources
+    public AgRegistrationDesk(TribeResources initialResources
             , Collection<Tribe> registeredTribes
             , StartGameInformer startGameInformer) {
-        this.startingTribeNames = startingTribeNames;
         this.initialTribeResources = initialResources;
         this.registeredTribes = registeredTribes;
         this.startGameInformer = startGameInformer;
@@ -71,8 +66,7 @@ public class AgRegistrationDesk extends WoaAgent {
         startTribeRegistrationBehaviour();
         
         informWorldToStartGame();
-                
-        launchTribes();
+
     }
     
     private void initializeAgent() {
@@ -90,27 +84,8 @@ public class AgRegistrationDesk extends WoaAgent {
             log(Level.WARNING, "could not register in the DF (" + ex + ")");
         }
     }
- 
     
-    private void launchTribes(){
-        
-        for (int i = 0; i < MAX_TRIBES; i++) {
-            String tribeName = startingTribeNames.get(i);
-            launchAgentTribe(tribeName);
-        }
-    }
-    
-    private void launchAgentTribe(String tribeName) {
-        try {
-            ContainerController cc = getContainerController();
-            AgTribe newTribe = new AgTribe();
-            AgentController ac = cc.acceptNewAgent(tribeName, newTribe);
-            ac.start();
-        } catch (StaleProxyException ex) {
-            log(Level.WARNING, "could not launch tribe " + tribeName + " (" + ex
-                    + ")");
-        }
-    }
+
     
     /**
      * Start listening behaviour for RegistrationTribe agent requests.
