@@ -155,15 +155,11 @@ public class AgRegistrationDesk extends WoaAgent {
         if (!registrationOpen)
             return false;
         
-        if (registeredTribes.stream().anyMatch(
+        return !registeredTribes.stream().anyMatch(
                 tribe -> {
                     return message.getSender().equals(tribe.getAID())
                             || tribe.getTribeNumber() == teamNumber;
-            })) {
-            return false;
-        }
-        
-        return true;
+                });
     }
     
     private void informWorldToStartGame(){
