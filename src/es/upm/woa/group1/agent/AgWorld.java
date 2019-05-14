@@ -22,8 +22,10 @@ import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
+import es.upm.woa.group1.protocol.DelayTickBehaviour;
 import es.upm.woa.group1.protocol.Transaction;
 import es.upm.woa.group1.protocol.WoaCommunicationStandard;
+
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyCellDetail;
@@ -36,7 +38,6 @@ import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -53,7 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Logger;
 
 // TODO: change docs
 /**
@@ -85,11 +85,8 @@ public class AgWorld extends WoaAgent implements
     private WoaConfigurator woaConfigurator;
     private TribeResources initialTribeResources;
 
-    // TODO: temporal solution before registration
-    private List<String> startingTribeNames;
-
     private Collection<Transaction> activeTransactions;
-
+    
     private WoaLogger logger;
 
     @Override
@@ -115,16 +112,6 @@ public class AgWorld extends WoaAgent implements
             // Registers its description in the DF
             DFService.register(this, dfd);
             log(Level.INFO, "registered in the DF");
-            
-            startingTribeNames = new ArrayList<>();
-            startingTribeNames.add("TribeA");
-            startingTribeNames.add("TribeB");
-            startingTribeNames.add("TribeC");
-            startingTribeNames.add("TribeD");
-            startingTribeNames.add("TribeE");
-            startingTribeNames.add("TribeF");
-            
-            
         } catch (FIPAException ex) {
             log(Level.SEVERE, "could not register in the DF (" + ex + ")");
         }
@@ -154,10 +141,11 @@ public class AgWorld extends WoaAgent implements
         
     }
 
-    @Override
-    protected void takeDown() {
+    protected void finalizeGame() {
+        log(Level.WARNING, "Finalizing game...");
         finalizeAgent();
         rollbackUnfinishedTransactions();
+        guiEndpoint.endGame();
     }
 
     private void rollbackUnfinishedTransactions() {
@@ -396,6 +384,7 @@ public class AgWorld extends WoaAgent implements
 
 
         try {
+            Collection<String> startingTribeNames = computeTribeNamesForGUI();
             guiEndpoint.startGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
                     woaConfigurator.getMapConfigurationContents());
             tribeCollection.parallelStream().forEach((Tribe tribe) -> {
@@ -413,6 +402,24 @@ public class AgWorld extends WoaAgent implements
         startWorldBehaviours();
     }
 
+    protected Collection<String> computeTribeNamesForGUI() {
+        Collection<String> startingTribeNames = new ArrayList<>();
+        for (int i = 1; i <= 6; i++) {
+            final int tribeNumber = i;
+            Tribe registeredTribe = tribeCollection.stream()
+                    .filter(tribe -> tribe.getTribeNumber() == tribeNumber).findAny()
+                    .orElse(null);
+            if (registeredTribe == null) {
+                startingTribeNames.add("Tribe" + tribeNumber);
+            }
+            else {
+                startingTribeNames.add(registeredTribe.getAID().getLocalName());
+            }
+        }
+        
+        return startingTribeNames;
+    }
+
     private void startWorldBehaviours() {
         new CreateUnitBehaviourHelper(this, woaComStandard
                 , worldMap, activeTransactions, guiEndpoint, this, this, this)
@@ -422,6 +429,7 @@ public class AgWorld extends WoaAgent implements
         new CreateBuildingBehaviourHelper(this, woaComStandard, guiEndpoint
                 , worldMap, activeTransactions, this, this)
                 .startBuildingCreationBehaviour();
+        startGameOverBehaviour();
     }
 
     private void connectToGuiEndpoint() {
@@ -466,9 +474,23 @@ public class AgWorld extends WoaAgent implements
         }
     }
 
-
-    private String getAgentUnitClassPath(Tribe ownerTribe) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void startGameOverBehaviour() {
+        int gameTime = woaConfigurator.getGameTime();
+        int tickDelta = woaConfigurator.getTickMillis();
+        
+        addBehaviour(new DelayTickBehaviour(this, gameTime / tickDelta) {
+            @Override
+            protected void handleElapsedTimeout() {
+                try {
+                    finalizeGame();
+                    ContainerController cc = getContainerController();
+                    cc.kill();
+                } catch (StaleProxyException ex) {
+                    log(Level.SEVERE, "Could not terminate agent");
+                }
+            }
+            
+        });
     }
 
     
