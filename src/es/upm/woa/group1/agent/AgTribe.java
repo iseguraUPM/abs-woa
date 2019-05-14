@@ -35,8 +35,9 @@ import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.Stack;
+import java.util.Queue;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -62,7 +63,7 @@ public class AgTribe extends GroupAgent {
     
     private TribeResources tribeResources;
     
-    private Stack<Integer> groupNumbers;
+    private Queue<Integer> groupNumbers;
 
     @Override
     protected void setup() {
@@ -253,7 +254,7 @@ public class AgTribe extends GroupAgent {
     }
 
     private int getGroupNumber() {
-        return groupNumbers.pop();
+        return groupNumbers.poll();
     }
     
     private void initializeTribe() {
@@ -268,7 +269,7 @@ public class AgTribe extends GroupAgent {
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard);
         assignStrategyHelper = new SendAssignStrategyHelper(this, group1ComStandard);
         
-        groupNumbers = new Stack<>();
+        groupNumbers = new LinkedList<>();
         for (int i = 1; i <= 6; i++)
             groupNumbers.add(i);
     }
