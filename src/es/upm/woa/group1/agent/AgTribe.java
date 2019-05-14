@@ -63,7 +63,17 @@ public class AgTribe extends GroupAgent {
     
     private TribeResources tribeResources;
     
-    private Queue<Integer> groupNumbers;
+    private static final Queue<Integer> GROUP_NUMBER_QUEUE = new LinkedList<>();
+    
+    public AgTribe() {
+        synchronized (GROUP_NUMBER_QUEUE) {
+            if (GROUP_NUMBER_QUEUE.isEmpty()) {
+                for (int i = 1; i <= 6; i++) {
+                    GROUP_NUMBER_QUEUE.add(i);
+                }
+            }
+        }
+    }
 
     @Override
     protected void setup() {
@@ -254,7 +264,9 @@ public class AgTribe extends GroupAgent {
     }
 
     private int getGroupNumber() {
-        return groupNumbers.poll();
+        synchronized (GROUP_NUMBER_QUEUE) {
+            return GROUP_NUMBER_QUEUE.poll();
+        }
     }
     
     private void initializeTribe() {
@@ -268,10 +280,6 @@ public class AgTribe extends GroupAgent {
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard);
         assignStrategyHelper = new SendAssignStrategyHelper(this, group1ComStandard);
-        
-        groupNumbers = new LinkedList<>();
-        for (int i = 1; i <= 6; i++)
-            groupNumbers.add(i);
     }
     
     @Override
