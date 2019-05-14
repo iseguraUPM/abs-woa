@@ -166,7 +166,7 @@ public class AgWorld extends WoaAgent implements
             ContainerController cc = getContainerController();
             AgRegistrationDesk agRegistrationDesk
                     = new AgRegistrationDesk(initialTribeResources
-                            , tribeCollection, this);
+                            , tribeCollection, this, woaConfigurator);
             AgentController ac = cc.acceptNewAgent("Registartion Desk", agRegistrationDesk);
             ac.start();
         } catch (StaleProxyException ex) {

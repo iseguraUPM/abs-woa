@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.WoaConfigurator;
 import es.upm.woa.group1.WoaLogger;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
@@ -32,8 +33,8 @@ import java.util.logging.Level;
  * @author Martin
  */
 public class AgRegistrationDesk extends WoaAgent {
+    
     public static final String REGISTRATION_DESK = "REGISTRATION DESK";
-    private static final int REGISTRATION_PERIOD_TICKS = 4;
 
     private CommunicationStandard woaComStandard;
 
@@ -41,15 +42,18 @@ public class AgRegistrationDesk extends WoaAgent {
     private final Collection<Tribe> registeredTribes;
     private final StartGameInformer startGameInformer;
     private final TribeResources initialTribeResources;
+    private final WoaConfigurator woaConfigurator;
     
     private boolean registrationOpen;
     
     public AgRegistrationDesk(TribeResources initialResources
             , Collection<Tribe> registeredTribes
-            , StartGameInformer startGameInformer) {
+            , StartGameInformer startGameInformer
+            , WoaConfigurator woaConfigurator) {
         this.initialTribeResources = initialResources;
         this.registeredTribes = registeredTribes;
         this.startGameInformer = startGameInformer;
+        this.woaConfigurator = woaConfigurator;
         this.registrationOpen = true;
     }
     
@@ -175,7 +179,9 @@ public class AgRegistrationDesk extends WoaAgent {
     }
     
     private void informWorldToStartGame(){
-        DelayTickBehaviour behaviour = new DelayTickBehaviour(this, REGISTRATION_PERIOD_TICKS) {
+        int registrationTime = woaConfigurator.getRegistrationTimeMillis();
+        int tickDelta = woaConfigurator.getTickMillis();
+        DelayTickBehaviour behaviour = new DelayTickBehaviour(this, registrationTime / tickDelta) {
             
             @Override
             protected final void handleElapsedTimeout() {
