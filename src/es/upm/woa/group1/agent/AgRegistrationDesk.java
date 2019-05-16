@@ -18,11 +18,13 @@ import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 
 import jade.content.onto.basic.Action;
+import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import java.util.ArrayList;
 
 import java.util.Collection;
 import java.util.logging.ConsoleHandler;
@@ -44,6 +46,8 @@ public class AgRegistrationDesk extends WoaAgent {
     private final TribeResources initialTribeResources;
     private final WoaConfigurator woaConfigurator;
     
+    private Collection<Behaviour> behaviours;
+    
     private boolean registrationOpen;
     
     public AgRegistrationDesk(TribeResources initialResources
@@ -58,12 +62,20 @@ public class AgRegistrationDesk extends WoaAgent {
     }
     
     @Override
+    public void addBehaviour(Behaviour behaviour) {
+        behaviours.add(behaviour);
+        super.addBehaviour(behaviour);
+    }
+    
+    @Override
     protected void setup() {       
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.ALL);
         
         woaComStandard = new WoaCommunicationStandard();
         woaComStandard.register(getContentManager());
+        
+        behaviours = new ArrayList<>();
   
         initializeAgent();
         
@@ -71,6 +83,18 @@ public class AgRegistrationDesk extends WoaAgent {
         
         informWorldToStartGame();
 
+    }
+    
+    @Override
+    protected void takeDown() {
+        log(Level.INFO, "Taking down...");
+        try {
+            DFService.deregister(this);
+        } catch (FIPAException ex) {
+            log(Level.WARNING, "Could not deregister agent");
+        }
+        behaviours.stream().filter(b -> b.done()).forEach(b -> removeBehaviour(b));
+        behaviours.clear();
     }
     
     private void initializeAgent() {

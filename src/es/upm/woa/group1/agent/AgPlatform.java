@@ -13,6 +13,8 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.ConsoleHandler;
@@ -29,20 +31,35 @@ public class AgPlatform extends WoaAgent {
     private final String AGENT_TRIBE_NAME_PREFIX = "Tribe";
     private final int MAX_TRIBES = 2;
     
+    private Collection<AgentController> agents;
+    
     @Override
     public void setup() {
         logger = new WoaLogger(getAID(), new ConsoleHandler());
         logger.setLevel(Level.INFO);
         log(Level.INFO, "Preparing platform...");
         
+        agents = new ArrayList<>();
+        
         launchAgentWorld();
-                        
         launchTribes();
     }
     
     @Override
     public void takeDown() {
-        
+        log(Level.INFO, "Taking down...");
+        agents.forEach((AgentController agent) -> {
+            try {
+                agent.kill();
+            } catch (StaleProxyException ex) {
+                try {
+                    log(Level.WARNING, "Could not terminate agent " + agent.getName());
+                } catch (StaleProxyException ex1) {
+                    log(Level.WARNING, "Could not terminate agent");
+                }
+            }
+        });
+        agents.clear();
     }
 
     private void launchAgentWorld() {
@@ -51,6 +68,7 @@ public class AgPlatform extends WoaAgent {
             ContainerController cc = getContainerController();
             AgWorld agentWorld = new AgWorld();
             AgentController ac = cc.acceptNewAgent("Agent World", agentWorld);
+            agents.add(ac);
             ac.start();
             log(Level.FINE, "Launched world...");
         } catch (StaleProxyException ex) {
@@ -105,6 +123,7 @@ public class AgPlatform extends WoaAgent {
             ContainerController cc = getContainerController();
             Agent newTribe = (Agent) tribeClass.newInstance();
             AgentController ac = cc.acceptNewAgent(tribeName, newTribe);
+            agents.add(ac);
             ac.start();
         } catch (StaleProxyException ex) {
             log(Level.WARNING, "Could not launch tribe " + tribeName);
