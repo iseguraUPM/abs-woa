@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent.world;
 
+import es.upm.woa.group1.agent.TransactionRecord;
 import es.upm.woa.group1.agent.Tribe;
 import es.upm.woa.group1.agent.Unit;
 import es.upm.woa.group1.agent.WoaAgent;
@@ -18,6 +19,7 @@ import es.upm.woa.group1.map.UnitCellPositioner;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.Transaction;
+
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
@@ -27,9 +29,9 @@ import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
+import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 
-import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -43,29 +45,29 @@ public class MoveUnitBehaviourHelper {
     private final CommunicationStandard comStandard;
     private final WoaGUI gui;
     private final GameMap worldMap;
-    private final Collection<Transaction> activeTransactions;
     
+    private final TransactionRecord transactionRecord;
     private final TribeInfomationBroker tribeInfomationBroker;
     private final UnitMovementInformer unitMovementInformer;
     
     
     public MoveUnitBehaviourHelper(WoaAgent woaAgent, CommunicationStandard comStandard
             , WoaGUI gui, GameMap worldMap
-            , Collection<Transaction> activeTransactions
+            , TransactionRecord activeTransactions
             , TribeInfomationBroker tribeInfomationBroker
             , UnitMovementInformer unitMovementInformer) {
         this.woaAgent = woaAgent;
         this.comStandard = comStandard;
         this.gui = gui;
         this.worldMap = worldMap;
-        this.activeTransactions = activeTransactions;
+        this.transactionRecord = activeTransactions;
         this.tribeInfomationBroker = tribeInfomationBroker;
         this.unitMovementInformer = unitMovementInformer;
     }
     
-    public void startMoveToCellBehaviour() {
+    public Behaviour startMoveToCellBehaviour() {
         
-        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
+        Behaviour newBehaviour = new Conversation(woaAgent, comStandard
                 , GameOntology.MOVETOCELL) {
             @Override
             public void onStart() {
@@ -230,7 +232,7 @@ public class MoveUnitBehaviourHelper {
                     });
 
                     respondMessage(message, ACLMessage.AGREE, action);
-                    activeTransactions.add(moveTransaction);
+                    transactionRecord.addTransaction(moveTransaction);
 
                 } catch (IndexOutOfBoundsException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
@@ -239,7 +241,11 @@ public class MoveUnitBehaviourHelper {
                     respondMessage(message, ACLMessage.REFUSE, action);
                 }
             }
-        });
+        };
+        
+        woaAgent.addBehaviour(newBehaviour);
+        
+        return newBehaviour;
     }
     
     

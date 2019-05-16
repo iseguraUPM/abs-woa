@@ -9,6 +9,7 @@ import es.upm.woa.group1.agent.Tribe;
 import es.upm.woa.group1.agent.Unit;
 import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.WoaDefinitions;
+import es.upm.woa.group1.agent.TransactionRecord;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
@@ -16,7 +17,7 @@ import es.upm.woa.group1.map.UnitCellPositioner;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.DelayedTransactionalBehaviour;
-import es.upm.woa.group1.protocol.Transaction;
+
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CreateUnit;
@@ -24,9 +25,9 @@ import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.NotifyNewUnit;
 
 import jade.content.onto.basic.Action;
+import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 
-import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -41,16 +42,16 @@ public class CreateUnitBehaviourHelper {
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
     private final GameMap worldMap;
-    private final Collection<Transaction> activeTransactions;
     private final WoaGUI gui;
     
+    private final TransactionRecord transactionRecord;
     private final TribeInfomationBroker tribeInfomationBroker;
     private final UnitMovementInformer unitMovementInformer;
     private final UnitCreator unitCreator;
     
     public CreateUnitBehaviourHelper(WoaAgent woaAgent
             , CommunicationStandard comStandard, GameMap worldMap
-            , Collection<Transaction> activeTransactions
+            , TransactionRecord activeTransactions
             , WoaGUI gui
             , TribeInfomationBroker tribeInfomationBroker
             , UnitMovementInformer unitMovementInformer
@@ -58,7 +59,7 @@ public class CreateUnitBehaviourHelper {
         this.woaAgent = woaAgent;
         this.comStandard = comStandard;
         this.worldMap = worldMap;
-        this.activeTransactions = activeTransactions;
+        this.transactionRecord = activeTransactions;
         this.gui = gui;
         this.tribeInfomationBroker = tribeInfomationBroker;
         this.unitMovementInformer = unitMovementInformer;
@@ -68,10 +69,10 @@ public class CreateUnitBehaviourHelper {
      /**
      * Start listening behaviour for CreateUnit agent requests.
      * Unregistered tribes or units will be refused.
+     * @return the behaviour
      */
-    public void startUnitCreationBehaviour() {
-        
-        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
+    public Behaviour startUnitCreationBehaviour() {
+        Behaviour newBehaviour = new Conversation(woaAgent, comStandard
                , GameOntology.CREATEUNIT) {
             @Override
             public void onStart() {
@@ -189,12 +190,16 @@ public class CreateUnitBehaviourHelper {
                     }
                 };
 
-                activeTransactions.add(activeTransaction);
+                transactionRecord.addTransaction(activeTransaction);
                 woaAgent.addBehaviour(activeTransaction);
             }
 
             
-        });
+        };
+            
+        woaAgent.addBehaviour(newBehaviour);
+        
+        return newBehaviour;
     }
     
     private void refundUnit(Tribe ownerTribe, Unit requesterUnit) {

@@ -9,6 +9,7 @@ import es.upm.woa.group1.agent.Tribe;
 import es.upm.woa.group1.agent.Unit;
 import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.WoaDefinitions;
+import es.upm.woa.group1.agent.TransactionRecord;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.map.CellBuildingConstructor;
 import es.upm.woa.group1.map.GameMap;
@@ -18,6 +19,7 @@ import es.upm.woa.group1.map.UnitCellPositioner;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.Transaction;
+
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.GameOntology;
@@ -27,9 +29,9 @@ import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
+import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 
-import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -43,21 +45,21 @@ public class CreateBuildingBehaviourHelper {
     private final CommunicationStandard comStandard;
     private final WoaGUI gui;
     private final GameMap worldMap;
-    private final Collection<Transaction> activeTransactions;
     
+    private final TransactionRecord transactionRecord;
     private final KnownPositionInformer knownPositionInformHandler;
     private final TribeInfomationBroker tribeInfomationHandler;
     
     public CreateBuildingBehaviourHelper(WoaAgent woaAgent
             , CommunicationStandard comStandard, WoaGUI gui, GameMap worldMap
-            , Collection<Transaction> activeTransactions
+            , TransactionRecord activeTransactions
             , KnownPositionInformer knownPositionInformHandler
             , TribeInfomationBroker tribeInfomationHandler) {
         this.woaAgent = woaAgent;
         this.comStandard = comStandard;
         this.gui = gui;
         this.worldMap = worldMap;
-        this.activeTransactions = activeTransactions;
+        this.transactionRecord = activeTransactions;
         this.knownPositionInformHandler = knownPositionInformHandler;
         this.tribeInfomationHandler = tribeInfomationHandler;
     }
@@ -66,9 +68,9 @@ public class CreateBuildingBehaviourHelper {
      * Start listening behaviour for CreateBuilding agent requests.
      * Unregistered tribes or units will be refused.
      */
-    public void startBuildingCreationBehaviour() {
+    public Behaviour startBuildingCreationBehaviour() {
         
-        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard, GameOntology.CREATEBUILDING) {
+        Behaviour newBehaviour = new Conversation(woaAgent, comStandard, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
                 Action action = new Action(woaAgent.getAID(), new CreateBuilding());
@@ -168,7 +170,7 @@ public class CreateBuildingBehaviourHelper {
 
                     purchaseBuilding(ownerTribe, buildingType, requesterUnit);
                     respondMessage(message, ACLMessage.AGREE, createBuildingAction);
-                    activeTransactions.add(buildTransaction);
+                    transactionRecord.addTransaction(buildTransaction);
                 } catch (CellBuildingConstructor.CellOccupiedException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot build on cell " + unitPosition.getXCoord()
@@ -183,7 +185,11 @@ public class CreateBuildingBehaviourHelper {
             }
 
             
-        });
+        };
+        
+        woaAgent.addBehaviour(newBehaviour);
+        
+        return newBehaviour;
     }
 
     private void purchaseBuilding(Tribe ownerTribe, String buildingType, Unit requesterUnit) {

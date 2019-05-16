@@ -66,15 +66,18 @@ import java.util.logging.ConsoleHandler;
  *
  */
 public class AgWorld extends WoaAgent implements
-        CreateBuildingBehaviourHelper.KnownPositionInformer
-        , StartGameInformer
-        , CreateUnitBehaviourHelper.UnitCreator
-        , UnitMovementInformer
-        , TribeInfomationBroker {
+        CreateBuildingBehaviourHelper.KnownPositionInformer,
+         StartGameInformer,
+         CreateUnitBehaviourHelper.UnitCreator,
+         UnitMovementInformer,
+         TribeInfomationBroker,
+         TransactionRecord {
 
     public static final String WORLD = "WORLD";
 
     private static final int STARTING_UNIT_NUMBER = 3;
+    private static final int CLEAR_TRANSACTION_TIME_MILLIS = 1000;
+    private static final int WAIT_BEFORE_STOP_BEHAVIOURS_MILLIS = 5000;
 
     private static final long serialVersionUID = 1L;
     private CommunicationStandard woaComStandard;
