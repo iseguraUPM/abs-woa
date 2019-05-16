@@ -6,11 +6,9 @@
 package es.upm.woa.group1;
 
 import es.upm.woa.group1.agent.TribeResources;
-import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
-import es.upm.woa.ontology.Empty;
 
 import jade.core.AID;
 
@@ -51,6 +49,7 @@ public class WoaConfigurator {
     private int gameTime;
     private int tickMillis;
     private String guiEndpoint;
+    private int max_tribes;
     
     /**
      * 
@@ -73,6 +72,7 @@ public class WoaConfigurator {
             instance.gameTime = properties.getInt("game_time");
             instance.guiEndpoint = properties.getString("gui_endpoint");
             instance.tickMillis = properties.getInt("tick_millis");
+            instance.max_tribes = properties.getInt("max_tribes");
         }
 
         return instance;
@@ -92,6 +92,10 @@ public class WoaConfigurator {
     
     public String getGuiEndpoint() {
         return guiEndpoint;
+    }
+    
+    public int getMaxTribeNumber() {
+        return max_tribes;
     }
 
     /**

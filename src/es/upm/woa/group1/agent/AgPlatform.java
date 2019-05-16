@@ -5,12 +5,16 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.WoaConfigurator;
 import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.WoaLogger;
+
 import jade.core.Agent;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+
+import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -29,9 +33,10 @@ public class AgPlatform extends WoaAgent {
     private WoaLogger logger;
     
     private final String AGENT_TRIBE_NAME_PREFIX = "Tribe";
-    private final int MAX_TRIBES = 2;
+    private final int DEFAULT_MAX_TRIBES = 5;
     
     private Collection<AgentController> agents;
+    private int maxTribes;
     
     @Override
     public void setup() {
@@ -40,6 +45,13 @@ public class AgPlatform extends WoaAgent {
         log(Level.INFO, "Preparing platform...");
         
         agents = new ArrayList<>();
+        try {
+            maxTribes = WoaConfigurator.getInstance().getMaxTribeNumber();
+        } catch (ConfigurationException ex) {
+            log(Level.WARNING, "Could not load configuration file");
+            maxTribes = DEFAULT_MAX_TRIBES;
+        }
+        
         
         launchAgentWorld();
         launchTribes();
@@ -77,10 +89,10 @@ public class AgPlatform extends WoaAgent {
     }
     
         
-    private void launchTribes() {
+    private void launchTribes() {        
         log(Level.INFO, "Launching tribes...");
         Set<Integer> successfulTribes = new HashSet<>();
-        for (int i = 1; i <= MAX_TRIBES; i++) {
+        for (int i = 1; i <= maxTribes; i++) {
             String tribeClassPath = MessageFormat
                         .format(WoaDefinitions.AGENT_CLASS_PATH_TEMPLATE, i)
                         .concat(WoaDefinitions.AGENT_TRIBE_CLASS_NAME);
@@ -105,7 +117,7 @@ public class AgPlatform extends WoaAgent {
         String tribeClassPath = MessageFormat
                 .format(WoaDefinitions.AGENT_CLASS_PATH_TEMPLATE, 1)
                 .concat(WoaDefinitions.AGENT_TRIBE_CLASS_NAME);
-        for (int i = 2; i <= MAX_TRIBES; i++) {
+        for (int i = 2; i <= maxTribes; i++) {
             String tribeName = AGENT_TRIBE_NAME_PREFIX + i;
             try {
                 launchAgentTribe(tribeClassPath, tribeName);
