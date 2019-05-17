@@ -6,6 +6,9 @@
 package es.upm.woa.group1;
 
 import jade.core.AID;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -63,8 +66,14 @@ public class WoaLogger {
     }
 
     private void composeMessage(StringBuilder sb, Level logLevel, String message) {
+        sb.append(getCurrentTime()).append(" ");
         sb.append("[").append(logLevel.getName()).append("] ");
         sb.append(agentAid.getLocalName()).append(": ").append(message);
+    }
+    
+    private String getCurrentTime() {
+        String pattern = "hh:mm:ss:SSS";
+        return new SimpleDateFormat(pattern).format(new Date());
     }
     
 }
