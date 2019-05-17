@@ -421,6 +421,7 @@ public class AgWorld extends WoaAgent implements
     public void startGame() {
         try {
             agentRegistrationDesk.kill();
+            agentRegistrationDesk = null;
         } catch (StaleProxyException ex) {
             log(Level.WARNING, "Could not terminate agent registration desk");
         }
