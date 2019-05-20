@@ -142,6 +142,10 @@ public class WoaConfigurator {
             
         int mapWidth = mapConfig.getInt("mapWidth");
         int mapHeight = mapConfig.getInt("mapHeight");
+        
+        if (mapWidth % 2 != 0 || mapHeight % 2 != 0) {
+            throw new UnsupportedOperationException("Map dimensions must be even sized");
+        }
 
         WorldMap worldMap = WorldMap.getInstance(mapWidth, mapHeight);
         
