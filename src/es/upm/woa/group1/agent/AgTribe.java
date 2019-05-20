@@ -36,6 +36,7 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -380,14 +381,10 @@ public class AgTribe extends GroupAgent {
     }
 
     private void executeStrategy() {
-        assignStrategyHelper.multicastStrategy(getMyUnitsAIDs()
-                , StrategyFactory
-                        .envelopFreeExploreStrategy(Strategy.MID_PRIORITY));
-        // 1st: create a town hall
-        //  for that we need Gold, Stone and Wood
-        // 2st: create farms
-        //  for that we need Gold, Stone and Wood
-        // 3rd: build units to mine more resources
+        addBehaviour(new TribeStrategyBehaviour(this, GameClock.getInstance()
+                , assignStrategyHelper, knownMap
+                , Collections.unmodifiableCollection(units)
+                , tribeResources, MapCellFinder.getInstance(knownMap)));
     }
 
 }
