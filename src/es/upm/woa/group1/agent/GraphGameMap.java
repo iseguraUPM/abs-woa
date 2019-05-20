@@ -238,8 +238,7 @@ class GraphGameMap implements GameMap {
     }
     
     public void copyMapData(GraphGameMap otherGameMap) {
-        if (getHeight() == 0 && getWidth() == 0)
-            mapGraph = otherGameMap.mapGraph;
+        mapGraph = otherGameMap.mapGraph;
     }
     
     private void updateDijskstraPath() {
