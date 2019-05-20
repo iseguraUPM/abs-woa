@@ -6,6 +6,7 @@ package es.upm.woa.group1.agent;
  * and open the template in the editor.
  */
 import es.upm.woa.group1.WoaLogger;
+import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
 import es.upm.woa.group1.ontology.Group1Ontology;
@@ -51,7 +52,6 @@ public class AgTribe extends GroupAgent {
     
     private final int BETWEEN_REGISTRATION_RETRIES_MILLIS = 1000;
     
-    private int tribeNumber;
     private CommunicationStandard gameComStandard;
     private CommunicationStandard group1ComStandard;
     private Collection<Unit> units;
@@ -153,9 +153,6 @@ public class AgTribe extends GroupAgent {
                 group1ComStandard, knownMap, (NewGraphConnection newConnection) -> {
                     log(Level.FINER, "Updated known map");
                     shareNewConnectionWithUnits(newConnection);
-                    executeStrategy();
-                    
-                    
                 }).startShareMapDataBehaviour();
     }
 
@@ -357,8 +354,7 @@ public class AgTribe extends GroupAgent {
                         
                                     }
                                     
-                                    assignStrategyHelper.multicastStrategy(getMyUnitsAIDs()
-                                , StrategyFactory.envelopFreeExploreStrategy(0));
+                                    executeStrategy();
                                     
                                 }
                             }
@@ -384,7 +380,14 @@ public class AgTribe extends GroupAgent {
     }
 
     private void executeStrategy() {
-        
+        assignStrategyHelper.multicastStrategy(getMyUnitsAIDs()
+                , StrategyFactory
+                        .envelopFreeExploreStrategy(Strategy.MID_PRIORITY));
+        // 1st: create a town hall
+        //  for that we need Gold, Stone and Wood
+        // 2st: create farms
+        //  for that we need Gold, Stone and Wood
+        // 3rd: build units to mine more resources
     }
 
 }

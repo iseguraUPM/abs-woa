@@ -32,13 +32,14 @@ class CreateUnitStrategy extends Strategy {
     private final CommunicationStandard comStandard;
     private final GraphGameMap graphKnownMap;
     private final AID worldAID;
+    private int priority;
     
     private final PositionedAgentUnit agentUnit;
     
-    private int priority;
     private boolean finished;
     
-    public CreateUnitStrategy(WoaAgent agent, CommunicationStandard comStandard
+    public CreateUnitStrategy(int priority
+            , WoaAgent agent, CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit) {
         super(agent);
@@ -48,7 +49,7 @@ class CreateUnitStrategy extends Strategy {
         this.worldAID = worldAID;
         this.agentUnit = agentUnit;
         
-        priority = HIGH_PRIORITY;
+        this.priority = priority;
         finished = false;
     }
 

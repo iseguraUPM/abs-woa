@@ -31,6 +31,7 @@ class CreateBuildingStrategy extends Strategy {
     private final CommunicationStandard comStandard;
     private final GraphGameMap graphKnownMap;
     private final AID worldAID;
+    private final int priority;
     
     private final String buildingType;
     private MapCell constructionSite;
@@ -38,10 +39,11 @@ class CreateBuildingStrategy extends Strategy {
     
     private final PositionedAgentUnit agentUnit;
     
-    private final int priority;
+    
     private boolean finished;
     
-    CreateBuildingStrategy(WoaAgent agent, CommunicationStandard comStandard
+    CreateBuildingStrategy(int priority, WoaAgent agent
+            , CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit, String buildingType
             , MapCell constructionSite) {
@@ -55,11 +57,12 @@ class CreateBuildingStrategy extends Strategy {
         this.constructionSiteFinder = null;
         this.agentUnit = agentUnit;
         
-        this.priority = HIGH_PRIORITY;
+        this.priority = priority;
         this.finished = false;
     }
     
-    CreateBuildingStrategy(WoaAgent agent, CommunicationStandard comStandard
+    CreateBuildingStrategy(int priority, WoaAgent agent
+            , CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit, String buildingType
             , MapCellFinder constructionSiteFinder) {

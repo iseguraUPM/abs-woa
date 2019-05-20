@@ -26,13 +26,13 @@ public class GoToStrategy extends Strategy {
     private final GraphGameMap graphKnownMap;
     private final AID worldAID;
     private final MapCell destination;
+    private final int priority;
     
     private final PositionedAgentUnit agentUnit;
-    
-    private int priority;
+
     private boolean finished;
     
-    GoToStrategy(WoaAgent agent, CommunicationStandard comStandard
+    GoToStrategy(int priority, WoaAgent agent, CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID, MapCell destination
             , PositionedAgentUnit agentUnit) {
         super(agent);
@@ -43,7 +43,7 @@ public class GoToStrategy extends Strategy {
         this.destination = destination;
         this.agentUnit = agentUnit;
         
-        priority = HIGH_PRIORITY;
+        this.priority = priority;
         finished = false;
     }
 

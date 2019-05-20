@@ -74,12 +74,14 @@ class StrategyFactory {
     }
     
     private Strategy getFreeExploreStrategy(StrategyEnvelop envelope) {
-        return new FreeExploreStrategy(woaAgent, comStandard, graphKnownMap
+        return new FreeExploreStrategy(envelope.getPriority()
+                , woaAgent, comStandard, graphKnownMap
                 , worldAID, agentUnit);
     }
 
     private Strategy getCreateUnitStrategy(StrategyEnvelop envelope) {
-        return new CreateUnitStrategy(woaAgent, comStandard, graphKnownMap
+        return new CreateUnitStrategy(envelope.getPriority(), woaAgent
+                , comStandard, graphKnownMap
                 , worldAID, agentUnit);
     }
     
@@ -89,12 +91,14 @@ class StrategyFactory {
             CreateBuildingRequest request = (CreateBuildingRequest)
                     envelope.getContent();
             if (request.constructionSite != null) {
-                return new CreateBuildingStrategy(woaAgent, comStandard
+                return new CreateBuildingStrategy(
+                        envelope.getPriority(), woaAgent, comStandard
                         , graphKnownMap, worldAID, agentUnit
                         , request.buildingType, request.constructionSite);
             }
             else {
-                return new CreateBuildingStrategy(woaAgent, comStandard
+                return new CreateBuildingStrategy(envelope.getPriority()
+                        , woaAgent, comStandard
                         , graphKnownMap, worldAID, agentUnit, request.buildingType
                         , constructionSiteFinder);
             }
@@ -107,7 +111,8 @@ class StrategyFactory {
     private Strategy getGoToStrategy(StrategyEnvelop envelope)
             throws UnexpectedArgument {
         if (envelope.getContent() instanceof MapCell) {
-            return new GoToStrategy(woaAgent, comStandard, graphKnownMap
+            return new GoToStrategy(envelope.getPriority()
+                    , woaAgent, comStandard, graphKnownMap
                     , worldAID, (MapCell) envelope.getContent(), agentUnit);
         }
         else {

@@ -41,6 +41,7 @@ class FreeExploreStrategy extends Strategy {
     private final CommunicationStandard comStandard;
     private final GraphGameMap graphKnownMap;
     private final AID worldAID;
+    private final int priority;
     
     private final PositionedAgentUnit agentUnit;
     
@@ -49,7 +50,7 @@ class FreeExploreStrategy extends Strategy {
     private final Set<MapCell> visitedCandidates;
     private MapCell nextCandidate;
 
-    public FreeExploreStrategy(WoaAgent agent, CommunicationStandard comStandard
+    public FreeExploreStrategy(int priority, WoaAgent agent, CommunicationStandard comStandard
             , GraphGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit) {
         super(agent);
         this.woaAgent = agent;
@@ -58,6 +59,7 @@ class FreeExploreStrategy extends Strategy {
         this.worldAID = worldAID;
         this.agentUnit = agentUnit;
         
+        this.priority = priority;
         this.finishedRound = false;
         this.finishExploration = false;
         this.visitedCandidates = new HashSet<>();
@@ -65,7 +67,7 @@ class FreeExploreStrategy extends Strategy {
 
     @Override
     public int getPriority() {
-        return MID_PRIORITY;
+        return priority;
     }
 
     @Override
