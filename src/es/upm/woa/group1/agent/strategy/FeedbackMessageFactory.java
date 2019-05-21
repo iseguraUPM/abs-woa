@@ -142,7 +142,13 @@ public class FeedbackMessageFactory {
     }
 
     private static void handleFinishBuilding(MessageContent content, UnitStatusHanlder handler) {
-        handler.onFinishedBuilding(content.unitAID, content.buildingType, content.operationSuccess);
+        if (content.operationSuccess) {
+            handler.onFinishedBuilding(content.unitAID, content.buildingType);
+        }
+        else {
+            handler.onErrorBuilding(content.unitAID, content.buildingType);
+        }
+        
     }
 
     private static void handleStartUnit(MessageContent content, UnitStatusHanlder handler) {
@@ -150,7 +156,12 @@ public class FeedbackMessageFactory {
     }
 
     private static void handleFinishUnit(MessageContent content, UnitStatusHanlder handler) {
-        handler.onFinishedUnitCreation(content.unitAID, content.operationSuccess);
+        if (content.operationSuccess) {
+            handler.onFinishedUnitCreation(content.unitAID);
+        }
+        else {
+            handler.onErrorUnitCreation(content.unitAID);
+        }
     }
 
     private static void handleExploitResource(MessageContent content, UnitStatusHanlder handler) {

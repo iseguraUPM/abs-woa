@@ -13,8 +13,9 @@ public interface CreateUnitRequestHandler {
     
     void onStartedCreatingUnit();
     
+    void onFinishedCreatingUnit();
     
-    void onFinishedCreatingUnit(boolean success);
+    void onErrorCreatingUnit();
     
     
 }

@@ -109,13 +109,13 @@ class CreateBuildingStrategy extends Strategy {
             @Override
             public void onCreatedBuilding() {
                 finishStrategy();
-                createBuildingRequestHandler.onFinishedBuilding(buildingType, true);
+                createBuildingRequestHandler.onFinishedBuilding(buildingType);
             }
 
             @Override
             public void onCouldntCreateBuilding() {
                 finishStrategy();
-                createBuildingRequestHandler.onFinishedBuilding(buildingType, false);
+                createBuildingRequestHandler.onErrorBuilding(buildingType);
             }
         });
     }

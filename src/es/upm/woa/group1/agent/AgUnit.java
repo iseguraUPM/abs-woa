@@ -406,26 +406,28 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
     }
 
     @Override
-    public void onFinishedBuilding(String buildingType, boolean success) {
-        if (success) {
-            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingSuccess(buildingType));
-        } else {
-            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingFailure(buildingType));
-        }
-    }
-
-    @Override
     public void onStartedCreatingUnit() {
         sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopStartedUnitCreation());
     }
 
     @Override
-    public void onFinishedCreatingUnit(boolean success) {
-        if (success) {
-            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationSuccess());
-        } else {
-            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationFailure());
-        }
+    public void onFinishedBuilding(String buildingType) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingSuccess(buildingType));
+    }
+
+    @Override
+    public void onErrorBuilding(String buildingType) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingFailure(buildingType));
+    }
+
+    @Override
+    public void onFinishedCreatingUnit() {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationSuccess());
+    }
+
+    @Override
+    public void onErrorCreatingUnit() {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationFailure());
     }
 
     private interface OnReceivedOwnershipHandler {

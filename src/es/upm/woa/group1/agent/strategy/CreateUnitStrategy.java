@@ -79,13 +79,13 @@ class CreateUnitStrategy extends Strategy {
             @Override
             public void onCreatedUnit() {
                 finishStrategy();
-                createUnitRequestHandler.onFinishedCreatingUnit(true);
+                createUnitRequestHandler.onFinishedCreatingUnit();
             }
 
             @Override
             public void onCouldntCreateUnit() {
                 finishStrategy();
-                createUnitRequestHandler.onFinishedCreatingUnit(false);
+                createUnitRequestHandler.onErrorCreatingUnit();
             }
         });
     }

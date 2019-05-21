@@ -411,6 +411,7 @@ public class AgTribe extends GroupAgent implements UnitStatusHanlder {
                     tribeResources.purchaseTownHall();
                     break;
                 case WoaDefinitions.STORE:
+                    // TODO: store resource upgrade
                     //break;
                 case WoaDefinitions.FARM:
                     throw new UnsupportedOperationException("Building "
@@ -426,46 +427,9 @@ public class AgTribe extends GroupAgent implements UnitStatusHanlder {
     }
 
     @Override
-    public void onFinishedBuilding(AID unitAID, String buildingType, boolean success) {
-        if (success) {
-            log(Level.FINE, unitAID.getLocalName() + " finished construction of " + buildingType);
-        }
-        else {
-            switch (buildingType) {
-                case WoaDefinitions.TOWN_HALL:
-                    tribeResources.refundTownHall();
-                    break;
-                case WoaDefinitions.STORE:
-                    //break;
-                case WoaDefinitions.FARM:
-                    throw new UnsupportedOperationException("Building " + buildingType + " refund implementation");
-                    //break;
-                default:
-                    log(Level.WARNING, "Cannot refund unknown building: "
-                            + buildingType);
-                    break;
-            }
-            log(Level.FINE, unitAID.getLocalName() +" could not build " + buildingType + ". Resources refunded");
-        }
-        
-    }
-
-    @Override
     public void onStartingUnitCreation(AID unitAID) {
         tribeResources.purchaseUnit();
         log(Level.FINE, unitAID.getLocalName() + " started creating a unit");
-    }
-
-    @Override
-    public void onFinishedUnitCreation(AID unitAID, boolean success) {
-        if (success) {
-            log(Level.FINE, unitAID.getLocalName() + " finished creation of new unit");
-        }
-        else {
-            tribeResources.refundUnit();
-            log(Level.FINE, unitAID.getLocalName() +" could not create unit. Resources refunded");
-        }
-        
     }
 
     @Override
@@ -488,6 +452,41 @@ public class AgTribe extends GroupAgent implements UnitStatusHanlder {
         }
         log(Level.FINE, unitAID.getLocalName() + " gained " + amount
                 + " of " + resourceType);
+    }
+
+    @Override
+    public void onFinishedBuilding(AID unitAID, String buildingType) {
+        log(Level.FINE, unitAID.getLocalName() + " finished construction of " + buildingType);
+    }
+
+    @Override
+    public void onErrorBuilding(AID unitAID, String buildingType) {
+        switch (buildingType) {
+                case WoaDefinitions.TOWN_HALL:
+                    tribeResources.refundTownHall();
+                    break;
+                case WoaDefinitions.STORE:
+                    //break;
+                case WoaDefinitions.FARM:
+                    throw new UnsupportedOperationException("Building " + buildingType + " refund implementation");
+                    //break;
+                default:
+                    log(Level.WARNING, "Cannot refund unknown building: "
+                            + buildingType);
+                    break;
+            }
+            log(Level.FINE, unitAID.getLocalName() +" could not build " + buildingType + ". Resources refunded");
+    }
+
+    @Override
+    public void onFinishedUnitCreation(AID unitAID) {
+        log(Level.FINE, unitAID.getLocalName() + " finished creation of new unit");
+    }
+
+    @Override
+    public void onErrorUnitCreation(AID unitAID) {
+        tribeResources.refundUnit();
+        log(Level.FINE, unitAID.getLocalName() +" could not create unit. Resources refunded");
     }
 
 

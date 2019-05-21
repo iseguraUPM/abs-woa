@@ -13,6 +13,8 @@ public interface CreateBuildingRequestHandler {
     
     void onStartedBuilding(String buildingType);
     
-    void onFinishedBuilding(String buildingType, boolean success);
+    void onFinishedBuilding(String buildingType);
+    
+    void onErrorBuilding(String buildingType);
     
 }

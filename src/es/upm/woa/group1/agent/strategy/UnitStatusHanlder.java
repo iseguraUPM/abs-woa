@@ -17,11 +17,15 @@ public interface UnitStatusHanlder {
 
     void onStartedBuilding(AID unitAID, String buildingType);
 
-    void onFinishedBuilding(AID unitAID, String buildingType, boolean success);
+    void onFinishedBuilding(AID unitAID, String buildingType);
+    
+    void onErrorBuilding(AID unitAID, String buildingType);
 
     void onStartingUnitCreation(AID unitAID);
 
-    void onFinishedUnitCreation(AID unitAID, boolean success);
+    void onFinishedUnitCreation(AID unitAID);
+    
+    void onErrorUnitCreation(AID unitAID);
 
     void onExploitedResource(AID unitAID, String resourceType, int amount);
     
