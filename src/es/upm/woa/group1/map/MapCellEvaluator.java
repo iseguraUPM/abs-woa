@@ -3,15 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
-
-import es.upm.woa.group1.map.MapCell;
+package es.upm.woa.group1.map;
 
 /**
  *
  * @author ISU
  */
-interface MapCellEvaluator {
+public interface MapCellEvaluator {
 
     boolean match(MapCell site);
     

@@ -5,9 +5,11 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.agent.strategy.StrategyFactory;
 import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.PathfinderGameMap;
 
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
@@ -23,7 +25,7 @@ import java.util.stream.Collectors;
  *
  * @author ISU
  */
-class TribeStrategyBehaviour extends SimpleBehaviour {
+final class TribeStrategyBehaviour extends SimpleBehaviour {
     
     private static final int FIRST_PHASE = 0;
     private static final int SECOND_PHASE = 1;
@@ -32,7 +34,7 @@ class TribeStrategyBehaviour extends SimpleBehaviour {
     private final WoaAgent agent;
     private final Ticker ticker;
     private final SendAssignStrategyHelper strategyHelper;
-    private final GraphGameMap graphMap;
+    private final PathfinderGameMap graphMap;
     private final Collection<Unit> unitCollection;
     private final TribeResources resourceAccount;
     private final MapCellFinder mapCellFinder;
@@ -45,7 +47,7 @@ class TribeStrategyBehaviour extends SimpleBehaviour {
     
     public TribeStrategyBehaviour(WoaAgent agent, Ticker ticker
             , SendAssignStrategyHelper strategyHelper
-            , GraphGameMap graphMap
+            , PathfinderGameMap graphMap
             , Collection<Unit> unitCollection
             , TribeResources resourceAccount
             , MapCellFinder mapCellFinder) {

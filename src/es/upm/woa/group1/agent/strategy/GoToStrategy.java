@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
+package es.upm.woa.group1.agent.strategy;
 
+import es.upm.woa.group1.agent.AgUnit;
+import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.protocol.CommunicationStandard;
-import es.upm.woa.group1.agent.strategy.Strategy;
 
 import jade.core.AID;
 
@@ -23,7 +25,7 @@ public class GoToStrategy extends Strategy {
     
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
-    private final GraphGameMap graphKnownMap;
+    private final PathfinderGameMap graphKnownMap;
     private final AID worldAID;
     private final MapCell destination;
     private final int priority;
@@ -33,7 +35,7 @@ public class GoToStrategy extends Strategy {
     private boolean finished;
     
     GoToStrategy(int priority, WoaAgent agent, CommunicationStandard comStandard
-            , GraphGameMap graphGameMap, AID worldAID, MapCell destination
+            , PathfinderGameMap graphGameMap, AID worldAID, MapCell destination
             , PositionedAgentUnit agentUnit) {
         super(agent);
         this.woaAgent = agent;

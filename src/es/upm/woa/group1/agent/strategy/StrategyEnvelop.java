@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
+package es.upm.woa.group1.agent.strategy;
 
 import java.io.Serializable;
 
@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @author ISU
  */
-interface StrategyEnvelop extends Serializable {
+public interface StrategyEnvelop extends Serializable {
     
     int getStrategy();
     

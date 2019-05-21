@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
+package es.upm.woa.group1.agent.strategy;
 
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
@@ -14,7 +14,7 @@ import jade.core.AID;
  *
  * @author ISU
  */
-interface PositionedAgentUnit {
+public interface PositionedAgentUnit {
     
     /**
      * 

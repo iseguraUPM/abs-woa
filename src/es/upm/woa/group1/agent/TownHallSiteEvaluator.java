@@ -5,7 +5,9 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.map.MapCellEvaluator;
 import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.ontology.Building;
 
 import java.util.Set;
@@ -14,11 +16,11 @@ import java.util.Set;
  *
  * @author ISU
  */
-class TownHallSiteEvaluator implements MapCellEvaluator {
+public class TownHallSiteEvaluator implements MapCellEvaluator {
 
-    private final GraphGameMap graphMap;
+    private final PathfinderGameMap graphMap;
     
-    public TownHallSiteEvaluator(GraphGameMap graphMap) {
+    public TownHallSiteEvaluator(PathfinderGameMap graphMap) {
         this.graphMap = graphMap;
     }
     

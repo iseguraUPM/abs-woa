@@ -9,6 +9,7 @@ package es.upm.woa.group1.agent;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.PathfinderGameMap;
 
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
@@ -28,7 +29,7 @@ import java.util.HashSet;
  *
  * @author ISU
  */
-class GraphGameMap implements GameMap {
+class GraphGameMap implements PathfinderGameMap {
     
     private Graph<MapCell, CellTranslation> mapGraph;
     // Non-serializable
@@ -100,13 +101,7 @@ class GraphGameMap implements GameMap {
         return mapGraph.vertexSet();
     }
     
-    /**
-     * Compute the shortest path to the target cell.
-     * @param source
-     * @param target
-     * @return the sequence of translations required that make the path
-     * or an empty list if there is not a viable path.
-     */
+    @Override
     public List<CellTranslation> findShortestPath(MapCell source, MapCell target) {
         if (dijkstraShortestPath == null) {
             updateDijskstraPath();
@@ -121,14 +116,7 @@ class GraphGameMap implements GameMap {
         return shortestPath.getEdgeList();
     }
     
-    /**
-     * Compute the shortest path to the nearest candidate that passes the
-     * predicate filter.
-     * @param source 
-     * @param filterPredicate the predicate to filter candidate cells
-     * @return the sequence of translations required that make the path
-     * or an empty list if there is not a viable path.
-     */
+    @Override
     public List<CellTranslation> findShortestPathTo(MapCell source
             , Predicate<MapCell> filterPredicate) {
         List<MapCell> availableCells = mapGraph.vertexSet().stream()
@@ -191,14 +179,7 @@ class GraphGameMap implements GameMap {
         }
     }
     
-    /**
-     * Adds a connection between two existing cells
-     * @param from
-     * @param to
-     * @param translation
-     * @return if the connection was added and did not exist before
-     * @throws NoSuchElementException if the map did not contain both cells
-     */
+    @Override
     public boolean connectPath(MapCell from, MapCell to, CellTranslation translation) {
         if (!mapGraph.containsVertex(from) || !mapGraph.containsVertex(to)) {
             throw new NoSuchElementException("Cannot connect unknown map cells");
@@ -218,12 +199,7 @@ class GraphGameMap implements GameMap {
         }
     }
     
-    /**
-     * Return the cell adjacent in the selected direction from a given source.
-     * @param source map cell
-     * @param direction where the connection should be
-     * @return the target cell or null if does not exist
-     */
+    @Override
     public MapCell getMapCellOnDirection(MapCell source, CellTranslation direction) {
         Set<CellTranslation> connections = mapGraph.outgoingEdgesOf(source);
         CellTranslation actualDirection = connections.stream()
@@ -237,15 +213,24 @@ class GraphGameMap implements GameMap {
         }
     }
     
-    public void copyMapData(GraphGameMap otherGameMap) {
-        mapGraph = otherGameMap.mapGraph;
+    @Override
+    public void copyMapData(PathfinderGameMap otherGameMap) {
+        if (otherGameMap instanceof GraphGameMap) {
+            GraphGameMap otherGraphGameMap = (GraphGameMap) otherGameMap;
+            mapGraph = otherGraphGameMap.mapGraph;
+        }
+        else {
+            throw new UnsupportedOperationException("Cannot copy from another"
+                    + " PathfinderGameMap");
+        }
     }
     
     private void updateDijskstraPath() {
         dijkstraShortestPath = new DijkstraShortestPath<>(mapGraph);
     }
     
-    Set<MapCell> getNeighbours(MapCell mapCell) {
+    @Override
+    public Set<MapCell> getNeighbours(MapCell mapCell) {
         if (!mapGraph.containsVertex(mapCell)) {
             return new HashSet<>();
         }

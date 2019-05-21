@@ -3,11 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
+package es.upm.woa.group1.agent.strategy;
 
+import es.upm.woa.group1.agent.WoaAgent;
+import es.upm.woa.group1.map.LocationFinder;
 import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.protocol.CommunicationStandard;
-import es.upm.woa.group1.agent.strategy.Strategy;
 
 import jade.core.AID;
 import jade.domain.FIPAAgentManagement.UnexpectedArgument;
@@ -18,7 +20,7 @@ import java.io.Serializable;
  *
  * @author ISU
  */
-class StrategyFactory {
+public class StrategyFactory {
     
     private static final int FREE_EXPLORE = 0;
     private static final int CREATE_UNIT = 1;
@@ -27,18 +29,19 @@ class StrategyFactory {
     
     private WoaAgent woaAgent;
     private CommunicationStandard comStandard;
-    private GraphGameMap graphKnownMap;
+    private PathfinderGameMap graphKnownMap;
     private AID worldAID;
     
     private PositionedAgentUnit agentUnit;
-    private MapCellFinder constructionSiteFinder;
+    private LocationFinder constructionSiteFinder;
     
     private StrategyFactory() {}
     
     public static StrategyFactory getInstance(WoaAgent woaAgent
-            , CommunicationStandard comStandard, GraphGameMap graphKnownMap
+            , CommunicationStandard comStandard
+            , PathfinderGameMap graphKnownMap
             , AID worldAID, PositionedAgentUnit agentUnit
-            , MapCellFinder constructionSiteFinder) {
+            , LocationFinder constructionSiteFinder) {
         StrategyFactory instance = new StrategyFactory();
         instance.woaAgent = woaAgent;
         instance.comStandard = comStandard;

@@ -5,6 +5,9 @@ package es.upm.woa.group1.agent;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.group1.agent.strategy.PositionedAgentUnit;
+import es.upm.woa.group1.agent.strategy.StrategyEnvelop;
+import es.upm.woa.group1.agent.strategy.StrategyFactory;
 import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.WoaLogger;
 import es.upm.woa.group1.map.CellTranslation;
@@ -15,11 +18,10 @@ import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.group1.protocol.WoaCommunicationStandard;
-import es.upm.woa.group1.agent.strategy.StrategicUnitBehaviour;
 import es.upm.woa.group1.agent.strategy.Strategy;
+import es.upm.woa.group1.map.PathfinderGameMap;
 
 import es.upm.woa.ontology.CreateBuilding;
-import es.upm.woa.ontology.Ground;
 import es.upm.woa.ontology.GameOntology;
 
 import jade.content.ContentElement;
@@ -50,7 +52,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private static final int BETWEEN_REQUEST_POSITION_TRIES_TIME_MILLIS = 1000;
     private static final int BETWEEN_WORLD_RETRIES_MILLIS = 1000;
 
-    private GraphGameMap knownMap;
+    private PathfinderGameMap knownMap;
     private CommunicationStandard gameComStandard;
     private CommunicationStandard group1ComStandard;
     private DFAgentDescription worldAgentServiceDescription;

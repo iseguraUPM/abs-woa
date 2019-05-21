@@ -3,14 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
+package es.upm.woa.group1.agent.strategy;
 
 import es.upm.woa.group1.WoaDefinitions;
+import es.upm.woa.group1.agent.AgUnit;
+import es.upm.woa.group1.map.PathfinderGameMap;
+import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
-import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateUnit;
 import es.upm.woa.ontology.GameOntology;
@@ -30,7 +32,7 @@ class CreateUnitStrategy extends Strategy {
     
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
-    private final GraphGameMap graphKnownMap;
+    private final PathfinderGameMap graphKnownMap;
     private final AID worldAID;
     private int priority;
     
@@ -40,7 +42,7 @@ class CreateUnitStrategy extends Strategy {
     
     public CreateUnitStrategy(int priority
             , WoaAgent agent, CommunicationStandard comStandard
-            , GraphGameMap graphGameMap, AID worldAID
+            , PathfinderGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit) {
         super(agent);
         this.woaAgent = agent;

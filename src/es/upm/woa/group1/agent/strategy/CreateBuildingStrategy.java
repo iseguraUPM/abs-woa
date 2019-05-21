@@ -3,14 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
+package es.upm.woa.group1.agent.strategy;
 
+import es.upm.woa.group1.agent.TownHallSiteEvaluator;
+import es.upm.woa.group1.agent.OtherBuildingSiteEvaluator;
+import es.upm.woa.group1.map.LocationFinder;
 import es.upm.woa.group1.WoaDefinitions;
+import es.upm.woa.group1.map.PathfinderGameMap;
+import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
-import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.GameOntology;
 
@@ -29,13 +33,13 @@ class CreateBuildingStrategy extends Strategy {
     
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
-    private final GraphGameMap graphKnownMap;
+    private final PathfinderGameMap graphKnownMap;
     private final AID worldAID;
     private final int priority;
     
     private final String buildingType;
     private MapCell constructionSite;
-    private final MapCellFinder constructionSiteFinder;
+    private final LocationFinder constructionSiteFinder;
     
     private final PositionedAgentUnit agentUnit;
     
@@ -44,7 +48,7 @@ class CreateBuildingStrategy extends Strategy {
     
     CreateBuildingStrategy(int priority, WoaAgent agent
             , CommunicationStandard comStandard
-            , GraphGameMap graphGameMap, AID worldAID
+            , PathfinderGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit, String buildingType
             , MapCell constructionSite) {
         super(agent);
@@ -63,9 +67,9 @@ class CreateBuildingStrategy extends Strategy {
     
     CreateBuildingStrategy(int priority, WoaAgent agent
             , CommunicationStandard comStandard
-            , GraphGameMap graphGameMap, AID worldAID
+            , PathfinderGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit, String buildingType
-            , MapCellFinder constructionSiteFinder) {
+            , LocationFinder constructionSiteFinder) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;

@@ -5,6 +5,8 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.map.PathfinderGameMap;
+import es.upm.woa.group1.map.MapCellEvaluator;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.ontology.Building;
 
@@ -16,12 +18,12 @@ import java.util.Set;
  *
  * @author ISU
  */
-class OtherBuildingSiteEvaluator implements MapCellEvaluator {
+public class OtherBuildingSiteEvaluator implements MapCellEvaluator {
 
-    private final GraphGameMap graphMap;
+    private final PathfinderGameMap graphMap;
     private final AID tribeAID;
     
-    public OtherBuildingSiteEvaluator(GraphGameMap graphGameMap, AID tribeAID) {
+    public OtherBuildingSiteEvaluator(PathfinderGameMap graphGameMap, AID tribeAID) {
         this.graphMap = graphGameMap;
         this.tribeAID = tribeAID;
     }

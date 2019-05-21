@@ -11,7 +11,7 @@ import jade.core.Agent;
  *
  * @author ISU
  */
-class WaitStrategy extends Strategy {
+public class WaitStrategy extends Strategy {
     
     private static final int WAIT_PRIORITY = LOW_PRIORITY - 10;
 

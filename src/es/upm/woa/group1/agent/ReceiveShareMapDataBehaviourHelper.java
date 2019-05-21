@@ -7,6 +7,7 @@ package es.upm.woa.group1.agent;
 
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.ontology.Group1Ontology;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
@@ -26,12 +27,12 @@ class ReceiveShareMapDataBehaviourHelper {
     
     private final GroupAgent groupAgent;
     private final CommunicationStandard comStandard;
-    private final GraphGameMap knownMap;
+    private final PathfinderGameMap knownMap;
     
     private final OnUpdatedMapHandler updatedMapHandler;
     
     public ReceiveShareMapDataBehaviourHelper(GroupAgent groupAgent
-            , CommunicationStandard comStandard, GraphGameMap knownMap
+            , CommunicationStandard comStandard, PathfinderGameMap knownMap
             , OnUpdatedMapHandler updatedMapHandler) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;
@@ -72,9 +73,9 @@ class ReceiveShareMapDataBehaviourHelper {
                 groupAgent.log(Level.FINER, "Received new map connection data");
                 learnNewGraphMapData((NewGraphConnection) content);
             }
-            else if (content instanceof GraphGameMap) {
+            else if (content instanceof PathfinderGameMap) {
                 groupAgent.log(Level.FINER, "Received starting map");
-                knownMap.copyMapData((GraphGameMap) content);
+                knownMap.copyMapData((PathfinderGameMap) content);
             }
             else {
                 groupAgent.log(Level.WARNING, "Could not retrieve map data");

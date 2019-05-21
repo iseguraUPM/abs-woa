@@ -5,7 +5,10 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.map.LocationFinder;
+import es.upm.woa.group1.map.MapCellEvaluator;
 import es.upm.woa.group1.map.MapCell;
+import es.upm.woa.group1.map.PathfinderGameMap;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -16,9 +19,9 @@ import java.util.Set;
  *
  * @author ISU
  */
-class MapCellFinder {
+class MapCellFinder implements LocationFinder {
     
-    private GraphGameMap graphMap;
+    private PathfinderGameMap graphMap;
     
     private MapCellFinder() {}
     
@@ -27,7 +30,7 @@ class MapCellFinder {
      * @param graphMap known map
      * @return an instance
      */
-    static MapCellFinder getInstance(GraphGameMap graphMap) {
+    static MapCellFinder getInstance(PathfinderGameMap graphMap) {
         MapCellFinder instance = new MapCellFinder();
         
         instance.graphMap = graphMap;
@@ -35,27 +38,12 @@ class MapCellFinder {
         return instance;
     }
     
-    /**
-     * Finds a map cell site that matches the conditions.
-     * This method does not take into account the unknown surrounding cells
-     * of the candidates.
-     * @param evaluator
-     * @return a cell that matches the conditions or null if it could not be found
-     */
+    @Override
     public MapCell findMatchingSite(MapCellEvaluator evaluator) {
         return findMatch(evaluator);
     }
     
-    /**
-     * Finds a map cell site that matches the conditions.
-     * Starts looking for the closest possible sites to the zero site.
-     * This method does not take into account the unknown surrounding cells
-     * of the candidates.
-     * @param zero point where to find the closest construction site
-     * @param evaluator
-     * @return the closest cell that matches conditions
-     * or null if it could not be found
-     */
+    @Override
     public MapCell findMatchingSiteCloseTo(MapCell zero, MapCellEvaluator evaluator) {
         return findMatchCloseTo(zero, evaluator);
     }

@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent.strategy;
+package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.agent.AgUnit;
+import es.upm.woa.group1.agent.strategy.Strategy;
+import es.upm.woa.group1.agent.strategy.WaitStrategy;
 
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.SerialBehaviour;
@@ -18,7 +19,7 @@ import java.util.List;
  *
  * @author ISU
  */
-public final class StrategicUnitBehaviour extends SerialBehaviour {
+final class StrategicUnitBehaviour extends SerialBehaviour {
     
     private final List<Strategy> strategyList;
     

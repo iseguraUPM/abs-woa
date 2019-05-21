@@ -3,14 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.agent;
+package es.upm.woa.group1.agent.strategy;
 
+import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
+import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
-import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.MoveToCell;
 
@@ -39,7 +40,7 @@ class FreeExploreStrategy extends Strategy {
 
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
-    private final GraphGameMap graphKnownMap;
+    private final PathfinderGameMap graphKnownMap;
     private final AID worldAID;
     private final int priority;
     
@@ -51,7 +52,7 @@ class FreeExploreStrategy extends Strategy {
     private MapCell nextCandidate;
 
     public FreeExploreStrategy(int priority, WoaAgent agent, CommunicationStandard comStandard
-            , GraphGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit) {
+            , PathfinderGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
@@ -77,7 +78,7 @@ class FreeExploreStrategy extends Strategy {
 
     private void exploreNewCell() {
         MapCell currentCell = agentUnit.getCurrentPosition();
-        CellTranslation direction = findDirectionToExplore(graphKnownMap, currentCell);
+        CellTranslation direction = findDirectionToExplore(currentCell);
         if (direction != null) {
             travelToNewCell(currentCell, direction, new OnMovedToNewCellHandler() {
                 @Override
@@ -101,14 +102,14 @@ class FreeExploreStrategy extends Strategy {
         }
     }
 
-    private CellTranslation findDirectionToExplore(GraphGameMap knownMap, MapCell currentPosition) {
+    private CellTranslation findDirectionToExplore(MapCell currentPosition) {
         nextCandidate = null;
         for (CellTranslation.TranslateDirection direction
                 : computeShuffledTranslationVectors()) {
             CellTranslation translationDirection = new CellTranslation(direction);
             
             MapCell connectedNeighbour
-                    = knownMap.getMapCellOnDirection(currentPosition
+                    = graphKnownMap.getMapCellOnDirection(currentPosition
                             , translationDirection);
             if (connectedNeighbour != null) {
                 if (nextCandidate == null && !visitedCandidates.contains(connectedNeighbour)) {
@@ -125,7 +126,7 @@ class FreeExploreStrategy extends Strategy {
         if (finishedRound || nextCandidate == null) {
             return null;
         } else {
-            return findDirectionToExplore(knownMap, nextCandidate);
+            return findDirectionToExplore(nextCandidate);
         }
     }
 
