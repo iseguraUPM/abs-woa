@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
@@ -31,19 +32,22 @@ public class SendInformInitializeTribeHelper {
     private final TribeResources initialTribeResources;
     private final Collection<Unit> tribeUnits;
     private final MapCell initialMapCell;
+    private final GameMap gameMap;
     
     
     
     public SendInformInitializeTribeHelper(AgWorld groupAgent
             , CommunicationStandard comStandard, AID tribeAID
             , TribeResources initialTribeResources, Collection<Unit> unitList
-            , MapCell initialMapCell) {
+            , MapCell initialMapCell
+            , GameMap gameMap) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;
         this.tribeAID = tribeAID;
         this.initialTribeResources = initialTribeResources;
         this.tribeUnits = unitList;
         this.initialMapCell = initialMapCell;
+        this.gameMap = gameMap;
     }
     
     /**
@@ -58,6 +62,9 @@ public class SendInformInitializeTribeHelper {
         resourceAccount.setGold(initialTribeResources.getGold());
         resourceAccount.setStone(initialTribeResources.getStone());
         resourceAccount.setWood(initialTribeResources.getWood());
+        
+        initializeTribe.setMapHeight(gameMap.getHeight());
+        initializeTribe.setMapWidth(gameMap.getWidth());
 
         tribeUnits.forEach((u) -> {
             initializeTribe.addUnitList(u.getId());

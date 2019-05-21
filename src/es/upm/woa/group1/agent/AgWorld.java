@@ -508,7 +508,8 @@ public class AgWorld extends WoaAgent implements
     private void initializeTribe(Tribe tribe, TribeResources initialTribeResources,
              MapCell initialMapCell) {
         new SendInformInitializeTribeHelper(this, woaComStandard,
-                 tribe.getAID(), initialTribeResources, tribe.getUnits(), initialMapCell)
+                 tribe.getAID(), initialTribeResources, tribe.getUnits()
+                , initialMapCell, worldMap)
                 .initializeTribe();
     }
 
