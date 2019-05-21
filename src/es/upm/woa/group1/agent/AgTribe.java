@@ -6,7 +6,6 @@ package es.upm.woa.group1.agent;
  * and open the template in the editor.
  */
 import es.upm.woa.group1.WoaLogger;
-import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
 import es.upm.woa.group1.ontology.Group1Ontology;
@@ -286,9 +285,7 @@ public class AgTribe extends GroupAgent {
         try {
             MapCell knownCell = knownMap
                     .getCellAt(newCell.getXCoord(), newCell.getYCoord());
-            if (knownCell.getContent() instanceof Ground && !(newCell.getContent() instanceof Ground)) {
-                knownCell.setContent(newCell.getContent());
-            }
+            knownCell.setContent(newCell.getContent());
             log(Level.FINER, "Cell updated at " + newCell);
         } catch (NoSuchElementException ex) {
             log(Level.FINER, "Cell discovery at " + newCell);

@@ -76,7 +76,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         try {
             myCell = knownMap.getCellAt(newPosition.getXCoord(),
                      newPosition.getYCoord());
-            updateCellContents(myCell, newPosition);
+            // NOTE: we don't update the contents in case they are not up-to-date
+            //  with the World. We receive updates via NotifyCellDetail protocol.
             connectPath(myCell, direction);
         } catch (NoSuchElementException ex) {
             myCell = newPosition;
@@ -99,12 +100,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         knownMap.connectPath(currentPosition, myCell, direction);
         CellTranslation inverse = direction.generateInverse();
         knownMap.connectPath(myCell, currentPosition, inverse);
-    }
-
-    private void updateCellContents(MapCell myCell, MapCell updatedCell) {
-        if (myCell.getContent() instanceof Ground && !(updatedCell.getContent() instanceof Ground)) {
-            myCell.setContent(updatedCell.getContent());
-        }
     }
 
     @Override
@@ -358,9 +353,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         try {
             MapCell knownCell = knownMap
                     .getCellAt(newCell.getXCoord(), newCell.getYCoord());
-            if (knownCell.getContent() instanceof Ground && !(newCell.getContent() instanceof Ground)) {
-                knownCell.setContent(newCell.getContent());
-            }
+            knownCell.setContent(newCell.getContent());
             log(Level.FINER, "Cell updated at " + newCell);
         } catch (NoSuchElementException ex) {
             log(Level.FINER, "Cell discovery at " + newCell);
