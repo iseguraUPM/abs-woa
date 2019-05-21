@@ -534,10 +534,9 @@ public class AgWorld extends WoaAgent implements
     }
 
     private void startGameOverBehaviour() {
-        int gameTime = woaConfigurator.getGameTime();
-        int tickDelta = woaConfigurator.getTickMillis();
+        int gameTime = woaConfigurator.getGameTicks();
 
-        addBehaviour(new GameOverBehaviour(this, gameTime / tickDelta) {
+        addBehaviour(new GameOverBehaviour(this, gameTime) {
             
             @Override
             protected void handleElapsedTimeout() {

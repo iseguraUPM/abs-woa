@@ -45,11 +45,13 @@ public class WoaConfigurator {
     private Configurations configs;
     
     private String mapFilePath;
-    private int registrationTime;
-    private int gameTime;
+    private int registrationTimeMillis;
+    private int gameTicks;
     private int tickMillis;
     private String guiEndpoint;
-    private int max_tribes;
+    private int maxTribes;
+    private int resourceCap;
+    private int storeUpgradeAmount;
     
     /**
      * 
@@ -68,22 +70,24 @@ public class WoaConfigurator {
                     = instance.configs.properties(new File(CONFIG_FILENAME));
             
             instance.mapFilePath = properties.getString("map_path");
-            instance.registrationTime = properties.getInt("reg_time");
-            instance.gameTime = properties.getInt("game_time");
+            instance.registrationTimeMillis = properties.getInt("reg_millis");
+            instance.gameTicks = properties.getInt("game_millis");
             instance.guiEndpoint = properties.getString("gui_endpoint");
             instance.tickMillis = properties.getInt("tick_millis");
-            instance.max_tribes = properties.getInt("max_tribes");
+            instance.maxTribes = properties.getInt("max_tribes");
+            instance.resourceCap = properties.getInt("resource_cap");
+            instance.storeUpgradeAmount = properties.getInt("store_upgrade_amount");
         }
 
         return instance;
     }
     
     public int getRegistrationTimeMillis() {
-        return registrationTime;
+        return registrationTimeMillis;
     }
     
-    public int getGameTime() {
-        return gameTime;
+    public int getGameTicks() {
+        return gameTicks;
     }
     
     public int getTickMillis() {
@@ -95,7 +99,15 @@ public class WoaConfigurator {
     }
     
     public int getMaxTribeNumber() {
-        return max_tribes;
+        return maxTribes;
+    }
+    
+    public int getResourceCap() {
+        return resourceCap;
+    }
+    
+    public int getStoreUpgradeAmount() {
+        return storeUpgradeAmount;
     }
 
     /**
