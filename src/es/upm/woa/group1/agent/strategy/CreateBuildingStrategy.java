@@ -24,6 +24,7 @@ import jade.lang.acl.ACLMessage;
 
 import java.util.List;
 import java.util.logging.Level;
+import es.upm.woa.group1.agent.CreateBuildingRequestHandler;
 
 /**
  *
@@ -42,7 +43,7 @@ class CreateBuildingStrategy extends Strategy {
     private final LocationFinder constructionSiteFinder;
     
     private final PositionedAgentUnit agentUnit;
-    
+    private final CreateBuildingRequestHandler createBuildingRequestHandler;
     
     private boolean finished;
     
@@ -50,6 +51,7 @@ class CreateBuildingStrategy extends Strategy {
             , CommunicationStandard comStandard
             , PathfinderGameMap graphGameMap, AID worldAID
             , PositionedAgentUnit agentUnit, String buildingType
+            , CreateBuildingRequestHandler constructionRequestHandler
             , MapCell constructionSite) {
         super(agent);
         this.woaAgent = agent;
@@ -60,6 +62,7 @@ class CreateBuildingStrategy extends Strategy {
         this.constructionSite = constructionSite;
         this.constructionSiteFinder = null;
         this.agentUnit = agentUnit;
+        this.createBuildingRequestHandler = constructionRequestHandler;
         
         this.priority = priority;
         this.finished = false;
@@ -68,7 +71,8 @@ class CreateBuildingStrategy extends Strategy {
     CreateBuildingStrategy(int priority, WoaAgent agent
             , CommunicationStandard comStandard
             , PathfinderGameMap graphGameMap, AID worldAID
-            , PositionedAgentUnit agentUnit, String buildingType
+            , PositionedAgentUnit agentUnit, String buildingType        
+            , CreateBuildingRequestHandler constructionRequestHandler
             , LocationFinder constructionSiteFinder) {
         super(agent);
         this.woaAgent = agent;
@@ -79,6 +83,7 @@ class CreateBuildingStrategy extends Strategy {
         this.constructionSite = null;
         this.constructionSiteFinder = constructionSiteFinder;
         this.agentUnit = agentUnit;
+        this.createBuildingRequestHandler = constructionRequestHandler;
         
         this.priority = HIGH_PRIORITY;
         this.finished = false;
@@ -104,11 +109,13 @@ class CreateBuildingStrategy extends Strategy {
             @Override
             public void onCreatedBuilding() {
                 finishStrategy();
+                createBuildingRequestHandler.onFinishedBuilding(buildingType, true);
             }
 
             @Override
             public void onCouldntCreateBuilding() {
                 finishStrategy();
+                createBuildingRequestHandler.onFinishedBuilding(buildingType, false);
             }
         });
     }
@@ -232,6 +239,8 @@ class CreateBuildingStrategy extends Strategy {
                     @Override
                     public void onSent(String conversationID) {
 
+                        createBuildingRequestHandler.onStartedBuilding(buildingType);
+                        
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
                             @Override

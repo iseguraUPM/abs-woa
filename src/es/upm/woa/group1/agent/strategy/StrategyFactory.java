@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent.strategy;
 
+import es.upm.woa.group1.agent.CreateUnitRequestHandler;
 import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.map.LocationFinder;
 import es.upm.woa.group1.map.MapCell;
@@ -15,6 +16,7 @@ import jade.core.AID;
 import jade.domain.FIPAAgentManagement.UnexpectedArgument;
 
 import java.io.Serializable;
+import es.upm.woa.group1.agent.CreateBuildingRequestHandler;
 
 /**
  *
@@ -35,13 +37,18 @@ public class StrategyFactory {
     private PositionedAgentUnit agentUnit;
     private LocationFinder constructionSiteFinder;
     
+    private CreateBuildingRequestHandler constructionRequestHandler;
+    private CreateUnitRequestHandler createUnitRequestHandler;
+    
     private StrategyFactory() {}
     
     public static StrategyFactory getInstance(WoaAgent woaAgent
             , CommunicationStandard comStandard
             , PathfinderGameMap graphKnownMap
             , AID worldAID, PositionedAgentUnit agentUnit
-            , LocationFinder constructionSiteFinder) {
+            , LocationFinder constructionSiteFinder
+            , CreateBuildingRequestHandler constructionRequestHandler
+            , CreateUnitRequestHandler createUnitRequestHandler) {
         StrategyFactory instance = new StrategyFactory();
         instance.woaAgent = woaAgent;
         instance.comStandard = comStandard;
@@ -49,6 +56,9 @@ public class StrategyFactory {
         instance.worldAID = worldAID;
         instance.agentUnit = agentUnit;
         instance.constructionSiteFinder = constructionSiteFinder;
+        
+        instance.constructionRequestHandler = constructionRequestHandler;
+        instance.createUnitRequestHandler = createUnitRequestHandler;
         
         return instance;
     }
@@ -85,7 +95,7 @@ public class StrategyFactory {
     private Strategy getCreateUnitStrategy(StrategyEnvelop envelope) {
         return new CreateUnitStrategy(envelope.getPriority(), woaAgent
                 , comStandard, graphKnownMap
-                , worldAID, agentUnit);
+                , worldAID, agentUnit, createUnitRequestHandler);
     }
     
     private Strategy getCreateBuildingStrategy(StrategyEnvelop envelope)
@@ -97,12 +107,14 @@ public class StrategyFactory {
                 return new CreateBuildingStrategy(
                         envelope.getPriority(), woaAgent, comStandard
                         , graphKnownMap, worldAID, agentUnit
-                        , request.buildingType, request.constructionSite);
+                        , request.buildingType, constructionRequestHandler
+                        , request.constructionSite);
             }
             else {
                 return new CreateBuildingStrategy(envelope.getPriority()
                         , woaAgent, comStandard
                         , graphKnownMap, worldAID, agentUnit, request.buildingType
+                        , constructionRequestHandler
                         , constructionSiteFinder);
             }
         }

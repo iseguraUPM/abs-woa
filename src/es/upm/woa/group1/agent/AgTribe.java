@@ -5,7 +5,9 @@ package es.upm.woa.group1.agent;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.WoaLogger;
+import es.upm.woa.group1.agent.strategy.UnitStatusHanlder;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
 import es.upm.woa.group1.ontology.Group1Ontology;
@@ -16,7 +18,6 @@ import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.group1.protocol.WoaCommunicationStandard;
 
-import es.upm.woa.ontology.Ground;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.InitalizeTribe;
 import es.upm.woa.ontology.RegisterTribe;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
  *
  * @author ISU
  */
-public class AgTribe extends GroupAgent {
+public class AgTribe extends GroupAgent implements UnitStatusHanlder {
     
     private final int BETWEEN_REGISTRATION_RETRIES_MILLIS = 1000;
     
@@ -93,9 +94,15 @@ public class AgTribe extends GroupAgent {
             startInformUnitPositionBehaviour();
             startShareMapDataBehaviour();
             startInitializeTribeBehaviour();
+            startFeedbackUnitStatusBehaviour();
         } catch (InterruptedException ex) {
             log(Level.SEVERE, "Could not register Tribe. Finalizing...");
         }
+    }
+    
+    private void startFeedbackUnitStatusBehaviour() {
+        new ReceiveFeedbackUnitStatusHelper(this, group1ComStandard, this)
+                .startFeedbackUnitBehaviour();
     }
 
     private void startInformRegistrationBehaviour() {
@@ -383,5 +390,105 @@ public class AgTribe extends GroupAgent {
                 , Collections.unmodifiableCollection(units)
                 , tribeResources, MapCellFinder.getInstance(knownMap)));
     }
+
+    @Override
+    public void onChangedPosition(AID unitAID, int xCoord, int yCoord) {
+        try {
+            Unit movedUnit = units.parallelStream().filter(unit -> unit.getId()
+                    .equals(unitAID)).findAny().get();
+            movedUnit.setPosition(xCoord, yCoord);
+            log(Level.FINE, unitAID.getLocalName() + " changed position");
+        } catch (NoSuchElementException ex) {
+            log(Level.WARNING, "Could not change position of unknown unit: " 
+                    + unitAID.getLocalName());
+        }
+    }
+
+    @Override
+    public void onStartedBuilding(AID unitAID, String buildingType) {
+        switch (buildingType) {
+                case WoaDefinitions.TOWN_HALL:
+                    tribeResources.purchaseTownHall();
+                    break;
+                case WoaDefinitions.STORE:
+                    //break;
+                case WoaDefinitions.FARM:
+                    throw new UnsupportedOperationException("Building "
+                            + buildingType + " purchase implementation");
+                    //break;
+                default:
+                    log(Level.WARNING, "Cannot purchase unknown building: "
+                            + buildingType);
+                    break;
+            }
+        log(Level.FINE, unitAID.getLocalName() + " started "
+                + buildingType + " construction");
+    }
+
+    @Override
+    public void onFinishedBuilding(AID unitAID, String buildingType, boolean success) {
+        if (success) {
+            log(Level.FINE, unitAID.getLocalName() + " finished construction of " + buildingType);
+        }
+        else {
+            switch (buildingType) {
+                case WoaDefinitions.TOWN_HALL:
+                    tribeResources.refundTownHall();
+                    break;
+                case WoaDefinitions.STORE:
+                    //break;
+                case WoaDefinitions.FARM:
+                    throw new UnsupportedOperationException("Building " + buildingType + " refund implementation");
+                    //break;
+                default:
+                    log(Level.WARNING, "Cannot refund unknown building: "
+                            + buildingType);
+                    break;
+            }
+            log(Level.FINE, unitAID.getLocalName() +" could not build " + buildingType + ". Resources refunded");
+        }
+        
+    }
+
+    @Override
+    public void onStartingUnitCreation(AID unitAID) {
+        tribeResources.purchaseUnit();
+        log(Level.FINE, unitAID.getLocalName() + " started creating a unit");
+    }
+
+    @Override
+    public void onFinishedUnitCreation(AID unitAID, boolean success) {
+        if (success) {
+            log(Level.FINE, unitAID.getLocalName() + " finished creation of new unit");
+        }
+        else {
+            tribeResources.refundUnit();
+            log(Level.FINE, unitAID.getLocalName() +" could not create unit. Resources refunded");
+        }
+        
+    }
+
+    @Override
+    public void onExploitedResource(AID unitAID, String resourceType, int amount) {
+        switch (resourceType) {
+            case WoaDefinitions.GOLD:
+                tribeResources.addGold(amount);
+                break;
+            case WoaDefinitions.FOOD:
+                tribeResources.addFood(amount);
+                break;
+            case WoaDefinitions.WOOD:
+                tribeResources.addWood(amount);
+                break;
+            case WoaDefinitions.STONE:
+                tribeResources.addStone(amount);
+                break;
+            default:
+                break;
+        }
+        log(Level.FINE, unitAID.getLocalName() + " gained " + amount
+                + " of " + resourceType);
+    }
+
 
 }

@@ -24,10 +24,18 @@ import java.util.logging.Level;
  */
 class ReceiveFeedbackUnitStatusHelper {
 
-    private CommunicationStandard comStandard;
-    private WoaAgent woaAgent;
-    private UnitStatusHanlder feedbackMessageHandler;
+    private final CommunicationStandard comStandard;
+    private final WoaAgent woaAgent;
+    private final UnitStatusHanlder feedbackMessageHandler;
 
+    public ReceiveFeedbackUnitStatusHelper(WoaAgent agent
+            , CommunicationStandard comStandard
+            , UnitStatusHanlder unitStatusHanlder) {
+        this.comStandard = comStandard;
+        this.woaAgent = agent;
+        this.feedbackMessageHandler = unitStatusHanlder;
+    }
+    
     public void startFeedbackUnitBehaviour() {
 
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard

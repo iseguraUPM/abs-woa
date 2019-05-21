@@ -18,7 +18,7 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-public class SendFeedbackUnitStatusHelper {
+class SendFeedbackUnitStatusHelper {
 
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;

@@ -29,6 +29,14 @@ public class WoaDefinitions {
     public final static int FARM_GOLD_COST = 25;
     public final static int FARM_WOOD_COST = 25;
     
+    public final static String FOREST = "Forest";
+    public final static String ORE = "Ore";
+    
+    public final static String GOLD = "gold";
+    public final static String STONE = "stone";
+    public final static String WOOD = "wood";
+    public final static String FOOD = "food";
+    
     public final static String AGENT_CLASS_PATH_TEMPLATE = "es.upm.woa.group{0}.agent.";
     public final static String AGENT_TRIBE_CLASS_NAME = "AgTribe";
     public final static String AGENT_UNIT_CLASS_NAME = "AgUnit";

@@ -27,7 +27,7 @@ public class FeedbackMessageFactory {
     
     private FeedbackMessageFactory() {}
     
-    public FeedbackMessageFactory getInstance(Agent agent) {
+    public static FeedbackMessageFactory getInstance(Agent agent) {
         FeedbackMessageFactory instance = new FeedbackMessageFactory();
         instance.agent = agent;
         

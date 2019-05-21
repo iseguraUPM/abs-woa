@@ -7,6 +7,7 @@ package es.upm.woa.group1.agent.strategy;
 
 import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.agent.AgUnit;
+import es.upm.woa.group1.agent.CreateUnitRequestHandler;
 import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.map.CellTranslation;
@@ -37,19 +38,22 @@ class CreateUnitStrategy extends Strategy {
     private int priority;
     
     private final PositionedAgentUnit agentUnit;
+    private final CreateUnitRequestHandler createUnitRequestHandler;
     
     private boolean finished;
     
     public CreateUnitStrategy(int priority
             , WoaAgent agent, CommunicationStandard comStandard
             , PathfinderGameMap graphGameMap, AID worldAID
-            , PositionedAgentUnit agentUnit) {
+            , PositionedAgentUnit agentUnit
+            , CreateUnitRequestHandler createUnitRequestHandler) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
         this.graphKnownMap = graphGameMap;
         this.worldAID = worldAID;
         this.agentUnit = agentUnit;
+        this.createUnitRequestHandler = createUnitRequestHandler;
         
         this.priority = priority;
         finished = false;
@@ -75,11 +79,13 @@ class CreateUnitStrategy extends Strategy {
             @Override
             public void onCreatedUnit() {
                 finishStrategy();
+                createUnitRequestHandler.onFinishedCreatingUnit(true);
             }
 
             @Override
             public void onCouldntCreateUnit() {
                 finishStrategy();
+                createUnitRequestHandler.onFinishedCreatingUnit(false);
             }
         });
     }
@@ -206,6 +212,8 @@ class CreateUnitStrategy extends Strategy {
                     @Override
                     public void onSent(String conversationID) {
 
+                        createUnitRequestHandler.onStartedCreatingUnit();
+                        
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
                             @Override

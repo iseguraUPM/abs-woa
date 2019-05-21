@@ -10,6 +10,7 @@ import es.upm.woa.group1.agent.strategy.StrategyEnvelop;
 import es.upm.woa.group1.agent.strategy.StrategyFactory;
 import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.WoaLogger;
+import es.upm.woa.group1.agent.strategy.FeedbackMessageFactory;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.ontology.Group1Ontology;
@@ -44,7 +45,8 @@ import java.util.logging.Level;
  *
  * @author ISU
  */
-public class AgUnit extends GroupAgent implements PositionedAgentUnit {
+public class AgUnit extends GroupAgent implements PositionedAgentUnit,
+        CreateBuildingRequestHandler, CreateUnitRequestHandler {
 
     public static final String WORLD = "WORLD";
 
@@ -58,14 +60,16 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private DFAgentDescription worldAgentServiceDescription;
     private MapCell currentPosition;
     private AID ownerTribe;
-    private SendMapDataSharingHelper mapDataSharingHelper;
-    private MapCellFinder constructionSiteFinder;
 
+    private MapCellFinder constructionSiteFinder;
     private StrategicUnitBehaviour strategyBehaviour;
     private StrategyFactory strategyFactory;
+    private FeedbackMessageFactory feedbackMessageFactory;
+
+    private SendMapDataSharingHelper mapDataSharingHelper;
+    private SendFeedbackUnitStatusHelper sendUnitStatusHelper;
 
     private WoaLogger logger;
-    
 
     @Override
     public MapCell getCurrentPosition() {
@@ -77,7 +81,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         MapCell myCell;
         try {
             myCell = knownMap.getCellAt(newPosition.getXCoord(),
-                     newPosition.getYCoord());
+                    newPosition.getYCoord());
             // NOTE: we don't update the contents in case they are not up-to-date
             //  with the World. We receive updates via NotifyCellDetail protocol.
             connectPath(myCell, direction);
@@ -87,7 +91,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                 connectPath(myCell, direction);
             }
         }
-        
+
         NewGraphConnection newConnection = new NewGraphConnection();
         newConnection.source = currentPosition;
         newConnection.target = myCell;
@@ -96,6 +100,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         mapDataSharingHelper.unicastMapData(ownerTribe, newConnection);
 
         currentPosition = myCell;
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory
+                .envelopChangedPosition(currentPosition));
     }
 
     private void connectPath(MapCell myCell, CellTranslation direction) {
@@ -145,7 +151,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         } catch (FIPAException ex) {
             log(Level.WARNING, "World service description not found");
         }
-        
+
         if (worldAgentServiceDescription == null) {
             Thread.sleep(BETWEEN_WORLD_RETRIES_MILLIS);
             log(Level.INFO, "Retrying...");
@@ -158,6 +164,9 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         startShareMapDataBehaviour();
 
         startInformOwnershipBehaviour(() -> {
+            sendUnitStatusHelper = new SendFeedbackUnitStatusHelper(this,
+                group1ComStandard, ownerTribe);
+            
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
                 startInformCellDetailBehaviour();
                 startInformUnitPositionBehaviour();
@@ -176,14 +185,17 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         knownMap = GraphGameMap.getInstance();
         mapDataSharingHelper = new SendMapDataSharingHelper(this, group1ComStandard);
         constructionSiteFinder = MapCellFinder.getInstance(knownMap);
+
         strategyFactory = StrategyFactory.getInstance(this, gameComStandard,
-                 knownMap, worldAgentServiceDescription.getName(), this,
-                 constructionSiteFinder);
+                knownMap, worldAgentServiceDescription.getName(), this,
+                constructionSiteFinder, this, this);
+
+        feedbackMessageFactory = FeedbackMessageFactory.getInstance(this);
     }
 
     private void startInformUnitPositionBehaviour() {
         new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard,
-                 knownMap)
+                knownMap)
                 .startInformCellDetailBehaviour();
     }
 
@@ -196,7 +208,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void startInformCellDetailBehaviour() {
         new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard,
-                 knownMap).startInformCellDetailBehaviour();
+                knownMap).startInformCellDetailBehaviour();
     }
 
     private void startInformOwnershipBehaviour(OnReceivedOwnershipHandler handler) {
@@ -209,6 +221,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                         log(Level.FINE, "Registered owner tribe: "
                                 + response.getSender().getLocalName());
                         ownerTribe = response.getSender();
+                        
                         handler.onReceivedOwnership();
                     }
                 });
@@ -249,10 +262,10 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                                     currentPosition = knownMap
                                             .getCellAt(whereAmI
                                                     .getXPosition(),
-                                                     whereAmI.getYPosition());
+                                                    whereAmI.getYPosition());
                                     log(Level.FINE, "Starting position at "
                                             + currentPosition);
-                                    
+
                                     handler.onReceivedStartingPosition();
 
                                 } catch (Codec.CodecException | NoSuchElementException
@@ -291,7 +304,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
                 CreateBuilding createBuilding = new CreateBuilding();
                 createBuilding.setBuildingType(WoaDefinitions.TOWN_HALL);
                 Action createTownHall = new Action(getAID(), createBuilding);
-                sendMessage(worldAID, ACLMessage.REQUEST,createTownHall,  new Conversation.SentMessageHandler() {
+                sendMessage(worldAID, ACLMessage.REQUEST, createTownHall, new Conversation.SentMessageHandler() {
 
                     @Override
                     public void onSent(String conversationID) {
@@ -371,7 +384,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
 
     private void startAssignStrategyBehaviour() {
         new ReceiveAssignStrategyBehaviourHelper(this, group1ComStandard,
-                 (StrategyEnvelop strategyEnvelop) -> {
+                (StrategyEnvelop strategyEnvelop) -> {
                     try {
                         Strategy incomingStrategy = strategyFactory.getStrategy(strategyEnvelop);
                         strategyBehaviour.addStrategy(incomingStrategy);
@@ -385,6 +398,34 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     private void startStrategicUnitBehaviour() {
         strategyBehaviour = new StrategicUnitBehaviour(this);
         addBehaviour(strategyBehaviour);
+    }
+
+    @Override
+    public void onStartedBuilding(String buildingType) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopStartedBuilding(buildingType));
+    }
+
+    @Override
+    public void onFinishedBuilding(String buildingType, boolean success) {
+        if (success) {
+            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingSuccess(buildingType));
+        } else {
+            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingFailure(buildingType));
+        }
+    }
+
+    @Override
+    public void onStartedCreatingUnit() {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopStartedUnitCreation());
+    }
+
+    @Override
+    public void onFinishedCreatingUnit(boolean success) {
+        if (success) {
+            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationSuccess());
+        } else {
+            sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationFailure());
+        }
     }
 
     private interface OnReceivedOwnershipHandler {

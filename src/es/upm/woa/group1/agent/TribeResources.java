@@ -41,6 +41,22 @@ public class TribeResources implements Cloneable {
      return this.gold;
    }
    
+   public void addGold(int amount) {
+       gold += amount;
+   }
+   
+   public void addStone(int amount) {
+       stone += amount;
+   }
+   
+   public void addWood(int amount) {
+       wood += amount;
+   }
+   
+   public void addFood(int amount) {
+       food += amount;
+   }
+   
    /**
      * 
      * @return the tribe can afford creation of a new unit
