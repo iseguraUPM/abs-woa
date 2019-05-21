@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Resource
 * @author ontology bean generator
-* @version 2019/05/8, 16:06:25
+* @version 2019/05/21, 11:04:57
 */
 public class Resource extends CellContent{ 
 

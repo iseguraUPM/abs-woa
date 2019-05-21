@@ -7,7 +7,7 @@ package es.upm.woa.group1.agent;
 
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.ontology.CellContent;
-import es.upm.woa.ontology.Empty;
+import es.upm.woa.ontology.Ground;
 
 
 /**
@@ -24,7 +24,7 @@ class EmptyMapCell implements MapCell {
     public EmptyMapCell(int x, int y) {
         this.x = x;
         this.y = y;
-        this.content = new Empty();
+        this.content = new Ground();
     }
 
     @Override

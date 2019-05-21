@@ -7,7 +7,7 @@ import jade.core.*;
 /**
 * Protege name: Building
 * @author ontology bean generator
-* @version 2019/05/8, 16:06:25
+* @version 2019/05/21, 11:04:57
 */
 public class Building extends CellContent{ 
 
@@ -23,7 +23,7 @@ public class Building extends CellContent{
    }
 
    /**
-* Protege name: owner
+* Protege name: Owner
    */
    private AID owner;
    public void setOwner(AID value) { 

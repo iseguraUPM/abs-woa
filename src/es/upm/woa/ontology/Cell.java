@@ -8,12 +8,12 @@ import jade.core.*;
 /**
 * Protege name: Cell
 * @author ontology bean generator
-* @version 2019/05/8, 16:06:25
+* @version 2019/05/21, 11:04:57
 */
 public class Cell implements Concept {
 
    /**
-* Protege name: x
+* Protege name: X
    */
    private int x;
    public void setX(int value) { 
@@ -24,7 +24,7 @@ public class Cell implements Concept {
    }
 
    /**
-* Protege name: y
+* Protege name: Y
    */
    private int y;
    public void setY(int value) { 
@@ -35,7 +35,7 @@ public class Cell implements Concept {
    }
 
    /**
-* Protege name: content
+* Protege name: Content
    */
    private CellContent content;
    public void setContent(CellContent value) { 

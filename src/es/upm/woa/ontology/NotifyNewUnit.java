@@ -8,12 +8,12 @@ import jade.core.*;
 /**
 * Protege name: NotifyNewUnit
 * @author ontology bean generator
-* @version 2019/05/8, 16:06:26
+* @version 2019/05/21, 11:04:57
 */
 public class NotifyNewUnit implements AgentAction {
 
    /**
-* Protege name: location
+* Protege name: Location
    */
    private Cell location;
    public void setLocation(Cell value) { 
@@ -24,7 +24,7 @@ public class NotifyNewUnit implements AgentAction {
    }
 
    /**
-* Protege name: newUnit
+* Protege name: NewUnit
    */
    private AID newUnit;
    public void setNewUnit(AID value) { 

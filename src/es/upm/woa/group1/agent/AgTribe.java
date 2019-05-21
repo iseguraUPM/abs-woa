@@ -17,7 +17,7 @@ import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.group1.protocol.WoaCommunicationStandard;
 
-import es.upm.woa.ontology.Empty;
+import es.upm.woa.ontology.Ground;
 import es.upm.woa.ontology.GameOntology;
 import es.upm.woa.ontology.InitalizeTribe;
 import es.upm.woa.ontology.RegisterTribe;
@@ -286,7 +286,7 @@ public class AgTribe extends GroupAgent {
         try {
             MapCell knownCell = knownMap
                     .getCellAt(newCell.getXCoord(), newCell.getYCoord());
-            if (knownCell.getContent() instanceof Empty && !(newCell.getContent() instanceof Empty)) {
+            if (knownCell.getContent() instanceof Ground && !(newCell.getContent() instanceof Ground)) {
                 knownCell.setContent(newCell.getContent());
             }
             log(Level.FINER, "Cell updated at " + newCell);

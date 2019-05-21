@@ -19,7 +19,7 @@ import es.upm.woa.group1.agent.strategy.StrategicUnitBehaviour;
 import es.upm.woa.group1.agent.strategy.Strategy;
 
 import es.upm.woa.ontology.CreateBuilding;
-import es.upm.woa.ontology.Empty;
+import es.upm.woa.ontology.Ground;
 import es.upm.woa.ontology.GameOntology;
 
 import jade.content.ContentElement;
@@ -102,7 +102,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
     }
 
     private void updateCellContents(MapCell myCell, MapCell updatedCell) {
-        if (myCell.getContent() instanceof Empty && !(updatedCell.getContent() instanceof Empty)) {
+        if (myCell.getContent() instanceof Ground && !(updatedCell.getContent() instanceof Ground)) {
             myCell.setContent(updatedCell.getContent());
         }
     }
@@ -358,7 +358,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit {
         try {
             MapCell knownCell = knownMap
                     .getCellAt(newCell.getXCoord(), newCell.getYCoord());
-            if (knownCell.getContent() instanceof Empty && !(newCell.getContent() instanceof Empty)) {
+            if (knownCell.getContent() instanceof Ground && !(newCell.getContent() instanceof Ground)) {
                 knownCell.setContent(newCell.getContent());
             }
             log(Level.FINER, "Cell updated at " + newCell);

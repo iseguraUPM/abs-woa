@@ -7,7 +7,7 @@ package es.upm.woa.group1.map;
 
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CellContent;
-import es.upm.woa.ontology.Empty;
+import es.upm.woa.ontology.Ground;
 import es.upm.woa.ontology.Resource;
 import java.io.Serializable;
 
@@ -29,7 +29,7 @@ public class MapCellFactory implements Serializable {
     }
 
     public MapCell buildCell(Cell cellInfo) {
-        CellContent content = cellInfo.getContent() == null ? new Empty()
+        CellContent content = cellInfo.getContent() == null ? new Ground()
                 : cellInfo.getContent();
         
         return new SimpleMapCell(content,
@@ -44,7 +44,7 @@ public class MapCellFactory implements Serializable {
         // TODO: other resource types
         CellContent resourceContent;
         if (resourceType.equals("Ground")) {
-            resourceContent = new Empty();
+            resourceContent = new Ground();
         } else {
             resourceContent = new Resource();
         }

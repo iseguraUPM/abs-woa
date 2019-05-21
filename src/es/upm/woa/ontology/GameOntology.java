@@ -9,11 +9,11 @@ import jade.core.CaseInsensitiveString;
 
 /** file: GameOntology.java
  * @author ontology bean generator
- * @version 2019/05/8, 16:06:25
+ * @version 2019/05/21, 11:04:57
  */
 public class GameOntology extends jade.content.onto.Ontology  {
   //NAME
-  public static final String ONTOLOGY_NAME = "game";
+  public static final String ONTOLOGY_NAME = "Game";
   // The singleton instance of this ontology
   private static ReflectiveIntrospector introspect = new ReflectiveIntrospector();
   private static Ontology theInstance = new GameOntology();
@@ -25,8 +25,8 @@ public class GameOntology extends jade.content.onto.Ontology  {
    // VOCABULARY
     public static final String REGISTERTRIBE_TEAMNUMBER="teamNumber";
     public static final String REGISTERTRIBE="RegisterTribe";
-    public static final String NOTIFYNEWUNIT_NEWUNIT="newUnit";
-    public static final String NOTIFYNEWUNIT_LOCATION="location";
+    public static final String NOTIFYNEWUNIT_NEWUNIT="NewUnit";
+    public static final String NOTIFYNEWUNIT_LOCATION="Location";
     public static final String NOTIFYNEWUNIT="NotifyNewUnit";
     public static final String NOTIFYCELLDETAIL_NEWCELL="newCell";
     public static final String NOTIFYCELLDETAIL="NotifyCellDetail";
@@ -39,9 +39,13 @@ public class GameOntology extends jade.content.onto.Ontology  {
     public static final String CREATEUNIT="CreateUnit";
     public static final String CREATEBUILDING_BUILDINGTYPE="buildingType";
     public static final String CREATEBUILDING="CreateBuilding";
+    public static final String EXPLOITRESOURCE_RESOURCELIST="resourceList";
+    public static final String EXPLOITRESOURCE="ExploitResource";
     public static final String INITALIZETRIBE_UNITLIST="unitList";
     public static final String INITALIZETRIBE_STARTINGPOSITION="startingPosition";
     public static final String INITALIZETRIBE_STARTINGRESOURCES="startingResources";
+    public static final String INITALIZETRIBE_MAPWIDTH="mapWidth";
+    public static final String INITALIZETRIBE_MAPHEIGHT="mapHeight";
     public static final String INITALIZETRIBE="InitalizeTribe";
     public static final String RESOURCE_RESOURCEAMOUNT="resourceAmount";
     public static final String RESOURCE_GOLDPERCENTAGE="goldPercentage";
@@ -52,14 +56,17 @@ public class GameOntology extends jade.content.onto.Ontology  {
     public static final String RESOURCEACCOUNT_STONE="stone";
     public static final String RESOURCEACCOUNT_WOOD="wood";
     public static final String RESOURCEACCOUNT="ResourceAccount";
-    public static final String CELL_CONTENT="content";
-    public static final String CELL_Y="y";
-    public static final String CELL_X="x";
+    public static final String GAINEDRESOURCE_AMOUNT="amount";
+    public static final String GAINEDRESOURCE_RESOURCENAME="resourceName";
+    public static final String GAINEDRESOURCE="GainedResource";
+    public static final String GROUND="Ground";
+    public static final String CELL_CONTENT="Content";
+    public static final String CELL_Y="Y";
+    public static final String CELL_X="X";
     public static final String CELL="Cell";
-    public static final String BUILDING_OWNER="owner";
+    public static final String BUILDING_OWNER="Owner";
     public static final String BUILDING_TYPE="type";
     public static final String BUILDING="Building";
-    public static final String EMPTY="Empty";
     public static final String CELLCONTENT="CellContent";
 
   /**
@@ -72,12 +79,14 @@ public class GameOntology extends jade.content.onto.Ontology  {
     // adding Concept(s)
     ConceptSchema cellContentSchema = new ConceptSchema(CELLCONTENT);
     add(cellContentSchema, es.upm.woa.ontology.CellContent.class);
-    ConceptSchema emptySchema = new ConceptSchema(EMPTY);
-    add(emptySchema, es.upm.woa.ontology.Empty.class);
     ConceptSchema buildingSchema = new ConceptSchema(BUILDING);
     add(buildingSchema, es.upm.woa.ontology.Building.class);
     ConceptSchema cellSchema = new ConceptSchema(CELL);
     add(cellSchema, es.upm.woa.ontology.Cell.class);
+    ConceptSchema groundSchema = new ConceptSchema(GROUND);
+    add(groundSchema, es.upm.woa.ontology.Ground.class);
+    ConceptSchema gainedResourceSchema = new ConceptSchema(GAINEDRESOURCE);
+    add(gainedResourceSchema, es.upm.woa.ontology.GainedResource.class);
     ConceptSchema resourceAccountSchema = new ConceptSchema(RESOURCEACCOUNT);
     add(resourceAccountSchema, es.upm.woa.ontology.ResourceAccount.class);
     ConceptSchema resourceSchema = new ConceptSchema(RESOURCE);
@@ -86,6 +95,8 @@ public class GameOntology extends jade.content.onto.Ontology  {
     // adding AgentAction(s)
     AgentActionSchema initalizeTribeSchema = new AgentActionSchema(INITALIZETRIBE);
     add(initalizeTribeSchema, es.upm.woa.ontology.InitalizeTribe.class);
+    AgentActionSchema exploitResourceSchema = new AgentActionSchema(EXPLOITRESOURCE);
+    add(exploitResourceSchema, es.upm.woa.ontology.ExploitResource.class);
     AgentActionSchema createBuildingSchema = new AgentActionSchema(CREATEBUILDING);
     add(createBuildingSchema, es.upm.woa.ontology.CreateBuilding.class);
     AgentActionSchema createUnitSchema = new AgentActionSchema(CREATEUNIT);
@@ -112,6 +123,8 @@ public class GameOntology extends jade.content.onto.Ontology  {
     cellSchema.add(CELL_X, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     cellSchema.add(CELL_Y, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     cellSchema.add(CELL_CONTENT, cellContentSchema, ObjectSchema.OPTIONAL);
+    gainedResourceSchema.add(GAINEDRESOURCE_RESOURCENAME, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
+    gainedResourceSchema.add(GAINEDRESOURCE_AMOUNT, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     resourceAccountSchema.add(RESOURCEACCOUNT_WOOD, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     resourceAccountSchema.add(RESOURCEACCOUNT_STONE, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     resourceAccountSchema.add(RESOURCEACCOUNT_FOOD, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
@@ -119,9 +132,12 @@ public class GameOntology extends jade.content.onto.Ontology  {
     resourceSchema.add(RESOURCE_RESOURCETYPE, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.OPTIONAL);
     resourceSchema.add(RESOURCE_GOLDPERCENTAGE, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
     resourceSchema.add(RESOURCE_RESOURCEAMOUNT, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.OPTIONAL);
+    initalizeTribeSchema.add(INITALIZETRIBE_MAPHEIGHT, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
+    initalizeTribeSchema.add(INITALIZETRIBE_MAPWIDTH, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     initalizeTribeSchema.add(INITALIZETRIBE_STARTINGRESOURCES, resourceAccountSchema, ObjectSchema.MANDATORY);
     initalizeTribeSchema.add(INITALIZETRIBE_STARTINGPOSITION, cellSchema, ObjectSchema.MANDATORY);
     initalizeTribeSchema.add(INITALIZETRIBE_UNITLIST, (ConceptSchema)getSchema(BasicOntology.AID), 1, ObjectSchema.UNLIMITED);
+    exploitResourceSchema.add(EXPLOITRESOURCE_RESOURCELIST, gainedResourceSchema, 0, 2);
     createBuildingSchema.add(CREATEBUILDING_BUILDINGTYPE, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
     notifyUnitPositionSchema.add(NOTIFYUNITPOSITION_CELL, cellSchema, ObjectSchema.MANDATORY);
     notifyUnitPositionSchema.add(NOTIFYUNITPOSITION_TRIBEID, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
@@ -135,8 +151,8 @@ public class GameOntology extends jade.content.onto.Ontology  {
     // adding name mappings
 
     // adding inheritance
-    emptySchema.addSuperSchema(cellContentSchema);
     buildingSchema.addSuperSchema(cellContentSchema);
+    groundSchema.addSuperSchema(cellContentSchema);
     resourceSchema.addSuperSchema(cellContentSchema);
 
    }catch (java.lang.Exception e) {e.printStackTrace();}

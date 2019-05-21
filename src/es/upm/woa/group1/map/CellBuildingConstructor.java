@@ -11,7 +11,7 @@ import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.protocol.DelayedTransactionalBehaviour;
 import es.upm.woa.group1.protocol.Transaction;
 import es.upm.woa.ontology.Building;
-import es.upm.woa.ontology.Empty;
+import es.upm.woa.ontology.Ground;
 
 import jade.core.Agent;
 
@@ -80,7 +80,7 @@ public class CellBuildingConstructor {
             throw new CellOccupiedException("The cell is already being built on");
         }
         
-        if (!(cell.getContent() instanceof Empty)) {
+        if (!(cell.getContent() instanceof Ground)) {
             throw new CellOccupiedException("The cell is already occupied"
                     + " by a resource or building");
         }

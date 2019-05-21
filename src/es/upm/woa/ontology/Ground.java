@@ -5,10 +5,10 @@ import jade.util.leap.*;
 import jade.core.*;
 
 /**
-* Protege name: Empty
+* Protege name: Ground
 * @author ontology bean generator
-* @version 2019/05/8, 16:06:25
+* @version 2019/05/21, 11:04:57
 */
-public class Empty extends CellContent{ 
+public class Ground extends CellContent{ 
 
 }
