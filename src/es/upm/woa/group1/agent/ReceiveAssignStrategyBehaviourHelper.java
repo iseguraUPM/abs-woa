@@ -9,11 +9,9 @@ import es.upm.woa.group1.agent.strategy.StrategyEnvelop;
 import es.upm.woa.group1.ontology.Group1Ontology;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
-import es.upm.woa.ontology.NotifyCellDetail;
 
 import jade.content.lang.Codec;
 import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 
@@ -26,15 +24,15 @@ import java.util.logging.Level;
  */
 class ReceiveAssignStrategyBehaviourHelper {
     
-    private final GroupAgent groupAgent;
+    private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
     
     private final OnReceivedStrategyHandler receivedStrategyHandler;
     
-    public ReceiveAssignStrategyBehaviourHelper(GroupAgent groupAgent
+    public ReceiveAssignStrategyBehaviourHelper(WoaAgent woaAgent
             , CommunicationStandard comStandard
             , OnReceivedStrategyHandler receivedStrategyHandler) {
-        this.groupAgent = groupAgent;
+        this.woaAgent = woaAgent;
         this.comStandard = comStandard;
         this.receivedStrategyHandler = receivedStrategyHandler;
     }
@@ -43,25 +41,25 @@ class ReceiveAssignStrategyBehaviourHelper {
      * Start listening behaviour for ShareMapData agent inform.
      */
     public void startAssignStrategyBehaviour() {
-        groupAgent.addBehaviour(new Conversation(groupAgent, comStandard
+        woaAgent.addBehaviour(new Conversation(woaAgent, comStandard
                 , Group1Ontology.ASSIGNSTRATEGY) {
             @Override
             public void onStart() {
-                groupAgent.log(Level.INFO, "listening to AssignStrategy messages");
+                woaAgent.log(Level.INFO, "listening to AssignStrategy messages");
                 listenMessages(new Conversation.ResponseHandler() {
                     @Override
                     public void onInform(ACLMessage response) {
                         try {
                             handleStrategyData(response);
                         } catch (OntologyException | Codec.CodecException ex) {
-                            groupAgent.log(Level.WARNING
+                            woaAgent.log(Level.WARNING
                                 , "Error while receiving AssignStrategy message");
                         }
                     }
                     
                     @Override
                     public void onNotUnderstood(ACLMessage response) {
-                        groupAgent.log(Level.WARNING
+                        woaAgent.log(Level.WARNING
                                 , "Error while receiving AssignStrategy message");
                     }
 
@@ -79,10 +77,10 @@ class ReceiveAssignStrategyBehaviourHelper {
                         .onReceivedStrategy((StrategyEnvelop) content);
             }
             else {
-                groupAgent.log(Level.WARNING, "Could not retrieve strategy");
+                woaAgent.log(Level.WARNING, "Could not retrieve strategy");
             }
         } catch (UnreadableException ex) {
-            groupAgent.log(Level.WARNING, "Could not retrieve strategy (" + ex + ")");
+            woaAgent.log(Level.WARNING, "Could not retrieve strategy (" + ex + ")");
         }
     }
     
