@@ -102,13 +102,13 @@ public class FeedbackMessageFactory {
         return new FeedbackMessage(EXPLOIT_RESOURCE, messageContent);
     }
     
-    public static void getMessage(FeedbackMessageEnvelop envelop, MessageHandler handler) {
+    public static void handleMessage(FeedbackMessageEnvelop envelop, UnitStatusHanlder handler) {
         if (envelop instanceof FeedbackMessage) {
             getFeedbackMessage((FeedbackMessage) envelop, handler);
         }
     }
 
-    private static void getFeedbackMessage(FeedbackMessage envelop, MessageHandler handler) {
+    private static void getFeedbackMessage(FeedbackMessage envelop, UnitStatusHanlder handler) {
         switch (envelop.getStatusId()) {
             case CHANGED_POS:
                 handleChangedPosition((MessageContent) envelop.getContent(), handler);
@@ -133,27 +133,27 @@ public class FeedbackMessageFactory {
         }
     }
 
-    private static void handleChangedPosition(MessageContent content, MessageHandler handler) {
+    private static void handleChangedPosition(MessageContent content, UnitStatusHanlder handler) {
         handler.onChangedPosition(content.unitAID, content.unitPositionX, content.unitPositionY);
     }
 
-    private static void handleStartBuilding(MessageContent content, MessageHandler handler) {
+    private static void handleStartBuilding(MessageContent content, UnitStatusHanlder handler) {
         handler.onStartedBuilding(content.unitAID, content.buildingType);
     }
 
-    private static void handleFinishBuilding(MessageContent content, MessageHandler handler) {
+    private static void handleFinishBuilding(MessageContent content, UnitStatusHanlder handler) {
         handler.onFinishedBuilding(content.unitAID, content.buildingType, content.operationSuccess);
     }
 
-    private static void handleStartUnit(MessageContent content, MessageHandler handler) {
+    private static void handleStartUnit(MessageContent content, UnitStatusHanlder handler) {
         handler.onStartingUnitCreation(content.unitAID);
     }
 
-    private static void handleFinishUnit(MessageContent content, MessageHandler handler) {
+    private static void handleFinishUnit(MessageContent content, UnitStatusHanlder handler) {
         handler.onFinishedUnitCreation(content.unitAID, content.operationSuccess);
     }
 
-    private static void handleExploitResource(MessageContent content, MessageHandler handler) {
+    private static void handleExploitResource(MessageContent content, UnitStatusHanlder handler) {
         handler.onExploitedResource(content.unitAID, content.resourceType, content.resourceAmount);
     }
     
@@ -191,20 +191,5 @@ public class FeedbackMessageFactory {
         
     }
     
-    public interface MessageHandler {
-        
-        void onChangedPosition(AID unitAID, int xCoord, int yCoord);
-        
-        void onStartedBuilding(AID unitAID, String buildingType);
-        
-        void onFinishedBuilding(AID unitAID, String buildingType, boolean success);
-        
-        void onStartingUnitCreation(AID unitAID);
-        
-        void onFinishedUnitCreation(AID unitAID, boolean success);
-        
-        void onExploitedResource(AID unitAID, String resourceType, int amount);
-        
-    }
     
 }

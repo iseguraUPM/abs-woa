@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @author ISU
  */
-public interface FeedbackMessageEnvelop {
+public interface FeedbackMessageEnvelop extends Serializable {
     
     int getStatusId();
     
