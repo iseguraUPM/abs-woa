@@ -13,7 +13,6 @@ import es.upm.woa.group1.agent.TransactionRecord;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
-import es.upm.woa.group1.map.UnitCellPositioner;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.DelayedTransactionalBehaviour;
