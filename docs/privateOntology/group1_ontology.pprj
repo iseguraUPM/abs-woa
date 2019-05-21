@@ -1,4 +1,4 @@
-; Sun May 12 18:56:38 CEST 2019
+; Tue May 21 12:21:30 CEST 2019
 ; 
 ;+ (version "3.5")
 ;+ (build "Build 663")
@@ -19,7 +19,7 @@
 
 ([BROWSER_SLOT_NAMES] of  Property_List
 
-	(properties [group1_ontology_ProjectKB_Class10195]))
+	(properties [group1_ontology_ProjectKB_Class10192]))
 
 ([CLSES_TAB] of  Widget
 
@@ -39,7 +39,7 @@
 	(is_hidden FALSE)
 	(widget_class_name "edu.stanford.smi.protege.widget.FormsTab"))
 
-([group1_ontology_ProjectKB_Class10195] of  String
+([group1_ontology_ProjectKB_Class10192] of  String
 
 	(name ":INSTANCE-ANNOTATION")
 	(string_value "%3AANNOTATION-TEXT"))
@@ -414,28 +414,28 @@
 	(is_hidden FALSE)
 	(widget_class_name "edu.stanford.smi.protege.widget.InstancesTab"))
 
-([KB_715476_Class188] of  Map
+([KB_194940_Class188] of  Map
 
 	(entries
-		[KB_715476_Class189]
-		[KB_715476_Class190]
-		[KB_715476_Class191]))
+		[KB_194940_Class189]
+		[KB_194940_Class190]
+		[KB_194940_Class191]))
 
-([KB_715476_Class189] of  Map_Entry
+([KB_194940_Class189] of  Map_Entry
 
 	(key "suppress_instance_counting")
 	(key_class "java.lang.String")
 	(value "false")
 	(value_class "java.lang.String"))
 
-([KB_715476_Class190] of  Map_Entry
+([KB_194940_Class190] of  Map_Entry
 
 	(key "add_name_on_instance_form")
 	(key_class "java.lang.String")
 	(value "false")
 	(value_class "java.lang.String"))
 
-([KB_715476_Class191] of  Map_Entry
+([KB_194940_Class191] of  Map_Entry
 
 	(key "change_tracking_active")
 	(key_class "java.lang.String")

@@ -1,4 +1,4 @@
-; Sun May 12 18:56:38 CEST 2019
+; Tue May 21 12:21:29 CEST 2019
 ; 
 ;+ (version "3.5")
 ;+ (build "Build 663")
@@ -62,5 +62,9 @@
 	(role concrete))
 
 (defclass AssignStrategy
+	(is-a AgentAction)
+	(role concrete))
+
+(defclass FeedbackUnitStatus
 	(is-a AgentAction)
 	(role concrete))

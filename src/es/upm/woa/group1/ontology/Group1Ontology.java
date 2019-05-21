@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: Group1Ontology.java
  * @author ontology bean generator
- * @version 2019/05/12, 18:50:25
+ * @version 2019/05/21, 12:23:48
  */
 public class Group1Ontology extends jade.content.onto.Ontology  {
   //NAME
@@ -27,6 +27,7 @@ public class Group1Ontology extends jade.content.onto.Ontology  {
     public static final String WHEREAMI_YPOSITION="yPosition";
     public static final String WHEREAMI="WhereAmI";
     public static final String NOTIFYUNITOWNERSHIP="NotifyUnitOwnership";
+    public static final String FEEDBACKUNITSTATUS="FeedbackUnitStatus";
     public static final String ASSIGNSTRATEGY="AssignStrategy";
     public static final String SHAREMAPDATA="ShareMapData";
 
@@ -44,6 +45,8 @@ public class Group1Ontology extends jade.content.onto.Ontology  {
     add(shareMapDataSchema, es.upm.woa.group1.ontology.ShareMapData.class);
     AgentActionSchema assignStrategySchema = new AgentActionSchema(ASSIGNSTRATEGY);
     add(assignStrategySchema, es.upm.woa.group1.ontology.AssignStrategy.class);
+    AgentActionSchema feedbackUnitStatusSchema = new AgentActionSchema(FEEDBACKUNITSTATUS);
+    add(feedbackUnitStatusSchema, es.upm.woa.group1.ontology.FeedbackUnitStatus.class);
     AgentActionSchema notifyUnitOwnershipSchema = new AgentActionSchema(NOTIFYUNITOWNERSHIP);
     add(notifyUnitOwnershipSchema, es.upm.woa.group1.ontology.NotifyUnitOwnership.class);
     AgentActionSchema whereAmISchema = new AgentActionSchema(WHEREAMI);
