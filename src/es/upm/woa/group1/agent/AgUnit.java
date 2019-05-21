@@ -295,69 +295,6 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
         });
     }
 
-    // TODO: move to strategy
-    private void startCreateTownHallBehaviour() {
-        addBehaviour(new Conversation(this, gameComStandard, GameOntology.CREATEBUILDING) {
-            @Override
-            public void onStart() {
-                AID worldAID = (AID) worldAgentServiceDescription.getName();
-                CreateBuilding createBuilding = new CreateBuilding();
-                createBuilding.setBuildingType(WoaDefinitions.TOWN_HALL);
-                Action createTownHall = new Action(getAID(), createBuilding);
-                sendMessage(worldAID, ACLMessage.REQUEST, createTownHall, new Conversation.SentMessageHandler() {
-
-                    @Override
-                    public void onSent(String conversationID) {
-
-                        log(Level.FINER, "sent CreateBuuilding request");
-                        receiveResponse(conversationID, new Conversation.ResponseHandler() {
-
-                            @Override
-                            public void onAgree(ACLMessage response) {
-                                log(Level.FINER, "received CreateTownHall agree from "
-                                        + response.getSender().getLocalName());
-
-                                receiveResponse(conversationID, new Conversation.ResponseHandler() {
-
-                                    @Override
-                                    public void onFailure(ACLMessage response) {
-                                        log(Level.WARNING, "received CreateTownHall failure from "
-                                                + response.getSender().getLocalName());
-                                    }
-
-                                    @Override
-                                    public void onInform(ACLMessage response) {
-                                        log(Level.FINER, "received CreateTownHall inform from "
-                                                + response.getSender().getLocalName());
-                                        log(Level.FINE, "created town hall at "
-                                                + currentPosition.getXCoord()
-                                                + "," + currentPosition.getYCoord());
-                                    }
-
-                                });
-                            }
-
-                            @Override
-                            public void onNotUnderstood(ACLMessage response) {
-                                log(Level.WARNING, "received CreateTownHall not understood from "
-                                        + response.getSender().getLocalName());
-                            }
-
-                            @Override
-                            public void onRefuse(ACLMessage response) {
-                                log(Level.FINE, "receive CreateTownHall refuse from "
-                                        + response.getSender().getLocalName());
-                            }
-
-                        });
-                    }
-                });
-
-            }
-
-        });
-    }
-
     @Override
     public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
