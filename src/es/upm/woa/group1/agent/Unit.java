@@ -11,10 +11,33 @@ import jade.core.AID;
  *
  * @author Martin
  */
-public class Unit extends WorldEntity {
+public class Unit {
         
+    private final AID id;
+    private int coordX;
+    private int coordY;
+    
     public Unit(AID pId, int pCoordX, int pCoordY) {
-        super(pId, pCoordX, pCoordY);
+        id = pId;
+        coordX = pCoordX;
+        coordY = pCoordY;
+    }
+    
+    public AID getId() {
+        return id;
+    }
+    
+    public int getCoordX() {
+        return coordX;
+    }
+    
+    public int getCoordY() {
+        return coordY;
+    }
+    
+    public void setPosition(int x, int y) {
+        coordX = x;
+        coordY = y;
     }
     
 }
