@@ -8,7 +8,7 @@ import jade.core.*;
 /**
 * Protege name: InitalizeTribe
 * @author ontology bean generator
-* @version 2019/05/21, 11:04:57
+* @version 2019/05/22, 18:51:43
 */
 public class InitalizeTribe implements AgentAction {
 
@@ -46,6 +46,17 @@ public class InitalizeTribe implements AgentAction {
    }
 
    /**
+* Protege name: storageCapacityUpgrade
+   */
+   private int storageCapacityUpgrade;
+   public void setStorageCapacityUpgrade(int value) { 
+    this.storageCapacityUpgrade=value;
+   }
+   public int getStorageCapacityUpgrade() {
+     return this.storageCapacityUpgrade;
+   }
+
+   /**
 * Protege name: startingPosition
    */
    private Cell startingPosition;
@@ -76,5 +87,16 @@ public class InitalizeTribe implements AgentAction {
    public Iterator getAllUnitList() {return unitList.iterator(); }
    public List getUnitList() {return unitList; }
    public void setUnitList(List l) {unitList = l; }
+
+   /**
+* Protege name: initialStorageCapacity
+   */
+   private int initialStorageCapacity;
+   public void setInitialStorageCapacity(int value) { 
+    this.initialStorageCapacity=value;
+   }
+   public int getInitialStorageCapacity() {
+     return this.initialStorageCapacity;
+   }
 
 }

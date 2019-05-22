@@ -9,7 +9,7 @@ import jade.core.CaseInsensitiveString;
 
 /** file: GameOntology.java
  * @author ontology bean generator
- * @version 2019/05/21, 11:04:57
+ * @version 2019/05/22, 18:51:43
  */
 public class GameOntology extends jade.content.onto.Ontology  {
   //NAME
@@ -30,6 +30,7 @@ public class GameOntology extends jade.content.onto.Ontology  {
     public static final String NOTIFYNEWUNIT="NotifyNewUnit";
     public static final String NOTIFYCELLDETAIL_NEWCELL="newCell";
     public static final String NOTIFYCELLDETAIL="NotifyCellDetail";
+    public static final String ENDOFGAME="EndOfGame";
     public static final String MOVETOCELL_NEWLYARRIVEDCELL="newlyArrivedCell";
     public static final String MOVETOCELL_TARGETDIRECTION="targetDirection";
     public static final String MOVETOCELL="MoveToCell";
@@ -41,8 +42,10 @@ public class GameOntology extends jade.content.onto.Ontology  {
     public static final String CREATEBUILDING="CreateBuilding";
     public static final String EXPLOITRESOURCE_RESOURCELIST="resourceList";
     public static final String EXPLOITRESOURCE="ExploitResource";
+    public static final String INITALIZETRIBE_INITIALSTORAGECAPACITY="initialStorageCapacity";
     public static final String INITALIZETRIBE_UNITLIST="unitList";
     public static final String INITALIZETRIBE_STARTINGPOSITION="startingPosition";
+    public static final String INITALIZETRIBE_STORAGECAPACITYUPGRADE="storageCapacityUpgrade";
     public static final String INITALIZETRIBE_STARTINGRESOURCES="startingResources";
     public static final String INITALIZETRIBE_MAPWIDTH="mapWidth";
     public static final String INITALIZETRIBE_MAPHEIGHT="mapHeight";
@@ -105,6 +108,8 @@ public class GameOntology extends jade.content.onto.Ontology  {
     add(notifyUnitPositionSchema, es.upm.woa.ontology.NotifyUnitPosition.class);
     AgentActionSchema moveToCellSchema = new AgentActionSchema(MOVETOCELL);
     add(moveToCellSchema, es.upm.woa.ontology.MoveToCell.class);
+    AgentActionSchema endOfGameSchema = new AgentActionSchema(ENDOFGAME);
+    add(endOfGameSchema, es.upm.woa.ontology.EndOfGame.class);
     AgentActionSchema notifyCellDetailSchema = new AgentActionSchema(NOTIFYCELLDETAIL);
     add(notifyCellDetailSchema, es.upm.woa.ontology.NotifyCellDetail.class);
     AgentActionSchema notifyNewUnitSchema = new AgentActionSchema(NOTIFYNEWUNIT);
@@ -135,8 +140,10 @@ public class GameOntology extends jade.content.onto.Ontology  {
     initalizeTribeSchema.add(INITALIZETRIBE_MAPHEIGHT, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     initalizeTribeSchema.add(INITALIZETRIBE_MAPWIDTH, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     initalizeTribeSchema.add(INITALIZETRIBE_STARTINGRESOURCES, resourceAccountSchema, ObjectSchema.MANDATORY);
+    initalizeTribeSchema.add(INITALIZETRIBE_STORAGECAPACITYUPGRADE, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     initalizeTribeSchema.add(INITALIZETRIBE_STARTINGPOSITION, cellSchema, ObjectSchema.MANDATORY);
     initalizeTribeSchema.add(INITALIZETRIBE_UNITLIST, (ConceptSchema)getSchema(BasicOntology.AID), 1, ObjectSchema.UNLIMITED);
+    initalizeTribeSchema.add(INITALIZETRIBE_INITIALSTORAGECAPACITY, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
     exploitResourceSchema.add(EXPLOITRESOURCE_RESOURCELIST, gainedResourceSchema, 0, 2);
     createBuildingSchema.add(CREATEBUILDING_BUILDINGTYPE, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
     notifyUnitPositionSchema.add(NOTIFYUNITPOSITION_CELL, cellSchema, ObjectSchema.MANDATORY);
