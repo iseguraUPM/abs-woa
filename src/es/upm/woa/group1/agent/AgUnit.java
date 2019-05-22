@@ -5,10 +5,10 @@ package es.upm.woa.group1.agent;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.agent.strategy.PositionedAgentUnit;
 import es.upm.woa.group1.agent.strategy.StrategyEnvelop;
 import es.upm.woa.group1.agent.strategy.StrategyFactory;
-import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.WoaLogger;
 import es.upm.woa.group1.agent.strategy.FeedbackMessageFactory;
 import es.upm.woa.group1.map.CellTranslation;
@@ -21,9 +21,6 @@ import es.upm.woa.group1.protocol.Group1CommunicationStandard;
 import es.upm.woa.group1.protocol.WoaCommunicationStandard;
 import es.upm.woa.group1.agent.strategy.Strategy;
 import es.upm.woa.group1.map.PathfinderGameMap;
-
-import es.upm.woa.ontology.CreateBuilding;
-import es.upm.woa.ontology.GameOntology;
 
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
@@ -46,7 +43,8 @@ import java.util.logging.Level;
  * @author ISU
  */
 public class AgUnit extends GroupAgent implements PositionedAgentUnit,
-        CreateBuildingRequestHandler, CreateUnitRequestHandler {
+        CreateBuildingRequestHandler, CreateUnitRequestHandler,
+         ExploitResourceRequestHandler {
 
     public static final String WORLD = "WORLD";
 
@@ -165,8 +163,8 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
 
         startInformOwnershipBehaviour(() -> {
             sendUnitStatusHelper = new SendFeedbackUnitStatusHelper(this,
-                group1ComStandard, ownerTribe);
-            
+                    group1ComStandard, ownerTribe);
+
             requestUnitPosition(MAX_REQUEST_POSITION_TRIES, () -> {
                 startInformCellDetailBehaviour();
                 startInformUnitPositionBehaviour();
@@ -188,7 +186,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
 
         strategyFactory = StrategyFactory.getInstance(this, gameComStandard,
                 knownMap, worldAgentServiceDescription.getName(), this,
-                constructionSiteFinder, this, this);
+                constructionSiteFinder, this, this, this);
 
         feedbackMessageFactory = FeedbackMessageFactory.getInstance(this);
     }
@@ -221,7 +219,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
                         log(Level.FINE, "Registered owner tribe: "
                                 + response.getSender().getLocalName());
                         ownerTribe = response.getSender();
-                        
+
                         handler.onReceivedOwnership();
                     }
                 });
@@ -365,6 +363,26 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
     @Override
     public void onErrorCreatingUnit() {
         sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationFailure());
+    }
+
+    @Override
+    public void onGainedGold(int amount) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.GOLD, amount));
+    }
+
+    @Override
+    public void onGainedStone(int amount) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.STONE, amount));
+    }
+
+    @Override
+    public void onGainedWood(int amount) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.WOOD, amount));
+    }
+
+    @Override
+    public void onGainedFood(int amount) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.FOOD, amount));
     }
 
     private interface OnReceivedOwnershipHandler {

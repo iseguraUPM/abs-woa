@@ -17,6 +17,7 @@ import jade.domain.FIPAAgentManagement.UnexpectedArgument;
 
 import java.io.Serializable;
 import es.upm.woa.group1.agent.CreateBuildingRequestHandler;
+import es.upm.woa.group1.agent.ExploitResourceRequestHandler;
 
 /**
  *
@@ -28,6 +29,7 @@ public class StrategyFactory {
     private static final int CREATE_UNIT = 1;
     private static final int GOTO = 2;
     private static final int CREATE_BUILDING = 3;
+    private static final int EXPLOIT_RESOURCE = 4;
     
     private WoaAgent woaAgent;
     private CommunicationStandard comStandard;
@@ -35,10 +37,11 @@ public class StrategyFactory {
     private AID worldAID;
     
     private PositionedAgentUnit agentUnit;
-    private LocationFinder constructionSiteFinder;
+    private LocationFinder locationFinder;
     
     private CreateBuildingRequestHandler constructionRequestHandler;
     private CreateUnitRequestHandler createUnitRequestHandler;
+    private ExploitResourceRequestHandler exploitResourceRequestHandler;
     
     private StrategyFactory() {}
     
@@ -48,17 +51,19 @@ public class StrategyFactory {
             , AID worldAID, PositionedAgentUnit agentUnit
             , LocationFinder constructionSiteFinder
             , CreateBuildingRequestHandler constructionRequestHandler
-            , CreateUnitRequestHandler createUnitRequestHandler) {
+            , CreateUnitRequestHandler createUnitRequestHandler
+            , ExploitResourceRequestHandler exploitResourceRequestHandler) {
         StrategyFactory instance = new StrategyFactory();
         instance.woaAgent = woaAgent;
         instance.comStandard = comStandard;
         instance.graphKnownMap = graphKnownMap;
         instance.worldAID = worldAID;
         instance.agentUnit = agentUnit;
-        instance.constructionSiteFinder = constructionSiteFinder;
+        instance.locationFinder = constructionSiteFinder;
         
         instance.constructionRequestHandler = constructionRequestHandler;
         instance.createUnitRequestHandler = createUnitRequestHandler;
+        instance.exploitResourceRequestHandler = exploitResourceRequestHandler;
         
         return instance;
     }
@@ -81,6 +86,8 @@ public class StrategyFactory {
                 return getGoToStrategy(envelope);
             case CREATE_BUILDING:
                 return getCreateBuildingStrategy(envelope);
+            case EXPLOIT_RESOURCE:
+                return getExploitResourceStrategy(envelope);
             default:
                 throw new UnexpectedArgument();
         }
@@ -115,11 +122,26 @@ public class StrategyFactory {
                         , woaAgent, comStandard
                         , graphKnownMap, worldAID, agentUnit, request.buildingType
                         , constructionRequestHandler
-                        , constructionSiteFinder);
+                        , locationFinder);
             }
         }
         else {
-            throw new UnexpectedArgument("Could not find map cell argument");
+            throw new UnexpectedArgument("Could not find create building argument");
+        }
+    }
+    
+    private Strategy getExploitResourceStrategy(StrategyEnvelop envelop) 
+        throws UnexpectedArgument {
+        if (envelop.getContent() instanceof ExploitResourceRequest) {
+            ExploitResourceRequest request
+                    = (ExploitResourceRequest) envelop.getContent();
+            return new ExploitResourceStrategy(envelop.getPriority(), woaAgent
+                    , comStandard, graphKnownMap, worldAID, agentUnit
+                    , request.resourceType, exploitResourceRequestHandler
+                    , locationFinder);
+        }
+        else {
+            throw new UnexpectedArgument("Could not find exploit resource argument");
         }
     }
     
@@ -148,6 +170,13 @@ public class StrategyFactory {
         return new Envelop(GOTO, priority, destination);
     }
     
+    /**
+     * 
+     * @param priority
+     * @param buildingType can be Town Hall, Farm or Store
+     * @param destination where to build
+     * @return the strategy envelop to send
+     */
     public static StrategyEnvelop envelopCreateBuildingStrategy(int priority
             , String buildingType, MapCell destination) {
         CreateBuildingRequest request = new CreateBuildingRequest();
@@ -157,9 +186,29 @@ public class StrategyFactory {
         return new Envelop(CREATE_BUILDING, priority, request);
     }
     
+    /**
+     * 
+     * @param priority
+     * @param buildingType can be Town Hall, Farm or Store
+     * @return the strategy envelop to send
+     */
     public static StrategyEnvelop envelopCreateBuildingStrategy(int priority
             , String buildingType) {
         return envelopCreateBuildingStrategy(priority, buildingType, null);
+    }
+    
+    /**
+     * 
+     * @param priority
+     * @param resourceType can be Farm, Ore or Forest
+     * @return the strategy envelop to send
+     */
+    public static StrategyEnvelop envelopExploitResourceStrategy(int priority
+            , String resourceType) {
+        ExploitResourceRequest request = new ExploitResourceRequest();
+        request.resourceType = resourceType;
+        
+        return new Envelop(EXPLOIT_RESOURCE, priority, request);
     }
     
     private static class CreateBuildingRequest implements Serializable {
@@ -167,6 +216,10 @@ public class StrategyFactory {
         String buildingType;
         MapCell constructionSite;
         
+    }
+    
+    private static class ExploitResourceRequest implements Serializable {
+        String resourceType;
     }
     
     private static class Envelop implements StrategyEnvelop {
