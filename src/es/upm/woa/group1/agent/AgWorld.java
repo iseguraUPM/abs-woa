@@ -59,7 +59,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
-import java.util.logging.Logger;
 
 // TODO: change docs
 /**
@@ -509,7 +508,8 @@ public class AgWorld extends WoaAgent implements
              MapCell initialMapCell) {
         new SendInformInitializeTribeHelper(this, woaComStandard,
                  tribe.getAID(), initialTribeResources, tribe.getUnits()
-                , initialMapCell, worldMap)
+                , initialMapCell, worldMap, woaConfigurator.getResourceCap()
+                , woaConfigurator.getStoreUpgradeAmount())
                 .initializeTribe();
     }
 

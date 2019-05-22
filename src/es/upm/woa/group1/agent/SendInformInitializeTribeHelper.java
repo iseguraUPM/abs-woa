@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.WoaConfigurator;
 import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
@@ -33,6 +34,8 @@ public class SendInformInitializeTribeHelper {
     private final Collection<Unit> tribeUnits;
     private final MapCell initialMapCell;
     private final GameMap gameMap;
+    private final int initialStorageCapacity;
+    private final int storageCapacityUpgrade;
     
     
     
@@ -40,7 +43,9 @@ public class SendInformInitializeTribeHelper {
             , CommunicationStandard comStandard, AID tribeAID
             , TribeResources initialTribeResources, Collection<Unit> unitList
             , MapCell initialMapCell
-            , GameMap gameMap) {
+            , GameMap gameMap
+            , int initialStorageCapacity
+            , int storageCapacityUpgrade) {
         this.groupAgent = groupAgent;
         this.comStandard = comStandard;
         this.tribeAID = tribeAID;
@@ -48,6 +53,8 @@ public class SendInformInitializeTribeHelper {
         this.tribeUnits = unitList;
         this.initialMapCell = initialMapCell;
         this.gameMap = gameMap;
+        this.initialStorageCapacity = initialStorageCapacity;
+        this.storageCapacityUpgrade = storageCapacityUpgrade;
     }
     
     /**
@@ -77,6 +84,9 @@ public class SendInformInitializeTribeHelper {
         initializeTribe.setStartingPosition(startingCell);
         
         initializeTribe.setStartingResources(resourceAccount);
+        
+        initializeTribe.setInitialStorageCapacity(initialStorageCapacity);
+        initializeTribe.setStorageCapacityUpgrade(storageCapacityUpgrade);
 
         Action initializeTribeAction = new Action(groupAgent.getAID(), initializeTribe);
 
