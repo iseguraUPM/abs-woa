@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
+import es.upm.woa.group1.map.finder.TownHallSiteEvaluator;
 import es.upm.woa.group1.agent.strategy.StrategyFactory;
 import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.agent.strategy.Strategy;

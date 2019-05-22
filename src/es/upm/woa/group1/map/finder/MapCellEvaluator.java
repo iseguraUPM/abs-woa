@@ -3,7 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package es.upm.woa.group1.map;
+package es.upm.woa.group1.map.finder;
+
+import es.upm.woa.group1.map.MapCell;
 
 /**
  *

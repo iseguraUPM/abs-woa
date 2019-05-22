@@ -5,8 +5,8 @@
  */
 package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.map.LocationFinder;
-import es.upm.woa.group1.map.MapCellEvaluator;
+import es.upm.woa.group1.map.finder.LocationFinder;
+import es.upm.woa.group1.map.finder.MapCellEvaluator;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.PathfinderGameMap;
 

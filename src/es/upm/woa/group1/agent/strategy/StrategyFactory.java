@@ -7,7 +7,7 @@ package es.upm.woa.group1.agent.strategy;
 
 import es.upm.woa.group1.agent.CreateUnitRequestHandler;
 import es.upm.woa.group1.agent.WoaAgent;
-import es.upm.woa.group1.map.LocationFinder;
+import es.upm.woa.group1.map.finder.LocationFinder;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.protocol.CommunicationStandard;

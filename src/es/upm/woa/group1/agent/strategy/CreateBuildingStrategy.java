@@ -5,9 +5,9 @@
  */
 package es.upm.woa.group1.agent.strategy;
 
-import es.upm.woa.group1.agent.TownHallSiteEvaluator;
-import es.upm.woa.group1.agent.OtherBuildingSiteEvaluator;
-import es.upm.woa.group1.map.LocationFinder;
+import es.upm.woa.group1.map.finder.TownHallSiteEvaluator;
+import es.upm.woa.group1.map.finder.OtherBuildingSiteEvaluator;
+import es.upm.woa.group1.map.finder.LocationFinder;
 import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.agent.WoaAgent;
@@ -85,7 +85,7 @@ class CreateBuildingStrategy extends Strategy {
         this.agentUnit = agentUnit;
         this.createBuildingRequestHandler = constructionRequestHandler;
         
-        this.priority = HIGH_PRIORITY;
+        this.priority = priority;
         this.finished = false;
     }
 
@@ -105,7 +105,7 @@ class CreateBuildingStrategy extends Strategy {
     }
     
     private void createBuilding() {
-        startCreateBuildingBehaviour(new OnCreatedUnitHandler() {
+        startCreateBuildingBehaviour(new OnCreatedBuildingHandler() {
             @Override
             public void onCreatedBuilding() {
                 finishStrategy();
@@ -221,7 +221,7 @@ class CreateBuildingStrategy extends Strategy {
         return shortestPath;
     }
     
-    private void startCreateBuildingBehaviour(OnCreatedUnitHandler handler) {
+    private void startCreateBuildingBehaviour(OnCreatedBuildingHandler handler) {
         CreateBuilding createBuilding = new CreateBuilding();
         createBuilding.setBuildingType(buildingType);
         
@@ -319,7 +319,7 @@ class CreateBuildingStrategy extends Strategy {
         
     }
     
-    private interface OnCreatedUnitHandler {
+    private interface OnCreatedBuildingHandler {
     
         public void onCreatedBuilding();
         
