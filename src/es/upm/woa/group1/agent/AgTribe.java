@@ -349,7 +349,7 @@ public class AgTribe extends GroupAgent implements UnitStatusHanlder {
                                     
                                     for(Object aidObject : initializeTribe.getUnitList().toArray()){
                                         AID unitAID = (AID) aidObject;
-                                        Unit newUnit = new Unit(unitAID
+                                        Unit newUnit = new TribeUnit(unitAID
                                                 , startingPosition.getXCoord()
                                                 , startingPosition.getYCoord());
                                         units.add(newUnit);

@@ -6,7 +6,6 @@
 package es.upm.woa.group1.agent;
 
 import es.upm.woa.group1.map.GameMap;
-import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.ontology.Cell;
@@ -105,7 +104,7 @@ class ReceiveInformNewUnitBehaviourHelper {
     }
         
     private void registerNewUnit(NotifyNewUnit newUnitInfo) {
-        Unit newUnit = new Unit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY());
+        Unit newUnit = new TribeUnit(newUnitInfo.getNewUnit(), newUnitInfo.getLocation().getX(), newUnitInfo.getLocation().getY());
         tribeUnits.add(newUnit);
         unitRegisteredHandler.onUnitRegistered(newUnit);
     }

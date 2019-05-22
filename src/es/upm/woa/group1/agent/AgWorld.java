@@ -273,7 +273,7 @@ public class AgWorld extends WoaAgent implements
             worldUnits.add(ac);
             ac.start();
 
-            Unit newUnitRef = new Unit(newUnit.getAID(),
+            Unit newUnitRef = new TribeUnit(newUnit.getAID(),
                     startingPosition.getXCoord(), startingPosition.getYCoord());
 
             if (!ownerTribe.createUnit(newUnitRef)) {
