@@ -26,7 +26,15 @@ public interface UnitStatusHanlder {
     void onFinishedUnitCreation(AID unitAID);
     
     void onErrorUnitCreation(AID unitAID);
+    
+    void onSartedExploiting(AID unitAID, String resourceType);
 
     void onExploitedResource(AID unitAID, String resourceType, int amount);
+    
+    void onFinishedExploiting(AID unitAID, String resourceType);
+    
+    void onStartedExploring(AID unitAID);
+    
+    void onFinishedExploring(AID unitAID);
     
 }
