@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent.strategy;
 
+import es.upm.woa.group1.agent.ExplorationRequestHandler;
 import es.upm.woa.group1.agent.WoaAgent;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
@@ -45,6 +46,7 @@ class FreeExploreStrategy extends Strategy {
     private final int priority;
     
     private final PositionedAgentUnit agentUnit;
+    private final ExplorationRequestHandler explorationRequestHandler;
     
     private boolean finishedRound;
     private boolean finishExploration;
@@ -52,13 +54,15 @@ class FreeExploreStrategy extends Strategy {
     private MapCell nextCandidate;
 
     public FreeExploreStrategy(int priority, WoaAgent agent, CommunicationStandard comStandard
-            , PathfinderGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit) {
+            , PathfinderGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit
+    , ExplorationRequestHandler explorationRequestHandler) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
         this.graphKnownMap = graphGameMap;
         this.worldAID = worldAID;
         this.agentUnit = agentUnit;
+        this.explorationRequestHandler = explorationRequestHandler;
         
         this.priority = priority;
         this.finishedRound = false;
@@ -96,6 +100,7 @@ class FreeExploreStrategy extends Strategy {
                 }
             });
         } else {
+            explorationRequestHandler.onFinishedExploration();
             woaAgent.log(Level.INFO, "Could not find a cell to explore");
             finishedRound = true;
             finishExploration = true;

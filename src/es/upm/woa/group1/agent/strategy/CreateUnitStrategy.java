@@ -120,6 +120,7 @@ class CreateUnitStrategy extends Strategy {
             @Override
             public void onCouldntArriveToTownHall() {
                finishStrategy();
+               createUnitRequestHandler.onErrorCreatingUnit();
             }
         });
     }

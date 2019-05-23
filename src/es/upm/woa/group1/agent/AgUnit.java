@@ -44,7 +44,7 @@ import java.util.logging.Level;
  */
 public class AgUnit extends GroupAgent implements PositionedAgentUnit,
         CreateBuildingRequestHandler, CreateUnitRequestHandler,
-         ExploitResourceRequestHandler {
+         ExploitResourceRequestHandler, ExplorationRequestHandler {
 
     public static final String WORLD = "WORLD";
 
@@ -383,6 +383,16 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
     @Override
     public void onGainedFood(int amount) {
         sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.FOOD, amount));
+    }
+    
+    @Override
+    public void onFinishedExploration() {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopFinishExploration());
+    }
+
+    @Override
+    public void onFinishedExploiting(String resourceType) {
+        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopFinishExploiting(resourceType));
     }
 
     private interface OnReceivedOwnershipHandler {

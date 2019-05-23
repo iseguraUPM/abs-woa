@@ -147,6 +147,7 @@ class CreateBuildingStrategy extends Strategy {
                         + " construction site close to "
                         + agentUnit.getCurrentPosition());
                 finishStrategy();
+                createBuildingRequestHandler.onFinishedBuilding(buildingType);
                 return;
             }
         }
@@ -164,6 +165,7 @@ class CreateBuildingStrategy extends Strategy {
                 @Override
                 public void onCouldntArriveToConstructionSite() {
                    finishStrategy();
+                   createBuildingRequestHandler.onErrorBuilding(buildingType);
                 }
             });
         }

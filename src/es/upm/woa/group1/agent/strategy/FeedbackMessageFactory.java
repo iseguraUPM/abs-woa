@@ -22,6 +22,8 @@ public class FeedbackMessageFactory {
     private static final int START_UNIT = 3;
     private static final int FINISH_UNIT = 4;
     private static final int EXPLOIT_RESOURCE = 5;
+    private static final int FINISH_EXPLOIT = 6;
+    private static final int FINISH_EXPLORATION = 7;
     
     private Agent agent;
     
@@ -102,6 +104,21 @@ public class FeedbackMessageFactory {
         return new FeedbackMessage(EXPLOIT_RESOURCE, messageContent);
     }
     
+    public FeedbackMessageEnvelop envelopFinishExploiting(String resourceType) {
+        MessageContent messageContent = new MessageContent();
+        messageContent.unitAID = agent.getAID();
+        messageContent.resourceType = resourceType;
+        
+        return new FeedbackMessage(FINISH_EXPLOIT, messageContent);
+    }
+    
+    public FeedbackMessageEnvelop envelopFinishExploration() {
+        MessageContent messageContent = new MessageContent();
+        messageContent.unitAID = agent.getAID();
+        
+        return new FeedbackMessage(FINISH_EXPLORATION, messageContent);
+    }
+    
     public static void handleMessage(FeedbackMessageEnvelop envelop, UnitStatusHanlder handler) {
         if (envelop instanceof FeedbackMessage) {
             getFeedbackMessage((FeedbackMessage) envelop, handler);
@@ -127,6 +144,12 @@ public class FeedbackMessageFactory {
                 break;
             case EXPLOIT_RESOURCE:
                 handleExploitResource((MessageContent) envelop.getContent(), handler);
+                break;
+            case FINISH_EXPLOIT:
+                handleFinishExploitResource((MessageContent) envelop.getContent(), handler);
+                break;
+            case FINISH_EXPLORATION:
+                handleFinishExploration((MessageContent) envelop.getContent(), handler);
                 break;
             default:
                 break;
@@ -166,6 +189,14 @@ public class FeedbackMessageFactory {
 
     private static void handleExploitResource(MessageContent content, UnitStatusHanlder handler) {
         handler.onExploitedResource(content.unitAID, content.resourceType, content.resourceAmount);
+    }
+
+    private static void handleFinishExploitResource(MessageContent messageContent, UnitStatusHanlder handler) {
+        handler.onFinishedExploiting(messageContent.unitAID, messageContent.resourceType);
+    }
+
+    private static void handleFinishExploration(MessageContent messageContent, UnitStatusHanlder handler) {
+        handler.onFinishedExploring(messageContent.unitAID);
     }
     
     private static class FeedbackMessage implements FeedbackMessageEnvelop {

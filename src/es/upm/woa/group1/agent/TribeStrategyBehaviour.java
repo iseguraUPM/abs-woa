@@ -355,21 +355,10 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     }
 
     @Override
-    public void onSartedExploiting(AID unitAID, String resourceType) {
-        agent.log(Level.FINE, unitAID.getLocalName()
-                + " started exploiting for " + resourceType);
-    }
-
-    @Override
     public void onFinishedExploiting(AID unitAID, String resourceType) {
         setUnitFinishedJob(miners, unitAID);
         agent.log(Level.FINE, unitAID.getLocalName()
                 + " finished exploiting for " + resourceType);
-    }
-
-    @Override
-    public void onStartedExploring(AID unitAID) {
-        agent.log(Level.FINE, unitAID.getLocalName() + " started exploring");
     }
 
     @Override
