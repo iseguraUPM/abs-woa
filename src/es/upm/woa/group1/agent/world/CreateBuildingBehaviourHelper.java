@@ -166,7 +166,10 @@ public class CreateBuildingBehaviourHelper {
                        
                     });
 
-                    purchaseBuilding(ownerTribe, buildingType, requesterUnit);
+                    if (!purchaseBuilding(ownerTribe, buildingType, requesterUnit)) {
+                        respondMessage(message, ACLMessage.FAILURE, createBuildingAction);
+                    }
+                    
                     respondMessage(message, ACLMessage.AGREE, createBuildingAction);
                     transactionRecord.addTransaction(buildTransaction);
                 } catch (CellBuildingConstructor.CellOccupiedException ex) {
@@ -190,13 +193,17 @@ public class CreateBuildingBehaviourHelper {
         return newBehaviour;
     }
 
-    private void purchaseBuilding(Tribe ownerTribe, String buildingType, Unit requesterUnit) {
+    private boolean purchaseBuilding(Tribe ownerTribe, String buildingType, Unit requesterUnit) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
-                purchaseTownHall(ownerTribe, requesterUnit);
-                break;
+                return purchaseTownHall(ownerTribe, requesterUnit);
+            case WoaDefinitions.FARM:
+                return purchaseFarm(ownerTribe, requesterUnit);
+            case WoaDefinitions.STORE:
+                return purchaseStore(ownerTribe, requesterUnit);
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
+                return false;
         }
     }
     
@@ -240,6 +247,12 @@ public class CreateBuildingBehaviourHelper {
             case WoaDefinitions.TOWN_HALL:
                 refundTownHall(ownerTribe, requesterUnit);
                 break;
+            case WoaDefinitions.STORE:
+                refundStore(ownerTribe, requesterUnit);
+                break;
+            case WoaDefinitions.FARM:
+                refundFarm(ownerTribe, requesterUnit);
+                break;
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
         }
@@ -256,6 +269,32 @@ public class CreateBuildingBehaviourHelper {
         gui.gainResource(ownerTribe.getAID().getLocalName()
                 , requesterUnit.getId().getLocalName()
                 , WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
+    }
+
+    private void refundStore(Tribe ownerTribe, Unit requesterUnit) {
+        ownerTribe.getResources().refundStore();
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.STORE_GOLD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_STONE, WoaDefinitions.STORE_STONE_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.STORE_WOOD_COST);
+    }
+
+    private void refundFarm(Tribe ownerTribe, Unit requesterUnit) {
+        ownerTribe.getResources().refundFarm();
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.FARM_GOLD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_STONE, WoaDefinitions.FARM_STONE_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.FARM_WOOD_COST);
     }
 
     // NOTE: not surrounded by any building
@@ -305,8 +344,12 @@ public class CreateBuildingBehaviourHelper {
         return false;
     }
 
-    private void purchaseTownHall(Tribe ownerTribe, Unit requesterUnit) {
-        ownerTribe.getResources().purchaseTownHall();
+    private boolean purchaseTownHall(Tribe ownerTribe, Unit requesterUnit) {
+        boolean success = ownerTribe.getResources().purchaseTownHall();
+        if (!success) {
+            return false;
+        }
+        
         gui.loseResource(ownerTribe.getAID().getLocalName()
                 , requesterUnit.getId().getLocalName()
                 , WoaGUI.RESOURCE_GOLD, WoaDefinitions.TOWN_HALL_GOLD_COST);
@@ -316,6 +359,46 @@ public class CreateBuildingBehaviourHelper {
         gui.loseResource(ownerTribe.getAID().getLocalName()
                 , requesterUnit.getId().getLocalName()
                 , WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
+        
+        return true;
+    }
+
+    private boolean purchaseFarm(Tribe ownerTribe, Unit requesterUnit) {
+        boolean success = ownerTribe.getResources().purchaseFarm();
+        if (!success) {
+            return false;
+        }
+        
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.FARM_GOLD_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_STONE, WoaDefinitions.FARM_STONE_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.FARM_WOOD_COST);
+        
+        return true;
+    }
+
+    private boolean purchaseStore(Tribe ownerTribe, Unit requesterUnit) {
+        boolean success = ownerTribe.getResources().purchaseStore();
+        if (!success) {
+            return false;
+        }
+        
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.STORE_GOLD_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_STONE, WoaDefinitions.STORE_STONE_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName()
+                , requesterUnit.getId().getLocalName()
+                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.STORE_WOOD_COST);
+        
+        return true;
     }
     
     public interface KnownPositionInformer {

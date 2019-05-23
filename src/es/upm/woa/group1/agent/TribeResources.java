@@ -89,7 +89,10 @@ public class TribeResources implements Cloneable {
      * Spend resources to create a new town hall
      * @return if the tribe can afford creation of a new unit
      */
-    public boolean purchaseTownHall() {
+    public synchronized boolean purchaseTownHall() {
+        if (!canAffordTownHall())
+            return false;
+        
         gold -= WoaDefinitions.TOWN_HALL_GOLD_COST;
         stone -= WoaDefinitions.TOWN_HALL_STONE_COST;
         wood -= WoaDefinitions.TOWN_HALL_WOOD_COST;
@@ -119,7 +122,10 @@ public class TribeResources implements Cloneable {
      * Spend resources to create a new town hall
      * @return if the tribe can afford creation of a new unit
      */
-    public boolean purchaseFarm() {
+    public synchronized  boolean purchaseFarm() {
+        if (!canAffordFarm())
+            return false;
+        
         gold -= WoaDefinitions.FARM_GOLD_COST;
         stone -= WoaDefinitions.FARM_STONE_COST;
         wood -= WoaDefinitions.FARM_WOOD_COST;
@@ -149,7 +155,10 @@ public class TribeResources implements Cloneable {
      * Spend resources to create a new town hall
      * @return if the tribe can afford creation of a new unit
      */
-    public boolean purchaseStore() {
+    public synchronized  boolean purchaseStore() {
+        if (!canAffordStore())
+            return false;
+        
         gold -= WoaDefinitions.STORE_GOLD_COST;
         stone -= WoaDefinitions.STORE_STONE_COST;
         wood -= WoaDefinitions.STORE_WOOD_COST;
