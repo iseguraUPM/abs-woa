@@ -14,7 +14,7 @@ import java.io.Serializable;
  *
  * @author ISU
  */
-public class FeedbackMessageFactory {
+public class UnitStatusMessageFactory {
     
     private static final int CHANGED_POS = 0;
     private static final int START_BUILDING = 1;
@@ -27,105 +27,105 @@ public class FeedbackMessageFactory {
     
     private Agent agent;
     
-    private FeedbackMessageFactory() {}
+    private UnitStatusMessageFactory() {}
     
-    public static FeedbackMessageFactory getInstance(Agent agent) {
-        FeedbackMessageFactory instance = new FeedbackMessageFactory();
+    public static UnitStatusMessageFactory getInstance(Agent agent) {
+        UnitStatusMessageFactory instance = new UnitStatusMessageFactory();
         instance.agent = agent;
         
         return instance;
     }
     
-    public FeedbackMessageEnvelop envelopChangedPosition(MapCell newPosition) {
+    public UnitStatusMessageEnvelop envelopChangedPosition(MapCell newPosition) {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.unitPositionX = newPosition.getXCoord();
         messageContent.unitPositionY = newPosition.getYCoord();
         
-        return new FeedbackMessage(CHANGED_POS, messageContent);
+        return new UnitStatusMessage(CHANGED_POS, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopStartedBuilding(String buildingType) {
+    public UnitStatusMessageEnvelop envelopStartedBuilding(String buildingType) {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.buildingType = buildingType;
         
-        return new FeedbackMessage(START_BUILDING, messageContent);
+        return new UnitStatusMessage(START_BUILDING, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopBuildingFailure(String buildingType) {
+    public UnitStatusMessageEnvelop envelopBuildingFailure(String buildingType) {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.buildingType = buildingType;
         messageContent.operationSuccess = false;
         
-        return new FeedbackMessage(FINISH_BUILDING, messageContent);
+        return new UnitStatusMessage(FINISH_BUILDING, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopBuildingSuccess(String buildingType) {
+    public UnitStatusMessageEnvelop envelopBuildingSuccess(String buildingType) {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.buildingType = buildingType;
         messageContent.operationSuccess = true;
         
-        return new FeedbackMessage(FINISH_BUILDING, messageContent);
+        return new UnitStatusMessage(FINISH_BUILDING, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopStartedUnitCreation() {
+    public UnitStatusMessageEnvelop envelopStartedUnitCreation() {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         
-        return new FeedbackMessage(START_UNIT, messageContent);
+        return new UnitStatusMessage(START_UNIT, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopUnitCreationFailure() {
+    public UnitStatusMessageEnvelop envelopUnitCreationFailure() {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.operationSuccess = false;
         
-        return new FeedbackMessage(FINISH_UNIT, messageContent);
+        return new UnitStatusMessage(FINISH_UNIT, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopUnitCreationSuccess() {
+    public UnitStatusMessageEnvelop envelopUnitCreationSuccess() {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.operationSuccess = true;
         
-        return new FeedbackMessage(FINISH_UNIT, messageContent);
+        return new UnitStatusMessage(FINISH_UNIT, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopGainedResource(String resourceType
+    public UnitStatusMessageEnvelop envelopGainedResource(String resourceType
             , int amount) {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.resourceType = resourceType;
         messageContent.resourceAmount = amount;
         
-        return new FeedbackMessage(EXPLOIT_RESOURCE, messageContent);
+        return new UnitStatusMessage(EXPLOIT_RESOURCE, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopFinishExploiting(String resourceType) {
+    public UnitStatusMessageEnvelop envelopFinishExploiting(String resourceType) {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         messageContent.resourceType = resourceType;
         
-        return new FeedbackMessage(FINISH_EXPLOIT, messageContent);
+        return new UnitStatusMessage(FINISH_EXPLOIT, messageContent);
     }
     
-    public FeedbackMessageEnvelop envelopFinishExploration() {
+    public UnitStatusMessageEnvelop envelopFinishExploration() {
         MessageContent messageContent = new MessageContent();
         messageContent.unitAID = agent.getAID();
         
-        return new FeedbackMessage(FINISH_EXPLORATION, messageContent);
+        return new UnitStatusMessage(FINISH_EXPLORATION, messageContent);
     }
     
-    public static void handleMessage(FeedbackMessageEnvelop envelop, UnitStatusHanlder handler) {
-        if (envelop instanceof FeedbackMessage) {
-            getFeedbackMessage((FeedbackMessage) envelop, handler);
+    public static void handleMessage(UnitStatusMessageEnvelop envelop, UnitStatusHanlder handler) {
+        if (envelop instanceof UnitStatusMessage) {
+            getStatusMessage((UnitStatusMessage) envelop, handler);
         }
     }
 
-    private static void getFeedbackMessage(FeedbackMessage envelop, UnitStatusHanlder handler) {
+    private static void getStatusMessage(UnitStatusMessage envelop, UnitStatusHanlder handler) {
         switch (envelop.getStatusId()) {
             case CHANGED_POS:
                 handleChangedPosition((MessageContent) envelop.getContent(), handler);
@@ -199,12 +199,12 @@ public class FeedbackMessageFactory {
         handler.onFinishedExploring(messageContent.unitAID);
     }
     
-    private static class FeedbackMessage implements FeedbackMessageEnvelop {
+    private static class UnitStatusMessage implements UnitStatusMessageEnvelop {
         
         private final int statusId;
         private final Serializable content;
         
-        public FeedbackMessage(int statusId, Serializable content) {
+        public UnitStatusMessage(int statusId, Serializable content) {
             this.statusId = statusId;
             this.content = content;
         }

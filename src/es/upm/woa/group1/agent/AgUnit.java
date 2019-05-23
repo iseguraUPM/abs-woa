@@ -10,7 +10,7 @@ import es.upm.woa.group1.agent.strategy.PositionedAgentUnit;
 import es.upm.woa.group1.agent.strategy.StrategyEnvelop;
 import es.upm.woa.group1.agent.strategy.StrategyFactory;
 import es.upm.woa.group1.WoaLogger;
-import es.upm.woa.group1.agent.strategy.FeedbackMessageFactory;
+import es.upm.woa.group1.agent.strategy.UnitStatusMessageFactory;
 import es.upm.woa.group1.map.CellTranslation;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.ontology.Group1Ontology;
@@ -62,7 +62,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
     private MapCellFinder constructionSiteFinder;
     private StrategicUnitBehaviour strategyBehaviour;
     private StrategyFactory strategyFactory;
-    private FeedbackMessageFactory feedbackMessageFactory;
+    private UnitStatusMessageFactory unitStatusMessageFactory;
 
     private SendMapDataSharingHelper mapDataSharingHelper;
     private SendFeedbackUnitStatusHelper sendUnitStatusHelper;
@@ -98,7 +98,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
         mapDataSharingHelper.unicastMapData(ownerTribe, newConnection);
 
         currentPosition = myCell;
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory
                 .envelopChangedPosition(currentPosition));
     }
 
@@ -186,9 +186,9 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
 
         strategyFactory = StrategyFactory.getInstance(this, gameComStandard,
                 knownMap, worldAgentServiceDescription.getName(), this,
-                constructionSiteFinder, this, this, this);
+                constructionSiteFinder, this, this, this, this);
 
-        feedbackMessageFactory = FeedbackMessageFactory.getInstance(this);
+        unitStatusMessageFactory = UnitStatusMessageFactory.getInstance(this);
     }
 
     private void startInformUnitPositionBehaviour() {
@@ -337,62 +337,62 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
 
     @Override
     public void onStartedBuilding(String buildingType) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopStartedBuilding(buildingType));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopStartedBuilding(buildingType));
     }
 
     @Override
     public void onStartedCreatingUnit() {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopStartedUnitCreation());
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopStartedUnitCreation());
     }
 
     @Override
     public void onFinishedBuilding(String buildingType) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingSuccess(buildingType));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopBuildingSuccess(buildingType));
     }
 
     @Override
     public void onErrorBuilding(String buildingType) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopBuildingFailure(buildingType));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopBuildingFailure(buildingType));
     }
 
     @Override
     public void onFinishedCreatingUnit() {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationSuccess());
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopUnitCreationSuccess());
     }
 
     @Override
     public void onErrorCreatingUnit() {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopUnitCreationFailure());
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopUnitCreationFailure());
     }
 
     @Override
     public void onGainedGold(int amount) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.GOLD, amount));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopGainedResource(WoaDefinitions.GOLD, amount));
     }
 
     @Override
     public void onGainedStone(int amount) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.STONE, amount));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopGainedResource(WoaDefinitions.STONE, amount));
     }
 
     @Override
     public void onGainedWood(int amount) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.WOOD, amount));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopGainedResource(WoaDefinitions.WOOD, amount));
     }
 
     @Override
     public void onGainedFood(int amount) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopGainedResource(WoaDefinitions.FOOD, amount));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopGainedResource(WoaDefinitions.FOOD, amount));
     }
     
     @Override
     public void onFinishedExploration() {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopFinishExploration());
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopFinishExploration());
     }
 
     @Override
     public void onFinishedExploiting(String resourceType) {
-        sendUnitStatusHelper.sendStatus(feedbackMessageFactory.envelopFinishExploiting(resourceType));
+        sendUnitStatusHelper.sendStatus(unitStatusMessageFactory.envelopFinishExploiting(resourceType));
     }
 
     private interface OnReceivedOwnershipHandler {

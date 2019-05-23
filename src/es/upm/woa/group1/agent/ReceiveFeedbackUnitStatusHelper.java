@@ -5,8 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.agent.strategy.FeedbackMessageEnvelop;
-import es.upm.woa.group1.agent.strategy.FeedbackMessageFactory;
+import es.upm.woa.group1.agent.strategy.UnitStatusMessageFactory;
 import es.upm.woa.group1.agent.strategy.UnitStatusHanlder;
 import es.upm.woa.group1.ontology.Group1Ontology;
 import es.upm.woa.group1.protocol.CommunicationStandard;
@@ -17,6 +16,7 @@ import jade.lang.acl.UnreadableException;
 
 import java.io.Serializable;
 import java.util.logging.Level;
+import es.upm.woa.group1.agent.strategy.UnitStatusMessageEnvelop;
 
 /**
  *
@@ -63,9 +63,9 @@ class ReceiveFeedbackUnitStatusHelper {
     private void handleFeedbackMessage(ACLMessage response) {
         try {
             Serializable content = response.getContentObject();
-            if (content instanceof FeedbackMessageEnvelop) {
-                FeedbackMessageEnvelop feedEnvelop = (FeedbackMessageEnvelop) content;
-                FeedbackMessageFactory.handleMessage(feedEnvelop, feedbackMessageHandler);
+            if (content instanceof UnitStatusMessageEnvelop) {
+                UnitStatusMessageEnvelop feedEnvelop = (UnitStatusMessageEnvelop) content;
+                UnitStatusMessageFactory.handleMessage(feedEnvelop, feedbackMessageHandler);
             } else {
                 woaAgent.log(Level.WARNING, "Could not retrieve strategy");
             }

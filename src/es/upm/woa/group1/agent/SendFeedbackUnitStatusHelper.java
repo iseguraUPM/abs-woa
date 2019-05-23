@@ -5,7 +5,6 @@
  */
 package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.agent.strategy.FeedbackMessageEnvelop;
 import es.upm.woa.group1.ontology.Group1Ontology;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
@@ -13,6 +12,7 @@ import es.upm.woa.group1.protocol.Conversation;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import java.util.logging.Level;
+import es.upm.woa.group1.agent.strategy.UnitStatusMessageEnvelop;
 
 /**
  *
@@ -31,7 +31,7 @@ class SendFeedbackUnitStatusHelper {
         this.tribeAid = tribeAid;
     }
 
-    public void sendStatus(FeedbackMessageEnvelop feedbackMessageEnvelop) {
+    public void sendStatus(UnitStatusMessageEnvelop feedbackMessageEnvelop) {
         woaAgent.addBehaviour(new Conversation(woaAgent, comStandard,
                  Group1Ontology.FEEDBACKUNITSTATUS) {
             @Override

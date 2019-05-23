@@ -18,6 +18,7 @@ import jade.domain.FIPAAgentManagement.UnexpectedArgument;
 import java.io.Serializable;
 import es.upm.woa.group1.agent.CreateBuildingRequestHandler;
 import es.upm.woa.group1.agent.ExploitResourceRequestHandler;
+import es.upm.woa.group1.agent.ExplorationRequestHandler;
 
 /**
  *
@@ -42,6 +43,7 @@ public class StrategyFactory {
     private CreateBuildingRequestHandler constructionRequestHandler;
     private CreateUnitRequestHandler createUnitRequestHandler;
     private ExploitResourceRequestHandler exploitResourceRequestHandler;
+    private ExplorationRequestHandler explorationRequestHandler;
     
     private StrategyFactory() {}
     
@@ -52,7 +54,8 @@ public class StrategyFactory {
             , LocationFinder constructionSiteFinder
             , CreateBuildingRequestHandler constructionRequestHandler
             , CreateUnitRequestHandler createUnitRequestHandler
-            , ExploitResourceRequestHandler exploitResourceRequestHandler) {
+            , ExploitResourceRequestHandler exploitResourceRequestHandler
+            , ExplorationRequestHandler explorationRequestHandler) {
         StrategyFactory instance = new StrategyFactory();
         instance.woaAgent = woaAgent;
         instance.comStandard = comStandard;
@@ -64,6 +67,7 @@ public class StrategyFactory {
         instance.constructionRequestHandler = constructionRequestHandler;
         instance.createUnitRequestHandler = createUnitRequestHandler;
         instance.exploitResourceRequestHandler = exploitResourceRequestHandler;
+        instance.explorationRequestHandler = explorationRequestHandler;
         
         return instance;
     }
@@ -96,7 +100,7 @@ public class StrategyFactory {
     private Strategy getFreeExploreStrategy(StrategyEnvelop envelope) {
         return new FreeExploreStrategy(envelope.getPriority()
                 , woaAgent, comStandard, graphKnownMap
-                , worldAID, agentUnit);
+                , worldAID, agentUnit, explorationRequestHandler);
     }
 
     private Strategy getCreateUnitStrategy(StrategyEnvelop envelope) {
