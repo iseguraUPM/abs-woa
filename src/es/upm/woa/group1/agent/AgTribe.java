@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  *
  * @author ISU
  */
-public class AgTribe extends GroupAgent implements UnitStatusHanlder {
+public class AgTribe extends GroupAgent {
     
     private final int BETWEEN_REGISTRATION_RETRIES_MILLIS = 1000;
     
@@ -94,15 +94,9 @@ public class AgTribe extends GroupAgent implements UnitStatusHanlder {
             startInformUnitPositionBehaviour();
             startShareMapDataBehaviour();
             startInitializeTribeBehaviour();
-            startFeedbackUnitStatusBehaviour();
         } catch (InterruptedException ex) {
             log(Level.SEVERE, "Could not register Tribe. Finalizing...");
         }
-    }
-    
-    private void startFeedbackUnitStatusBehaviour() {
-        new ReceiveFeedbackUnitStatusHelper(this, group1ComStandard, this)
-                .startFeedbackUnitBehaviour();
     }
 
     private void startInformRegistrationBehaviour() {
@@ -375,119 +369,31 @@ public class AgTribe extends GroupAgent implements UnitStatusHanlder {
         });
     }
     
-    @Override
-    public void log(Level logLevel, String message) {
-        logger.log(logLevel, message);
-    }
-
+    
     private void shareNewConnectionWithUnits(NewGraphConnection newConnection) {
         mapDataSharingHelper.multicastMapData(getMyUnitsAIDs(), newConnection);
     }
 
     private void executeStrategy() {
-        addBehaviour(new TribeStrategyBehaviour(this, GameClock.getInstance()
+        TribeStrategyBehaviour tribeStrategyBehaviour
+                = new TribeStrategyBehaviour(this, GameClock.getInstance()
                 , assignStrategyHelper, knownMap
                 , Collections.unmodifiableCollection(units)
-                , tribeResources, MapCellFinder.getInstance(knownMap)));
+                , tribeResources, MapCellFinder.getInstance(knownMap));
+        startFeedbackUnitStatusBehaviour(tribeStrategyBehaviour);
+        addBehaviour(tribeStrategyBehaviour);
+    }
+        
+    private void startFeedbackUnitStatusBehaviour(TribeStrategyBehaviour tribeStrategyBehaviour) {
+        new ReceiveFeedbackUnitStatusHelper(this, group1ComStandard, tribeStrategyBehaviour)
+                .startFeedbackUnitBehaviour();
+    }
+    
+    @Override
+    public void log(Level logLevel, String message) {
+        logger.log(logLevel, message);
     }
 
-    @Override
-    public void onChangedPosition(AID unitAID, int xCoord, int yCoord) {
-        try {
-            Unit movedUnit = units.parallelStream().filter(unit -> unit.getId()
-                    .equals(unitAID)).findAny().get();
-            movedUnit.setPosition(xCoord, yCoord);
-            log(Level.FINE, unitAID.getLocalName() + " changed position");
-        } catch (NoSuchElementException ex) {
-            log(Level.WARNING, "Could not change position of unknown unit: " 
-                    + unitAID.getLocalName());
-        }
-    }
-
-    @Override
-    public void onStartedBuilding(AID unitAID, String buildingType) {
-        switch (buildingType) {
-                case WoaDefinitions.TOWN_HALL:
-                    tribeResources.purchaseTownHall();
-                    break;
-                case WoaDefinitions.STORE:
-                    // TODO: store resource upgrade
-                    //break;
-                case WoaDefinitions.FARM:
-                    throw new UnsupportedOperationException("Building "
-                            + buildingType + " purchase implementation");
-                    //break;
-                default:
-                    log(Level.WARNING, "Cannot purchase unknown building: "
-                            + buildingType);
-                    break;
-            }
-        log(Level.FINE, unitAID.getLocalName() + " started "
-                + buildingType + " construction");
-    }
-
-    @Override
-    public void onStartingUnitCreation(AID unitAID) {
-        tribeResources.purchaseUnit();
-        log(Level.FINE, unitAID.getLocalName() + " started creating a unit");
-    }
-
-    @Override
-    public void onExploitedResource(AID unitAID, String resourceType, int amount) {
-        switch (resourceType) {
-            case WoaDefinitions.GOLD:
-                tribeResources.addGold(amount);
-                break;
-            case WoaDefinitions.FOOD:
-                tribeResources.addFood(amount);
-                break;
-            case WoaDefinitions.WOOD:
-                tribeResources.addWood(amount);
-                break;
-            case WoaDefinitions.STONE:
-                tribeResources.addStone(amount);
-                break;
-            default:
-                break;
-        }
-        log(Level.FINE, unitAID.getLocalName() + " gained " + amount
-                + " of " + resourceType);
-    }
-
-    @Override
-    public void onFinishedBuilding(AID unitAID, String buildingType) {
-        log(Level.FINE, unitAID.getLocalName() + " finished construction of " + buildingType);
-    }
-
-    @Override
-    public void onErrorBuilding(AID unitAID, String buildingType) {
-        switch (buildingType) {
-                case WoaDefinitions.TOWN_HALL:
-                    tribeResources.refundTownHall();
-                    break;
-                case WoaDefinitions.STORE:
-                    //break;
-                case WoaDefinitions.FARM:
-                    throw new UnsupportedOperationException("Building " + buildingType + " refund implementation");
-                    //break;
-                default:
-                    log(Level.WARNING, "Cannot refund unknown building: "
-                            + buildingType);
-                    break;
-            }
-            log(Level.FINE, unitAID.getLocalName() +" could not build " + buildingType + ". Resources refunded");
-    }
-
-    @Override
-    public void onFinishedUnitCreation(AID unitAID) {
-        log(Level.FINE, unitAID.getLocalName() + " finished creation of new unit");
-    }
-
-    @Override
-    public void onErrorUnitCreation(AID unitAID) {
-        tribeResources.refundUnit();
-        log(Level.FINE, unitAID.getLocalName() +" could not create unit. Resources refunded");
-    }
 
 
 }
