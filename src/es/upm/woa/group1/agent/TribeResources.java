@@ -71,9 +71,6 @@ public class TribeResources implements Cloneable {
      * @return if the tribe can afford creation of a new unit
      */
     public boolean purchaseUnit() {
-        if (!canAffordUnit()) {
-            return false;
-        }
         gold -= WoaDefinitions.UNIT_GOLD_COST;
         food -= WoaDefinitions.UNIT_FOOD_COST;
         return true;
@@ -93,9 +90,6 @@ public class TribeResources implements Cloneable {
      * @return if the tribe can afford creation of a new unit
      */
     public boolean purchaseTownHall() {
-        if (!canAffordTownHall()) {
-            return false;
-        }
         gold -= WoaDefinitions.TOWN_HALL_GOLD_COST;
         stone -= WoaDefinitions.TOWN_HALL_STONE_COST;
         wood -= WoaDefinitions.TOWN_HALL_WOOD_COST;
@@ -119,6 +113,66 @@ public class TribeResources implements Cloneable {
         gold += WoaDefinitions.TOWN_HALL_GOLD_COST;
         stone += WoaDefinitions.TOWN_HALL_STONE_COST;
         wood += WoaDefinitions.TOWN_HALL_WOOD_COST;
+    }
+    
+    /**
+     * Spend resources to create a new town hall
+     * @return if the tribe can afford creation of a new unit
+     */
+    public boolean purchaseFarm() {
+        gold -= WoaDefinitions.FARM_GOLD_COST;
+        stone -= WoaDefinitions.FARM_STONE_COST;
+        wood -= WoaDefinitions.FARM_WOOD_COST;
+        return true;
+    }
+    
+    /**
+     * 
+     * @return the tribe can afford creation of a new town hall
+     */
+    public boolean canAffordFarm() {
+        return gold >= WoaDefinitions.FARM_GOLD_COST
+                && stone >= WoaDefinitions.FARM_STONE_COST
+                && wood >= WoaDefinitions.FARM_WOOD_COST;
+    }
+    
+    /**
+    * Return resources spent for a new town hall creation
+    */
+    public void refundFarm() {
+        gold += WoaDefinitions.FARM_GOLD_COST;
+        stone += WoaDefinitions.FARM_STONE_COST;
+        wood += WoaDefinitions.FARM_WOOD_COST;
+    }
+    
+    /**
+     * Spend resources to create a new town hall
+     * @return if the tribe can afford creation of a new unit
+     */
+    public boolean purchaseStore() {
+        gold -= WoaDefinitions.STORE_GOLD_COST;
+        stone -= WoaDefinitions.STORE_STONE_COST;
+        wood -= WoaDefinitions.STORE_WOOD_COST;
+        return true;
+    }
+    
+    /**
+     * 
+     * @return the tribe can afford creation of a new town hall
+     */
+    public boolean canAffordStore() {
+        return gold >= WoaDefinitions.STORE_GOLD_COST
+                && stone >= WoaDefinitions.STORE_STONE_COST
+                && wood >= WoaDefinitions.STORE_WOOD_COST;
+    }
+    
+    /**
+    * Return resources spent for a new town hall creation
+    */
+    public void refundStore() {
+        gold += WoaDefinitions.STORE_GOLD_COST;
+        stone += WoaDefinitions.STORE_STONE_COST;
+        wood += WoaDefinitions.STORE_WOOD_COST;
     }
    
     /**
