@@ -35,6 +35,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private static final int SECOND_PHASE = 1;
     private static final int THIRD_PHASE = 2;
     private static final int FOURTH_PHASE = 3;
+    private static final int FIFTH_PHASE = 3;
 
     private static final int EXPLORE_PHASE_TICKS = 200;
 
@@ -127,8 +128,11 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         } else if (phase == SECOND_PHASE && builtTownHalls > 0) {
             phase = THIRD_PHASE;
         }
-        else if (phase == THIRD_PHASE && builtFarms > 0) {
+        else if (phase == THIRD_PHASE && tribeResources.canAffordFarm()) {
             phase = FOURTH_PHASE;
+        }
+        else if (phase == FOURTH_PHASE && builtFarms > 0) {
+            phase = FIFTH_PHASE;
         }
     }
 
@@ -172,21 +176,21 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                 agent.log(Level.WARNING, "No construction site found");
             }
         }
-        else if (builtTownHalls > 0 && !builders.isEmpty()) {
-            ProffesionalUnit builder = builders.stream().findAny().get();
-            removeJob(builder);
-            miners.add(builder);
+        else if (builtTownHalls == 0 && !builders.isEmpty()) {
+            repeatTownHallConstruction();
         }
     }
     
     private void performThirdPhase() {
         if (!builders.isEmpty()) {
-            ProffesionalUnit builder = builders.stream().findAny().get();
-            removeJob(builder);
-            miners.add(builder);
-        }
-        else if (builtTownHalls > 0) {
-            
+            try {
+                ProffesionalUnit builder = builders.stream().filter(unit
+                        -> !unit.isBusy()).findAny().get();
+                removeJob(builder);
+                miners.add(builder);
+            } catch (NoSuchElementException ex) {
+                // Still busy
+            }
         }
     }
 
@@ -408,6 +412,20 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
             freeUnits.stream().forEach(unit -> unit.setBusy());
             strategyHelper.multicastStrategy(collectAIDs(freeUnits),
                      strategyEnvelop);
+        }
+    }
+
+    private void repeatTownHallConstruction() {
+        try {
+            ProffesionalUnit builder = builders.stream().filter(unit
+                    -> !unit.isBusy()).findAny().get();
+            builder.setBusy();
+            strategyHelper.unicastStrategy(builder.getId(),
+                 StrategyFactory
+                        .envelopCreateBuildingStrategy(Strategy.HIGH_PRIORITY,
+                                 WoaDefinitions.TOWN_HALL));
+        } catch (NoSuchElementException ex) {
+            // Still building
         }
     }
 
