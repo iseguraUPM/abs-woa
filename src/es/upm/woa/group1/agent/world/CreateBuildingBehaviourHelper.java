@@ -30,6 +30,10 @@ import jade.content.onto.basic.Action;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -38,21 +42,23 @@ import java.util.logging.Level;
  * @author ISU
  */
 public class CreateBuildingBehaviourHelper {
-    
+
     private final WoaAgent woaAgent;
     private final CommunicationStandard comStandard;
     private final WoaGUI gui;
     private final GameMap worldMap;
-    
+
     private final TransactionRecord transactionRecord;
     private final KnownPositionInformer knownPositionInformHandler;
     private final TribeInfomationBroker tribeInfomationHandler;
-    
-    public CreateBuildingBehaviourHelper(WoaAgent woaAgent
-            , CommunicationStandard comStandard, WoaGUI gui, GameMap worldMap
-            , TransactionRecord activeTransactions
-            , KnownPositionInformer knownPositionInformHandler
-            , TribeInfomationBroker tribeInfomationHandler) {
+
+    private final Map<Unit, Collection<MapCell>> blockedCells;
+
+    public CreateBuildingBehaviourHelper(WoaAgent woaAgent,
+            CommunicationStandard comStandard, WoaGUI gui, GameMap worldMap,
+            TransactionRecord activeTransactions,
+            KnownPositionInformer knownPositionInformHandler,
+            TribeInfomationBroker tribeInfomationHandler) {
         this.woaAgent = woaAgent;
         this.comStandard = comStandard;
         this.gui = gui;
@@ -60,14 +66,16 @@ public class CreateBuildingBehaviourHelper {
         this.transactionRecord = activeTransactions;
         this.knownPositionInformHandler = knownPositionInformHandler;
         this.tribeInfomationHandler = tribeInfomationHandler;
+
+        this.blockedCells = new HashMap<>();
     }
-    
+
     /**
-     * Start listening behaviour for CreateBuilding agent requests.
-     * Unregistered tribes or units will be refused.
+     * Start listening behaviour for CreateBuilding agent requests. Unregistered
+     * tribes or units will be refused.
      */
     public Behaviour startBuildingCreationBehaviour() {
-        
+
         Behaviour newBehaviour = new Conversation(woaAgent, comStandard, GameOntology.CREATEBUILDING) {
             @Override
             public void onStart() {
@@ -79,7 +87,7 @@ public class CreateBuildingBehaviourHelper {
                         CreateBuilding dummyAction = new CreateBuilding();
                         dummyAction.setBuildingType("");
                         Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
-                        
+
                         woaAgent.log(Level.FINER, "received CreateBuilding request from"
                                 + message.getSender().getLocalName());
 
@@ -105,14 +113,14 @@ public class CreateBuildingBehaviourHelper {
                                     .getCoordX(), requesterUnit.getCoordY());
 
                             action.setAction(conc);
-                            if (!canCreateBuilding(buildingType
-                                    , ownerTribe, requesterUnit)) {
-                                
+                            if (!canCreateBuilding(unitPosition, buildingType,
+                                    ownerTribe, requesterUnit)) {
+
                                 respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                             } else {
                                 initiateBuildingCreation(buildingType,
-                                         ownerTribe, requesterUnit,
-                                         unitPosition, message);
+                                        ownerTribe, requesterUnit,
+                                        unitPosition, message);
                             }
 
                         } catch (NoSuchElementException ex) {
@@ -130,28 +138,31 @@ public class CreateBuildingBehaviourHelper {
             }
 
             private void initiateBuildingCreation(String buildingType, Tribe ownerTribe,
-                     Unit requesterUnit, MapCell unitPosition, ACLMessage message) {
+                    Unit requesterUnit, MapCell unitPosition, ACLMessage message) {
                 CreateBuilding dummyAction = new CreateBuilding();
-                        dummyAction.setBuildingType("");
+                dummyAction.setBuildingType("");
                 Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
-                
+
                 CellBuildingConstructor buildingConstructor = CellBuildingConstructor.getInstance();
-                
+
                 if (buildingConstructor.isBuilding(requesterUnit)) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " is currently building. Current construction"
-                                    + " will be cancelled");
+                            + " will be cancelled");
                     respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                     return;
                 }
-                
+
                 try {
+                    blockConstructionSite(unitPosition, requesterUnit, buildingType);
+
                     Transaction buildTransaction = buildingConstructor.build(myAgent, ownerTribe, requesterUnit,
-                             buildingType, unitPosition, new CellBuildingConstructor.BuildingConstructionHandler() {
+                            buildingType, unitPosition, new CellBuildingConstructor.BuildingConstructionHandler() {
                         @Override
                         public void onBuilt() {
                             gui.createBuilding(ownerTribe.getAID()
                                     .getLocalName(), buildingType);
+                            unblockConstructionSite(requesterUnit);
                             respondMessage(message, ACLMessage.INFORM, createBuildingAction);
                             knownPositionInformHandler
                                     .informAboutKnownCellDetail(unitPosition);
@@ -160,37 +171,71 @@ public class CreateBuildingBehaviourHelper {
                         @Override
                         public void onCancel() {
                             refundBuilding(ownerTribe, buildingType, requesterUnit);
+                            unblockConstructionSite(requesterUnit);
                             respondMessage(message, ACLMessage.FAILURE, createBuildingAction);
                         }
 
-                       
                     });
 
                     if (!purchaseBuilding(ownerTribe, buildingType, requesterUnit)) {
                         respondMessage(message, ACLMessage.FAILURE, createBuildingAction);
                     }
-                    
+
                     respondMessage(message, ACLMessage.AGREE, createBuildingAction);
                     transactionRecord.addTransaction(buildTransaction);
                 } catch (CellBuildingConstructor.CellOccupiedException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot build on cell " + unitPosition.getXCoord()
                             + ", " + unitPosition.getYCoord() + "(" + ex + ")");
+                    unblockConstructionSite(requesterUnit);
+
                     respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                 } catch (CellBuildingConstructor.UnknownBuildingTypeException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot build on cell " + unitPosition.getXCoord()
                             + ", " + unitPosition.getYCoord() + "(" + ex + ")");
+                    unblockConstructionSite(requesterUnit);
+
                     respondMessage(message, ACLMessage.NOT_UNDERSTOOD, createBuildingAction);
                 }
             }
 
-            
         };
-        
+
         woaAgent.addBehaviour(newBehaviour);
-        
+
         return newBehaviour;
+    }
+
+    private void blockConstructionSite(MapCell unitPosition, Unit requesterUnit, String buildingType) {
+        Collection<MapCell> cells = new HashSet<>();
+        cells.add(unitPosition);
+
+        blockedCells.put(requesterUnit, cells);
+        if (buildingType.equals(WoaDefinitions.TOWN_HALL)) {
+            blockNeighbourCells(requesterUnit);
+        }
+    }
+
+    private void blockNeighbourCells(Unit requesterUnit) {
+        Collection<MapCell> cells = blockedCells.get(requesterUnit);
+
+        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
+            int[] adjacentPosition = GameMapCoordinate
+                    .applyTranslation(worldMap.getWidth(),
+                            worldMap.getHeight(), requesterUnit.getCoordX(),
+                            requesterUnit.getCoordY(), translationVector);
+            try {
+                MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
+                cells.add(adjacentCell);
+            } catch (NoSuchElementException ex) {
+                // That cell does not exist
+            }
+        }
+    }
+
+    private void unblockConstructionSite(Unit requesterUnit) {
+        blockedCells.remove(requesterUnit);
     }
 
     private boolean purchaseBuilding(Tribe ownerTribe, String buildingType, Unit requesterUnit) {
@@ -206,31 +251,41 @@ public class CreateBuildingBehaviourHelper {
                 return false;
         }
     }
-    
-    
-    private boolean canCreateBuilding(String buildingType, Tribe tribe, Unit requester) {
-        if (UnitCellPositioner.getInstance().isMoving(requester)) {
-            woaAgent.log(Level.FINE, requester.getId().getLocalName()
-                            + " cannot build while moving");
+
+    private boolean canCreateBuilding(MapCell position, String buildingType, Tribe tribe, Unit requester) {
+        if (position instanceof Building) {
             return false;
         }
-        
+
+        if (candidateSiteIsBlocked(position)) {
+            return false;
+        }
+
+        if (UnitCellPositioner.getInstance().isMoving(requester)) {
+            woaAgent.log(Level.FINE, requester.getId().getLocalName()
+                    + " cannot build while moving");
+            return false;
+        }
+
         if (!canAffordBuilding(buildingType, tribe)) {
             return false;
         }
 
         return canPlaceBuildingOnCell(buildingType, requester, tribe);
     }
-    
+
+    private boolean candidateSiteIsBlocked(MapCell position) {
+        return blockedCells.entrySet().stream().anyMatch(prdct -> prdct.getValue().contains(position));
+    }
+
     private boolean canPlaceBuildingOnCell(String buildingType, Unit requester, Tribe owner) {
         if (buildingType.equals(WoaDefinitions.TOWN_HALL)) {
             return canPlaceNewTownHall(requester);
-        }
-        else {
+        } else {
             return canPlaceNewBuilding(requester, owner);
         }
     }
-    
+
     private boolean canAffordBuilding(String buildingType, Tribe ownerTribe) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
@@ -240,9 +295,9 @@ public class CreateBuildingBehaviourHelper {
                 return false;
         }
     }
-    
-    private void refundBuilding(Tribe ownerTribe, String buildingType
-            , Unit requesterUnit) {
+
+    private void refundBuilding(Tribe ownerTribe, String buildingType,
+            Unit requesterUnit) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
                 refundTownHall(ownerTribe, requesterUnit);
@@ -260,58 +315,60 @@ public class CreateBuildingBehaviourHelper {
 
     private void refundTownHall(Tribe ownerTribe, Unit requesterUnit) {
         ownerTribe.getResources().refundTownHall();
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.TOWN_HALL_GOLD_COST);
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_STONE, WoaDefinitions.TOWN_HALL_STONE_COST);
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_GOLD, WoaDefinitions.TOWN_HALL_GOLD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_STONE, WoaDefinitions.TOWN_HALL_STONE_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
     }
 
     private void refundStore(Tribe ownerTribe, Unit requesterUnit) {
         ownerTribe.getResources().refundStore();
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.STORE_GOLD_COST);
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_STONE, WoaDefinitions.STORE_STONE_COST);
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.STORE_WOOD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_GOLD, WoaDefinitions.STORE_GOLD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_STONE, WoaDefinitions.STORE_STONE_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_WOOD, WoaDefinitions.STORE_WOOD_COST);
     }
 
     private void refundFarm(Tribe ownerTribe, Unit requesterUnit) {
         ownerTribe.getResources().refundFarm();
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.FARM_GOLD_COST);
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_STONE, WoaDefinitions.FARM_STONE_COST);
-        gui.gainResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.FARM_WOOD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_GOLD, WoaDefinitions.FARM_GOLD_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_STONE, WoaDefinitions.FARM_STONE_COST);
+        gui.gainResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_WOOD, WoaDefinitions.FARM_WOOD_COST);
     }
 
     // NOTE: not surrounded by any building
     private boolean canPlaceNewTownHall(Unit requester) {
         for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
-            int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap.getWidth(), worldMap.getHeight(), requester.getCoordX()
-                    , requester.getCoordY(), translationVector);
+            int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap.getWidth(), worldMap.getHeight(), requester.getCoordX(),
+                    requester.getCoordY(), translationVector);
             try {
                 MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
                 if (adjacentCell.getContent() instanceof Building) {
+                    return false;
+                } else if (candidateSiteIsBlocked(adjacentCell)) {
                     return false;
                 }
             } catch (NoSuchElementException ex) {
                 // That cell does not exist
             }
         }
-        
+
         return true;
     }
 
@@ -320,8 +377,8 @@ public class CreateBuildingBehaviourHelper {
     private boolean canPlaceNewBuilding(Unit requester, Tribe owner) {
         for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
             int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap
-                    .getWidth(), worldMap.getHeight(), requester.getCoordX()
-                    , requester.getCoordY(), translationVector);
+                    .getWidth(), worldMap.getHeight(), requester.getCoordX(),
+                    requester.getCoordY(), translationVector);
             try {
                 MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
                 if (isBuildingFromOwner(adjacentCell, owner)) {
@@ -331,7 +388,7 @@ public class CreateBuildingBehaviourHelper {
                 // That cell does not exist
             }
         }
-        
+
         return false;
     }
 
@@ -340,7 +397,7 @@ public class CreateBuildingBehaviourHelper {
             Building existingBuilding = (Building) adjacentCell.getContent();
             return existingBuilding.getOwner().equals(owner.getAID());
         }
-        
+
         return false;
     }
 
@@ -349,17 +406,17 @@ public class CreateBuildingBehaviourHelper {
         if (!success) {
             return false;
         }
-        
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.TOWN_HALL_GOLD_COST);
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_STONE, WoaDefinitions.TOWN_HALL_STONE_COST);
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
-        
+
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_GOLD, WoaDefinitions.TOWN_HALL_GOLD_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_STONE, WoaDefinitions.TOWN_HALL_STONE_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_WOOD, WoaDefinitions.TOWN_HALL_WOOD_COST);
+
         return true;
     }
 
@@ -368,17 +425,17 @@ public class CreateBuildingBehaviourHelper {
         if (!success) {
             return false;
         }
-        
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.FARM_GOLD_COST);
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_STONE, WoaDefinitions.FARM_STONE_COST);
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.FARM_WOOD_COST);
-        
+
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_GOLD, WoaDefinitions.FARM_GOLD_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_STONE, WoaDefinitions.FARM_STONE_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_WOOD, WoaDefinitions.FARM_WOOD_COST);
+
         return true;
     }
 
@@ -387,28 +444,29 @@ public class CreateBuildingBehaviourHelper {
         if (!success) {
             return false;
         }
-        
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_GOLD, WoaDefinitions.STORE_GOLD_COST);
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_STONE, WoaDefinitions.STORE_STONE_COST);
-        gui.loseResource(ownerTribe.getAID().getLocalName()
-                , requesterUnit.getId().getLocalName()
-                , WoaGUI.RESOURCE_WOOD, WoaDefinitions.STORE_WOOD_COST);
-        
+
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_GOLD, WoaDefinitions.STORE_GOLD_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_STONE, WoaDefinitions.STORE_STONE_COST);
+        gui.loseResource(ownerTribe.getAID().getLocalName(),
+                requesterUnit.getId().getLocalName(),
+                WoaGUI.RESOURCE_WOOD, WoaDefinitions.STORE_WOOD_COST);
+
         return true;
     }
-    
+
     public interface KnownPositionInformer {
-        
+
         /**
          * Inform all tribes that may know the cell about its details.
-         * @param knownPosition 
+         *
+         * @param knownPosition
          */
         void informAboutKnownCellDetail(MapCell knownPosition);
-        
+
     }
-    
+
 }
