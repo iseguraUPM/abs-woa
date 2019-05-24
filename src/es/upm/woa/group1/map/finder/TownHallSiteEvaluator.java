@@ -28,7 +28,7 @@ public class TownHallSiteEvaluator implements MapCellEvaluator {
         
         Set<MapCell> neighbours = graphMap.getNeighbours(candidate);
         
-        return neighbours.parallelStream().allMatch(n -> {
+        return neighbours.stream().allMatch(n -> {
             return !(n.getContent() instanceof Building);
         });
     }

@@ -237,7 +237,7 @@ class GraphGameMap implements PathfinderGameMap {
         
         Set<CellTranslation> connections = mapGraph.outgoingEdgesOf(mapCell);
         
-        return connections.parallelStream().map(c -> mapGraph.getEdgeTarget(c))
+        return connections.stream().map(c -> mapGraph.getEdgeTarget(c))
                 .collect(Collectors.toSet());
     }
     

@@ -248,7 +248,7 @@ public class AgWorld extends WoaAgent implements
     @Override
     public Tribe findOwnerTribe(AID requesterUnAid) {
         Optional<Tribe> tribe;
-        tribe = tribeCollection.parallelStream()
+        tribe = tribeCollection.stream()
                 .filter(currentTribe -> currentTribe.getUnit(requesterUnAid) != null).findAny();
         if (!tribe.isPresent()) {
             return null;
@@ -441,7 +441,7 @@ public class AgWorld extends WoaAgent implements
             Collection<String> startingTribeNames = computeTribeNamesForGUI();
             guiEndpoint.startGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
                     woaConfigurator.getMapConfigurationContents());
-            tribeCollection.parallelStream().forEach((Tribe tribe) -> {
+            tribeCollection.stream().forEach((Tribe tribe) -> {
                 tribe.getUnits().forEach((unit) -> {
                     guiEndpoint.createAgent(tribe.getAID().getLocalName(),
                              unit.getId().getLocalName(), unit.getCoordX(),

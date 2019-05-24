@@ -31,7 +31,7 @@ public class OtherBuildingSiteEvaluator implements MapCellEvaluator {
     public boolean match(MapCell candidate) {
         Set<MapCell> neighbours = graphMap.getNeighbours(candidate);
         
-        return neighbours.parallelStream().anyMatch((MapCell n) -> {
+        return neighbours.stream().anyMatch((MapCell n) -> {
             if (n.getContent() instanceof Building) {
                 Building neighbourBuilding = (Building) n.getContent();
                 return neighbourBuilding.getOwner().equals(tribeAID);
