@@ -463,4 +463,9 @@
  14. [NEW]
   Added the GUI gain/loss of resources respective calls when creating units or buildings. In the case of buildings
   only town halls are implemented for now.
+----------------------------------------------------------------------------------------------------------------
+ (36) {25/05/2019 18:30} - Add End Of Game inform : Martin
+ 1. [COMPLETE]
+   World Agent informs the rest of agents about the end of the game. When Tribes and Units receives that inform 
+	, they suicide.
  
