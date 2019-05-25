@@ -5,9 +5,7 @@ package es.upm.woa.group1.agent;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.WoaLogger;
-import es.upm.woa.group1.agent.strategy.UnitStatusHanlder;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
 import es.upm.woa.group1.ontology.Group1Ontology;
@@ -94,6 +92,7 @@ public class AgTribe extends GroupAgent {
             startInformUnitPositionBehaviour();
             startShareMapDataBehaviour();
             startInitializeTribeBehaviour();
+            startEndOfGameBehaviour();
         } catch (InterruptedException ex) {
             log(Level.SEVERE, "Could not register Tribe. Finalizing...");
         }
@@ -143,7 +142,11 @@ public class AgTribe extends GroupAgent {
 
         });
     }
-    
+    private void startEndOfGameBehaviour() {
+        new ReceiveInformEndOfGameBehaviourHelper(this, gameComStandard)
+                .startEndOfGameBehaviour();
+    }
+         
     private void startInformCellDetailBehaviour() {
         new ReceiveInformCellDetailBehaviourHelper(this, gameComStandard
                 , knownMap).startInformCellDetailBehaviour();
@@ -393,7 +396,5 @@ public class AgTribe extends GroupAgent {
     public void log(Level logLevel, String message) {
         logger.log(logLevel, message);
     }
-
-
 
 }

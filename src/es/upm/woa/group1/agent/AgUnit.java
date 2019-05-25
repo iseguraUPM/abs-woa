@@ -122,6 +122,7 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
                 log(Level.INFO, "Unit initialized");
                 startStrategicUnitBehaviour();
                 startAssignStrategyBehaviour();
+                startEndOfGameBehaviour();
             });
         } catch (InterruptedException ex) {
             log(Level.SEVERE, "Could not find World agent. Finalizing...");
@@ -191,6 +192,11 @@ public class AgUnit extends GroupAgent implements PositionedAgentUnit,
         unitStatusMessageFactory = UnitStatusMessageFactory.getInstance(this);
     }
 
+    private void startEndOfGameBehaviour() {
+        new ReceiveInformEndOfGameBehaviourHelper(this, gameComStandard)
+                .startEndOfGameBehaviour();
+    }
+     
     private void startInformUnitPositionBehaviour() {
         new ReceiveInformUnitPositionBehaviourHelper(this, gameComStandard,
                 knownMap)

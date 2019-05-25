@@ -189,6 +189,8 @@ public class AgWorld extends WoaAgent implements
 
     protected void finalizeGame() {
         log(Level.WARNING, "Finalizing game...");
+        new SendInformEndOfGameHelper(this, woaComStandard, getAllRegisteredAgentsAIDs())
+                .informEnfOfGame();
         deregisterAgent();
         cleanupActiveTransactions();
         rollbackUnfinishedTransactions();
@@ -196,7 +198,20 @@ public class AgWorld extends WoaAgent implements
         stopGameBehaviours();
         guiEndpoint.endGame();
     }
-
+    
+    private Collection<AID> getAllRegisteredAgentsAIDs(){
+        List<AID> agentsCollection = new ArrayList<>();
+        
+        for(Tribe currentTribe: tribeCollection){
+            agentsCollection.add(currentTribe.getAID());
+            for(Unit currentUnit: currentTribe.getUnits()){
+                agentsCollection.add(currentUnit.getId());
+            }
+        }
+        
+        return agentsCollection;
+    }
+    
     private void rollbackUnfinishedTransactions() {
         log(Level.WARNING, "Rolling back active transactions...");
         activeTransactions.forEach(t -> t.rollback());
