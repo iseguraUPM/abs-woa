@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.map;
 
+import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.ontology.Cell;
 import es.upm.woa.ontology.CellContent;
 import es.upm.woa.ontology.Ground;
@@ -46,12 +47,24 @@ public class MapCellFactory implements Serializable {
         if (resourceType.equals("Ground")) {
             resourceContent = new Ground();
         } else {
-            resourceContent = new Resource();
+            resourceContent = buildResourceTile(tileNode);
         }
 
         MapCell mapCell = new SimpleMapCell(resourceContent, x, y);
 
         return mapCell;
+    }
+
+    private CellContent buildResourceTile(HierarchicalConfiguration<ImmutableNode> tileNode) {
+        Resource resource = new Resource();
+        resource.setResourceType(tileNode.getString("resource"));
+        resource.setResourceAmount(tileNode.getInt("resource_amount"));
+        
+        if (resource.getResourceType().equals(WoaDefinitions.ORE)) {
+            resource.setGoldPercentage(tileNode.getInt("gold_percentage"));
+        }
+        
+        return resource;
     }
 
     private class SimpleMapCell implements MapCell {
