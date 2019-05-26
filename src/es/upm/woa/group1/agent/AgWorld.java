@@ -501,7 +501,7 @@ public class AgWorld extends WoaAgent implements
         worldBehaviours.add(new MoveUnitBehaviourHelper(this, woaComStandard, guiEndpoint,
                  worldMap, this, this, this).startMoveToCellBehaviour());
         worldBehaviours.add(new CreateBuildingBehaviourHelper(this, woaComStandard, guiEndpoint,
-                 worldMap, this, this, this)
+                 worldMap, woaConfigurator.getStoreUpgradeAmount(), this, this, this)
                 .startBuildingCreationBehaviour());
     }
 

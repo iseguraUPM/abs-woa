@@ -43,6 +43,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private final Ticker ticker;
     private final SendAssignStrategyHelper strategyHelper;
     private final PathfinderGameMap graphMap;
+    private final int resourceCapUpgrade;
     private final Collection<Unit> unitCollection;
     private final TribeResources tribeResources;
     private final MapCellFinder mapCellFinder;
@@ -65,6 +66,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     public TribeStrategyBehaviour(WoaAgent agent, Ticker ticker,
              SendAssignStrategyHelper strategyHelper,
              PathfinderGameMap graphMap,
+             int resourceCapUpgrade,
              Collection<Unit> unitCollection,
              TribeResources resourceAccount,
              MapCellFinder mapCellFinder) {
@@ -73,6 +75,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         this.ticker = ticker;
         this.strategyHelper = strategyHelper;
         this.graphMap = graphMap;
+        this.resourceCapUpgrade = resourceCapUpgrade;
         this.unitCollection = unitCollection;
         this.tribeResources = resourceAccount;
         this.mapCellFinder = mapCellFinder;
@@ -316,6 +319,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                 builtFarms++;
                 break;
             case WoaDefinitions.STORE:
+                tribeResources.upgradeStorageSpace(resourceCapUpgrade);
                 builtStores++;
                 break;
             default:

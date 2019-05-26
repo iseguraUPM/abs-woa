@@ -196,7 +196,7 @@ public class WoaConfigurator {
         int startingStone = configList.getInt("stone");
         int startingWood = configList.getInt("wood");
        
-        return new TribeResources(startingWood, startingStone
+        return new TribeResources(resourceCap, startingWood, startingStone
                 , startingFood, startingGold);
     }
     

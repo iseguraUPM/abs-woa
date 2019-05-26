@@ -47,6 +47,7 @@ public class CreateBuildingBehaviourHelper {
     private final CommunicationStandard comStandard;
     private final WoaGUI gui;
     private final GameMap worldMap;
+    private final int resourceCapUpgrade;
 
     private final TransactionRecord transactionRecord;
     private final KnownPositionInformer knownPositionInformHandler;
@@ -56,6 +57,7 @@ public class CreateBuildingBehaviourHelper {
 
     public CreateBuildingBehaviourHelper(WoaAgent woaAgent,
             CommunicationStandard comStandard, WoaGUI gui, GameMap worldMap,
+            int resourceCapUpgrade,
             TransactionRecord activeTransactions,
             KnownPositionInformer knownPositionInformHandler,
             TribeInfomationBroker tribeInfomationHandler) {
@@ -63,6 +65,7 @@ public class CreateBuildingBehaviourHelper {
         this.comStandard = comStandard;
         this.gui = gui;
         this.worldMap = worldMap;
+        this.resourceCapUpgrade = resourceCapUpgrade;
         this.transactionRecord = activeTransactions;
         this.knownPositionInformHandler = knownPositionInformHandler;
         this.tribeInfomationHandler = tribeInfomationHandler;
@@ -73,6 +76,7 @@ public class CreateBuildingBehaviourHelper {
     /**
      * Start listening behaviour for CreateBuilding agent requests. Unregistered
      * tribes or units will be refused.
+     * @return 
      */
     public Behaviour startBuildingCreationBehaviour() {
 
@@ -163,6 +167,7 @@ public class CreateBuildingBehaviourHelper {
                             gui.createBuilding(ownerTribe.getAID()
                                     .getLocalName(), buildingType);
                             unblockConstructionSite(requesterUnit);
+                            ownerTribe.getResources().upgradeStorageSpace(resourceCapUpgrade);
                             respondMessage(message, ACLMessage.INFORM, createBuildingAction);
                             knownPositionInformHandler
                                     .informAboutKnownCellDetail(unitPosition);

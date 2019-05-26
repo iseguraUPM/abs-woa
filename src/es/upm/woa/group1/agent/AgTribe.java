@@ -62,6 +62,7 @@ public class AgTribe extends GroupAgent {
     private SendAssignStrategyHelper assignStrategyHelper;
     
     private TribeResources tribeResources;
+    private int resourceCapUpgrade;
     
     private static final Queue<Integer> GROUP_NUMBER_QUEUE = new LinkedList<>();
     
@@ -335,7 +336,11 @@ public class AgTribe extends GroupAgent {
                                     ResourceAccount startingResources
                                             = initializeTribe.getStartingResources();
                                     
-                                    tribeResources = new TribeResources(startingResources.getWood(), 
+                                    int resourceCap = initializeTribe.getInitialStorageCapacity();
+                                    resourceCapUpgrade = initializeTribe.getStorageCapacityUpgrade();
+                                    
+                                    tribeResources = new TribeResources(resourceCap
+                                            , startingResources.getWood(), 
                                             startingResources.getStone(), 
                                             startingResources.getFood(), 
                                             startingResources.getGold());
@@ -380,7 +385,7 @@ public class AgTribe extends GroupAgent {
     private void executeStrategy() {
         TribeStrategyBehaviour tribeStrategyBehaviour
                 = new TribeStrategyBehaviour(this, GameClock.getInstance()
-                , assignStrategyHelper, knownMap
+                , assignStrategyHelper, knownMap, resourceCapUpgrade
                 , Collections.unmodifiableCollection(units)
                 , tribeResources, MapCellFinder.getInstance(knownMap));
         startFeedbackUnitStatusBehaviour(tribeStrategyBehaviour);

@@ -12,13 +12,17 @@ import es.upm.woa.group1.WoaDefinitions;
  * @author juanpamz
  */
 public class TribeResources implements Cloneable {
-    
+   
+   private int storageCapacity;
+   
    private int wood;
    private int stone;
    private int food;
    private int gold;
    
-   public TribeResources(int wood, int stone, int food, int gold){
+   public TribeResources(int maxResources, int wood, int stone
+           , int food, int gold) {
+       this.storageCapacity = maxResources;
        this.wood = wood;
        this.stone = stone;
        this.food = food;
@@ -42,19 +46,45 @@ public class TribeResources implements Cloneable {
    }
    
    public void addGold(int amount) {
+       amount = fitAmount(amount);
        gold += amount;
    }
+
+    protected int fitAmount(int amount) {
+        int spaceLeft = storageCapacity - getTotalResources();
+        if (spaceLeft > 0 && spaceLeft < amount) {
+            return spaceLeft;
+        }
+        
+        return amount;
+    }
    
    public void addStone(int amount) {
+       amount = fitAmount(amount);
        stone += amount;
    }
    
    public void addWood(int amount) {
+       amount = fitAmount(amount);
        wood += amount;
    }
    
    public void addFood(int amount) {
+       amount = fitAmount(amount);
        food += amount;
+   }
+   
+   public int getStorageSpaceLeft() {
+       return storageCapacity - getTotalResources();
+   }
+   
+   public void upgradeStorageSpace(int upgradeCapacity) {
+       if (upgradeCapacity > 0)
+        storageCapacity += upgradeCapacity;
+   }
+   
+   private int getTotalResources() {
+       return gold + stone + wood + food;
    }
    
    /**
@@ -192,6 +222,6 @@ public class TribeResources implements Cloneable {
     @Override
     public Object clone() throws CloneNotSupportedException {
         super.clone();
-        return new TribeResources(wood, stone, food, gold);
+        return new TribeResources(storageCapacity, wood, stone, food, gold);
     }
 }
