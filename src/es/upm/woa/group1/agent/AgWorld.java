@@ -189,11 +189,11 @@ public class AgWorld extends WoaAgent implements
 
     protected void finalizeGame() {
         log(Level.WARNING, "Finalizing game...");
-        new SendInformEndOfGameHelper(this, woaComStandard, getAllRegisteredAgentsAIDs())
-                .informEnfOfGame();
         deregisterAgent();
         cleanupActiveTransactions();
         rollbackUnfinishedTransactions();
+        new SendInformEndOfGameHelper(this, woaComStandard, getAllRegisteredAgentsAIDs())
+                .informEnfOfGame();
         finalizing = true;
         stopGameBehaviours();
         guiEndpoint.endGame();
