@@ -71,7 +71,7 @@ public class WoaConfigurator {
             
             instance.mapFilePath = properties.getString("map_path");
             instance.registrationTimeMillis = properties.getInt("reg_millis");
-            instance.gameTicks = properties.getInt("game_millis");
+            instance.gameTicks = properties.getInt("game_ticks");
             instance.guiEndpoint = properties.getString("gui_endpoint");
             instance.tickMillis = properties.getInt("tick_millis");
             instance.maxTribes = properties.getInt("max_tribes");
