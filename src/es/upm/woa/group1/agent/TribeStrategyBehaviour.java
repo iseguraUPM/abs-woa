@@ -37,7 +37,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private static final int FOURTH_PHASE = 3;
     private static final int FIFTH_PHASE = 3;
 
-    private static final int EXPLORE_PHASE_TICKS = 200;
+    private static final int EXPLORE_PHASE_TICKS = 30;
 
     private final WoaAgent agent;
     private final Ticker ticker;
@@ -126,7 +126,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     }
 
     private void checkPhase() {
-        if (phase == FIRST_PHASE && tribeResources.canAffordTownHall()) {
+        /*if (phase == FIRST_PHASE && tribeResources.canAffordTownHall()) {
             phase = SECOND_PHASE;
         } else if (phase == SECOND_PHASE && builtTownHalls > 0) {
             phase = THIRD_PHASE;
@@ -136,7 +136,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         }
         else if (phase == FOURTH_PHASE && builtFarms > 0) {
             phase = FIFTH_PHASE;
-        }
+        }*/
     }
 
     private void performFirstPhase() {
@@ -147,7 +147,6 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
         if (exporers.isEmpty()) {
             exporers.addAll(workingUnits);
-            exporers.forEach(unit -> unit.setBusy());
         }
 
         if (phaseStartElapsedTicks + EXPLORE_PHASE_TICKS
@@ -160,7 +159,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     protected void randomChangeJob(Collection<ProffesionalUnit> from,
              Collection<ProffesionalUnit> to) {
-        ProffesionalUnit candidate = workingUnits.stream().findAny().get();
+        ProffesionalUnit candidate = from.stream().findAny().get();
         from.remove(candidate);
         candidate.setFree();
         to.add(candidate);
@@ -200,7 +199,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private AID[] collectAIDs(Collection<? extends Unit> units) {
         return units.stream().map(unit -> unit.getId())
                 .collect(Collectors.toList())
-                .toArray(new AID[unitCollection.size()]);
+                .toArray(new AID[units.size()]);
     }
 
     private void assignTownHallConstructor() {

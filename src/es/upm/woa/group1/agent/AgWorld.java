@@ -16,6 +16,7 @@ import es.upm.woa.group1.agent.world.CreateUnitBehaviourHelper;
 import es.upm.woa.group1.agent.world.MoveUnitBehaviourHelper;
 import es.upm.woa.group1.agent.world.CreateBuildingBehaviourHelper;
 import es.upm.woa.group1.WoaConfigurator;
+import es.upm.woa.group1.agent.world.ExploitResourceBehaviourHelper;
 import es.upm.woa.group1.agent.world.GameOverConversation;
 import es.upm.woa.group1.agent.world.GameOverResource;
 import es.upm.woa.group1.agent.world.KnownPositionInformer;
@@ -504,6 +505,9 @@ public class AgWorld extends WoaAgent implements
         worldBehaviours.add(new CreateBuildingBehaviourHelper(this, woaComStandard, guiEndpoint,
                  worldMap, woaConfigurator.getStoreUpgradeAmount(), this, this, this)
                 .startBuildingCreationBehaviour());
+        worldBehaviours.add(new ExploitResourceBehaviourHelper(this
+                , woaComStandard, worldMap, this, guiEndpoint, this
+                , this, this, this).startExploitResourcesBehaviour());
     }
 
     private void connectToGuiEndpoint() {

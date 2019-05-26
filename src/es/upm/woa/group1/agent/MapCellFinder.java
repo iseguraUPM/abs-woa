@@ -59,6 +59,10 @@ class MapCellFinder implements LocationFinder {
     }
     
     private MapCell findMatchCloseTo(MapCell zero, MapCellEvaluator evaluator) {
+        if (evaluator.match(zero)) {
+            return zero;
+        }
+        
         Queue<MapCell> candidates = new LinkedList<>();
         candidates.addAll(graphMap.getNeighbours(zero));
         Set<MapCell> discarded = new HashSet<>();
