@@ -40,5 +40,8 @@ public class WoaDefinitions {
     public final static String AGENT_CLASS_PATH_TEMPLATE = "es.upm.woa.group{0}.agent.";
     public final static String AGENT_TRIBE_CLASS_NAME = "AgTribe";
     public final static String AGENT_UNIT_CLASS_NAME = "AgUnit";
-
+    
+    public final static int FARM_EXPLOIT_QUANTITY = 5;
+    public final static int ORE_EXPLOIT_QUANTITY = 10;
+    public final static int FOREST_EXPLOIT_QUANTITY = 10;
 }
