@@ -81,14 +81,8 @@ class ReceiveInformCellDetailBehaviourHelper {
                 NotifyCellDetail cellDetail = (NotifyCellDetail) conc;
 
                 Cell informedCell = cellDetail.getNewCell();
-                try {
-                    knownMap
-                            .getCellAt(informedCell.getX(),
-                                     informedCell.getY());
-                } catch (NoSuchElementException ex) {
-                    groupAgent.onCellDiscovered(MapCellFactory.getInstance()
+                groupAgent.onCellDiscovered(MapCellFactory.getInstance()
                             .buildCell(informedCell));
-                }
                 return;
             }
         }
