@@ -13,7 +13,7 @@ import jade.core.Agent;
  */
 public class WaitStrategy extends Strategy {
     
-    private static final int WAIT_PRIORITY = LOW_PRIORITY - 10;
+    private static final int WAIT_PRIORITY = LOW_PRIORITY + 10;
 
     public WaitStrategy(Agent agent) {
         super(agent);

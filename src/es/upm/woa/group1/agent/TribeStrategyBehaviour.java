@@ -396,15 +396,15 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                 .envelopFreeExploreStrategy(Strategy.MID_PRIORITY));
 
         assignStrategies(miners, StrategyFactory
-                .envelopExploitResourceStrategy(Strategy.MID_PRIORITY,
+                .envelopExploitResourceStrategy(Strategy.MID_PRIORITY - 1,
                          WoaDefinitions.ORE));
 
         assignStrategies(lumberjacks, StrategyFactory
-                .envelopExploitResourceStrategy(Strategy.MID_PRIORITY,
+                .envelopExploitResourceStrategy(Strategy.MID_PRIORITY - 1,
                          WoaDefinitions.FOREST));
 
         assignStrategies(farmers, StrategyFactory
-                .envelopExploitResourceStrategy(Strategy.MID_PRIORITY,
+                .envelopExploitResourceStrategy(Strategy.MID_PRIORITY - 1,
                          WoaDefinitions.FARM));
     }
 

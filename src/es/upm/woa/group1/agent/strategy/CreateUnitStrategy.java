@@ -92,7 +92,6 @@ class CreateUnitStrategy extends Strategy {
      
     private void finishStrategy() {
         finished = true;
-        priority = LOW_PRIORITY;
     }
 
     @Override
