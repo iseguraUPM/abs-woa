@@ -5,6 +5,8 @@
  */
 package es.upm.woa.group1.gui;
 
+import es.upm.woa.group1.WoaDefinitions;
+
 /**
  *
  * @author ISU
@@ -14,14 +16,14 @@ public interface WoaGUI {
     public static final String ACTION_EXPLOIT = "exploit";
     public static final String ACTION_NEGOTIATE = "negotiate";
     
-    public static final String RESOURCE_FOOD = "food";
-    public static final String RESOURCE_WOOD = "wood";
-    public static final String RESOURCE_STONE = "stone";
-    public static final String RESOURCE_GOLD = "gold";
+    public static final String RESOURCE_FOOD = WoaDefinitions.FOOD;
+    public static final String RESOURCE_WOOD = WoaDefinitions.WOOD;
+    public static final String RESOURCE_STONE = WoaDefinitions.STONE;
+    public static final String RESOURCE_GOLD = WoaDefinitions.GOLD;
     
-    public static final String BUILDING_TOWNHALL = "Town Hall";
-    public static final String BUILDING_FARM = "Farm";
-    public static final String BUILDING_STORE = "Store";
+    public static final String BUILDING_TOWNHALL = WoaDefinitions.TOWN_HALL;
+    public static final String BUILDING_FARM = WoaDefinitions.FARM;
+    public static final String BUILDING_STORE = WoaDefinitions.STORE;
     
     void startGame(String[] playerIds, String jsonMapData);
     

@@ -463,15 +463,5 @@ public class CreateBuildingBehaviourHelper {
         return true;
     }
 
-    public interface KnownPositionInformer {
-
-        /**
-         * Inform all tribes that may know the cell about its details.
-         *
-         * @param knownPosition
-         */
-        void informAboutKnownCellDetail(MapCell knownPosition);
-
-    }
 
 }

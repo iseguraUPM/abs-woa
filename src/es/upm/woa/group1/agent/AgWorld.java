@@ -18,6 +18,7 @@ import es.upm.woa.group1.agent.world.CreateBuildingBehaviourHelper;
 import es.upm.woa.group1.WoaConfigurator;
 import es.upm.woa.group1.agent.world.GameOverConversation;
 import es.upm.woa.group1.agent.world.GameOverResource;
+import es.upm.woa.group1.agent.world.KnownPositionInformer;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.gui.WoaGUIFactory;
 import es.upm.woa.group1.map.GameMap;
@@ -71,7 +72,7 @@ import java.util.logging.ConsoleHandler;
  *
  */
 public class AgWorld extends WoaAgent implements
-        CreateBuildingBehaviourHelper.KnownPositionInformer,
+         KnownPositionInformer,
          StartGameInformer,
          CreateUnitBehaviourHelper.UnitCreator,
          UnitMovementInformer,
