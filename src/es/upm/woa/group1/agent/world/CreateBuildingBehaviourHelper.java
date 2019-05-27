@@ -214,6 +214,10 @@ public class CreateBuildingBehaviourHelper {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
                 return ownerTribe.getResources().canAffordTownHall();
+            case WoaDefinitions.FARM:
+                return ownerTribe.getResources().canAffordFarm();
+            case WoaDefinitions.STORE:
+                return ownerTribe.getResources().canAffordStore();
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
                 return false;
