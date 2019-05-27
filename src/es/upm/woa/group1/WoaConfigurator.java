@@ -74,9 +74,13 @@ public class WoaConfigurator {
             instance.gameTicks = properties.getInt("game_ticks");
             instance.guiEndpoint = properties.getString("gui_endpoint");
             instance.tickMillis = properties.getInt("tick_millis");
-            instance.maxTribes = properties.getInt("max_tribes");
             instance.resourceCap = properties.getInt("resource_cap");
             instance.storeUpgradeAmount = properties.getInt("store_upgrade_amount");
+            
+            if (!properties.containsKey("max_tribes")) {
+                throw new ConfigurationException("Group 1 configuration file not found");
+            }
+            instance.maxTribes = properties.getInt("max_tribes");
         }
 
         return instance;
