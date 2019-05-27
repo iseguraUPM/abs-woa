@@ -124,6 +124,9 @@ public class CreateUnitBehaviourHelper {
                 
                 purchaseUnit(ownerTribe, requesterUnit);
                 respondMessage(message, ACLMessage.AGREE, createUnitAction);
+                
+                requesterUnit.setBusy();
+                
                 DelayedTransactionalBehaviour activeTransaction
                         = new DelayedTransactionalBehaviour(myAgent, CREATE_UNIT_TICKS) {
 
@@ -141,6 +144,7 @@ public class CreateUnitBehaviourHelper {
                                     .launchNewAgentUnit(unitPosition, ownerTribe, new OnCreatedUnitHandler() {
                                 @Override
                                 public void onCreatedUnit(Unit createdUnit) {
+                                    requesterUnit.setFree();
                                     respondMessage(message, ACLMessage.INFORM, createUnitAction);
                                     informTribeAboutNewUnit(ownerTribe, createdUnit);
                                     gui.createAgent(ownerTribe.getAID().getLocalName(),
@@ -155,6 +159,7 @@ public class CreateUnitBehaviourHelper {
 
                                 @Override
                                 public void onCouldNotCreateUnit() {
+                                    requesterUnit.setFree();
                                     refundUnit(ownerTribe, requesterUnit);
 
                                     respondMessage(message, ACLMessage.FAILURE, createUnitAction);

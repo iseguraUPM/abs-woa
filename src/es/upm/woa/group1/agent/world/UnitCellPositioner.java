@@ -30,11 +30,9 @@ public class UnitCellPositioner {
     private static UnitCellPositioner instance;
 
     private final GameMap worldMap;
-    private final Set<Unit> movingUnits;
 
     private UnitCellPositioner(GameMap worldMap) {
         this.worldMap = worldMap;
-        this.movingUnits = new HashSet<>();
     }
 
     /**
@@ -51,19 +49,9 @@ public class UnitCellPositioner {
     }
 
     /**
-     *
-     * @param unit
-     * @return the unit is currently undergoing positioning
-     */
-    public boolean isMoving(Unit unit) {
-        return movingUnits.contains(unit);
-    }
-
-    /**
      * Moves the target unit to the new cell
      *
      * @param agent to execute movement
-     * @param gameMap where to perform movement
      * @param unit to move
      * @param translationCode defining the direction of the movement
      * @param handler
@@ -114,7 +102,7 @@ public class UnitCellPositioner {
                     + "," + cell.getYCoord() + "]");
         }
 
-        setAsMoving(unit);
+        unit.setBusy();
 
         DelayedTransactionalBehaviour dtb = createMovementBehaviour(agent, unit,
                  cell, handler);
@@ -158,7 +146,7 @@ public class UnitCellPositioner {
             public void commit() {
                 if (!finished) {
                     unit.setPosition(cell.getXCoord(), cell.getYCoord());
-                    unsetAsMoving(unit);
+                    unit.setFree();
                     handler.onMove(cell);
                 }
                 finished = true;
@@ -167,7 +155,7 @@ public class UnitCellPositioner {
             @Override
             public void rollback() {
                 if (!finished) {
-                    unsetAsMoving(unit);
+                    unit.setFree();
                     handler.onCancel();
                 }
                 finished = true;
@@ -175,14 +163,6 @@ public class UnitCellPositioner {
 
         };
         return dtb;
-    }
-
-    private void setAsMoving(Unit movingUnit) {
-        movingUnits.add(movingUnit);
-    }
-
-    private void unsetAsMoving(Unit movingUnit) {
-        movingUnits.remove(movingUnit);
     }
 
     // NOTE: this assumes unit is in a correct position
