@@ -90,6 +90,11 @@ public class MoveUnitBehaviourHelper {
                             return;
                         }
                         
+                        if (requesterUnit.isBusy()) {
+                            woaAgent.log(Level.FINE, "Unit is busy. Cannot move");
+                            respondMessage(message, ACLMessage.REFUSE, moveToCellAction);
+                            return;
+                        }
                         
 
                         try {
@@ -99,7 +104,7 @@ public class MoveUnitBehaviourHelper {
                             Concept conc = agAction.getAction();
                             MoveToCell targetCell = (MoveToCell) conc;
                             processMoveToCellAction(targetCell, requesterUnit, message);
-
+                            
                         } catch (NoSuchElementException ex) {
                             woaAgent.log(Level.WARNING, "Unit "
                                     + requesterUnit.getId().getLocalName() + " is at an unknown position");
@@ -116,93 +121,31 @@ public class MoveUnitBehaviourHelper {
                         dummyAction.setTargetDirection(0);
                         final Action moveToCellAction = new Action(woaAgent.getAID(), dummyAction);
                         int translationCode = targetCell.getTargetDirection();
-                        int[] translationVector = getTranslationVectorFromCode(translationCode);
                         
-                        if (translationVector == null) {
-                            woaAgent.log(Level.FINE, "Unit "
-                                    + requesterUnit.getId().getLocalName()
-                                    + " used an incorrect translation code");
-                            respondMessage(message, ACLMessage.NOT_UNDERSTOOD, moveToCellAction);
-                        }
-                        
-                        
-                        int[] newCoordinates = GameMapCoordinate
-                                .applyTranslation(worldMap.getWidth()
-                                        , worldMap.getHeight()
-                                        , requesterUnit.getCoordX()
-                                        , requesterUnit.getCoordY(), translationVector);
-                        if (newCoordinates == null) {
-                            woaAgent.log(Level.FINE, "Unit "
-                                    + requesterUnit.getId().getLocalName()
-                                    + " cannot move in target direction");
-                            respondMessage(message, ACLMessage.REFUSE, moveToCellAction);
-                        }
-                        
-                        
-                        MapCell mapCell = worldMap.getCellAt(newCoordinates[0], newCoordinates[1]);
-                        
-                        initiateMoveToCell(requesterUnit, translationCode, mapCell, moveToCellAction, message);
+                        initiateMoveToCell(requesterUnit, translationCode, moveToCellAction, message);
                     }
 
                    
                 });
             }
-            
-            private int [] getTranslationVectorFromCode(int translationCode) {
-                if (translationCode == CellTranslation.TranslateDirection.UP.translationCode) {
-                    return CellTranslation.V_UP;
-                }
-                else if (translationCode == CellTranslation.TranslateDirection.RUP.translationCode) {
-                    return CellTranslation.V_RUP;
-                }
-                else if (translationCode == CellTranslation.TranslateDirection.RDOWN.translationCode) {
-                    return CellTranslation.V_RDOWN;
-                }
-                else if (translationCode == CellTranslation.TranslateDirection.DOWN.translationCode) {
-                    return CellTranslation.V_DOWN;
-                }
-                else if (translationCode == CellTranslation.TranslateDirection.LDOWN.translationCode) {
-                    return CellTranslation.V_LDOWN;
-                }
-                else if (translationCode == CellTranslation.TranslateDirection.LUP.translationCode) {
-                    return CellTranslation.V_LUP;
-                }
-                else {
-                    return null;
-                }
-            }
 
-            private void initiateMoveToCell(Unit requesterUnit, int translationCode, MapCell mapCell, Action action, ACLMessage message) {
+
+            private void initiateMoveToCell(Unit requesterUnit, int translationCode, Action action, ACLMessage message) {
                 UnitCellPositioner unitPositioner = UnitCellPositioner
-                        .getInstance();
-                if (unitPositioner.isMoving(requesterUnit)) {
-                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
-                            + " already moving. Cannot move again");
-                    respondMessage(message, ACLMessage.REFUSE, action);
-                    return;
-                }
-                
-                if (CellBuildingConstructor.getInstance()
-                        .isBuilding(requesterUnit)) {
-                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
-                            + " is currently building. Current construction"
-                                    + " will be cancelled");
-                    respondMessage(message, ACLMessage.REFUSE, action);
-                    return;
-                }
+                        .getInstance(worldMap);
 
                 try {
-                    Transaction moveTransaction = unitPositioner.move(myAgent, worldMap,
-                             requesterUnit, mapCell, new UnitCellPositioner.UnitMovementHandler() {
+                    Transaction moveTransaction = unitPositioner.move(myAgent, 
+                             requesterUnit, translationCode, new UnitCellPositioner.UnitMovementHandler() {
                         @Override
-                        public void onMove() {
+                        public void onMove(MapCell targetCell) {
                             Tribe ownerTribe = tribeInfomationBroker
                                     .findOwnerTribe(requesterUnit.getId());
 
                             Cell newCell = new Cell();
-                            newCell.setX(mapCell.getXCoord());
-                            newCell.setY(mapCell.getYCoord());
-                            newCell.setContent(mapCell.getContent());
+                            newCell.setX(targetCell.getXCoord());
+                            newCell.setY(targetCell.getYCoord());
+                            newCell.setContent(newCell.getContent());
 
                             MoveToCell moveToCellAction = new MoveToCell();
                             moveToCellAction.setNewlyArrivedCell(newCell);
@@ -213,14 +156,14 @@ public class MoveUnitBehaviourHelper {
                             respondMessage(message, ACLMessage.INFORM, action);
                             
                             gui.moveAgent(requesterUnit.getId()
-                                    .getLocalName(), mapCell.getXCoord(),
-                                     mapCell.getYCoord());
+                                    .getLocalName(), targetCell.getXCoord(),
+                                     targetCell.getYCoord());
 
                             unitMovementInformer
-                                    .processCellOfInterest(ownerTribe, mapCell);
+                                    .processCellOfInterest(ownerTribe, targetCell);
                             
                             unitMovementInformer.informAboutUnitPassby(ownerTribe
-                                        , mapCell);
+                                        , targetCell);
                         }
 
                         @Override
@@ -234,8 +177,7 @@ public class MoveUnitBehaviourHelper {
 
                 } catch (IndexOutOfBoundsException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
-                            + " cannot move to cell " + mapCell.getXCoord()
-                            + ", " + mapCell.getYCoord() + "(" + ex + ")");
+                            + " cannot move (" + ex + ")");
                     respondMessage(message, ACLMessage.REFUSE, action);
                 }
             }

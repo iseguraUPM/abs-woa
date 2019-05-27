@@ -16,11 +16,13 @@ class TribeUnit implements Unit {
     private final AID id;
     private int coordX;
     private int coordY;
+    private boolean busy;
     
     public TribeUnit(AID pId, int pCoordX, int pCoordY) {
         id = pId;
         coordX = pCoordX;
         coordY = pCoordY;
+        busy = false;
     }
     
     @Override
@@ -42,6 +44,21 @@ class TribeUnit implements Unit {
     public void setPosition(int x, int y) {
         coordX = x;
         coordY = y;
+    }
+
+    @Override
+    public boolean isBusy() {
+        return busy;
+    }
+
+    @Override
+    public void setBusy() {
+        busy = true;
+    }
+
+    @Override
+    public void setFree() {
+        busy = false;
     }
     
 }

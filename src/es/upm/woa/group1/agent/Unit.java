@@ -21,4 +21,10 @@ public interface Unit {
 
     void setPosition(int x, int y);
     
+    boolean isBusy();
+    
+    void setBusy();
+    
+    void setFree();
+    
 }

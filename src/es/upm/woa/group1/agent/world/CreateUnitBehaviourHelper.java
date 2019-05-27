@@ -92,13 +92,17 @@ public class CreateUnitBehaviourHelper {
                             respondMessage(message, ACLMessage.REFUSE, createUnitAction);
                             return;
                         }
+                        
+                        if (requesterUnit.isBusy()) {
+                            respondMessage(message, ACLMessage.REFUSE, createUnitAction);
+                            return;
+                        }
 
                         try {
                             MapCell unitPosition = worldMap.getCellAt(requesterUnit
                                     .getCoordX(), requesterUnit.getCoordY());
 
-                            if (!canCreateUnit(ownerTribe, requesterUnit,
-                                     unitPosition)) {
+                            if (!canCreateUnit(ownerTribe, unitPosition)) {
                                 respondMessage(message, ACLMessage.REFUSE, createUnitAction);
                             } else {
                                 initiateUnitCreation(requesterUnit, ownerTribe, unitPosition, message);
@@ -117,18 +121,6 @@ public class CreateUnitBehaviourHelper {
             private void initiateUnitCreation(Unit requesterUnit, Tribe ownerTribe, MapCell unitPosition, ACLMessage message) {
                 final Action createUnitAction
                                 = new Action(woaAgent.getAID(), new CreateUnit());
-                
-                if (UnitCellPositioner.getInstance()
-                        .isMoving(requesterUnit)) {
-                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
-                            + " already moving. Cannot create unit");
-                    respondMessage(message, ACLMessage.REFUSE, createUnitAction);
-                    return;
-                }
-                
-                // NOTE: if the unit were building it means there is not a town
-                // hall. Thus, the request would already be refused later and
-                // checking whether is building or not is unnecessary.
                 
                 purchaseUnit(ownerTribe, requesterUnit);
                 respondMessage(message, ACLMessage.AGREE, createUnitAction);
@@ -221,12 +213,7 @@ public class CreateUnitBehaviourHelper {
                 , WoaGUI.RESOURCE_GOLD, WoaDefinitions.UNIT_GOLD_COST);
     }
     
-    private boolean canCreateUnit(Tribe tribe, Unit requester, MapCell requesterPosition) {
-
-        if (UnitCellPositioner.getInstance().isMoving(requester)) {
-            return false;
-        }
-
+    private boolean canCreateUnit(Tribe tribe, MapCell requesterPosition) {
         return tribe.getResources().canAffordUnit()
                 && thereIsATownHall(requesterPosition, tribe);
     }

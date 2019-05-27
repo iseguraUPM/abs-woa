@@ -51,12 +51,12 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private long elapsedTicks;
     private int phase;
 
-    private final Set<ProffesionalUnit> workingUnits;
-    private final Set<ProffesionalUnit> exporers;
-    private final Set<ProffesionalUnit> miners;
-    private final Set<ProffesionalUnit> lumberjacks;
-    private final Set<ProffesionalUnit> farmers;
-    private final Set<ProffesionalUnit> builders;
+    private final Set<Unit> workingUnits;
+    private final Set<Unit> exporers;
+    private final Set<Unit> miners;
+    private final Set<Unit> lumberjacks;
+    private final Set<Unit> farmers;
+    private final Set<Unit> builders;
     private int builtTownHalls;
     private int builtFarms;
     private int builtStores;
@@ -141,7 +141,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     private void performFirstPhase() {
         if (workingUnits.isEmpty()) {
-            workingUnits.addAll(convertUnits(unitCollection));
+            workingUnits.addAll(unitCollection);
             phaseStartElapsedTicks = ticker.getCurrentTick();
         }
 
@@ -157,17 +157,12 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         }
     }
 
-    protected void randomChangeJob(Collection<ProffesionalUnit> from,
-             Collection<ProffesionalUnit> to) {
-        ProffesionalUnit candidate = from.stream().findAny().get();
+    protected void randomChangeJob(Collection<Unit> from,
+             Collection<Unit> to) {
+        Unit candidate = from.stream().findAny().get();
         from.remove(candidate);
         candidate.setFree();
         to.add(candidate);
-    }
-
-    private Collection<ProffesionalUnit> convertUnits(Collection<Unit> units) {
-        return units.stream().map(unit -> new ProffesionalUnit(unit))
-                .collect(Collectors.toSet());
     }
 
     private void performSecondPhase() {
@@ -186,7 +181,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private void performThirdPhase() {
         if (!builders.isEmpty()) {
             try {
-                ProffesionalUnit builder = builders.stream().filter(unit
+                Unit builder = builders.stream().filter(unit
                         -> !unit.isBusy()).findAny().get();
                 removeJob(builder);
                 miners.add(builder);
@@ -203,7 +198,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     }
 
     private void assignTownHallConstructor() {
-        ProffesionalUnit builder
+        Unit builder
                 = workingUnits.stream().min((Unit t, Unit t1) -> {
                     MapCell unitPosition = graphMap.getCellAt(t.getCoordX(), t.getCoordY());
 
@@ -236,7 +231,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                                  WoaDefinitions.TOWN_HALL));
     }
 
-    private void removeJob(ProffesionalUnit unit) {
+    private void removeJob(Unit unit) {
         exporers.remove(unit);
         farmers.remove(unit);
         miners.remove(unit);
@@ -287,24 +282,30 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     @Override
     public void onExploitedResource(AID unitAID, String resourceType, int amount) {
+        int currentAmount;
         switch (resourceType) {
             case WoaDefinitions.GOLD:
                 tribeResources.addGold(amount);
+                currentAmount = tribeResources.getGold();
                 break;
             case WoaDefinitions.FOOD:
                 tribeResources.addFood(amount);
+                currentAmount = tribeResources.getFood();
                 break;
             case WoaDefinitions.WOOD:
                 tribeResources.addWood(amount);
+                currentAmount = tribeResources.getWood();
                 break;
             case WoaDefinitions.STONE:
                 tribeResources.addStone(amount);
+                currentAmount = tribeResources.getStone();
                 break;
             default:
-                break;
+                return;
         }
         agent.log(Level.FINE, unitAID.getLocalName() + " gained " + amount
-                + " of " + resourceType);
+                + " of " + resourceType + " (" + currentAmount + ", "
+                + tribeResources.getStorageSpaceLeft()+ ")");
     }
 
     @Override
@@ -374,14 +375,14 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         agent.log(Level.FINE, unitAID.getLocalName() + " finished exploring");
     }
 
-    protected void setUnitFinishedJob(Collection<ProffesionalUnit> workers,
+    protected void setUnitFinishedJob(Collection<Unit> workers,
              AID unitAID) {
         if (workers.isEmpty()) {
             return;
         }
 
         try {
-            ProffesionalUnit builder = workers.stream()
+            Unit builder = workers.stream()
                     .filter(unit -> unit.getId()
                     .equals(unitAID)).findAny().get();
             builder.setFree();
@@ -407,8 +408,8 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                          WoaDefinitions.FARM));
     }
 
-    protected void assignStrategies(Collection<ProffesionalUnit> units, StrategyEnvelop strategyEnvelop) {
-        Collection<ProffesionalUnit> freeUnits = units.stream()
+    protected void assignStrategies(Collection<Unit> units, StrategyEnvelop strategyEnvelop) {
+        Collection<Unit> freeUnits = units.stream()
                 .filter(unit -> !unit.isBusy())
                 .collect(Collectors.toSet());
         if (!freeUnits.isEmpty()) {
@@ -420,7 +421,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     private void repeatTownHallConstruction() {
         try {
-            ProffesionalUnit builder = builders.stream().filter(unit
+            Unit builder = builders.stream().filter(unit
                     -> !unit.isBusy()).findAny().get();
             builder.setBusy();
             strategyHelper.unicastStrategy(builder.getId(),
@@ -430,70 +431,6 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         } catch (NoSuchElementException ex) {
             // Still building
         }
-    }
-
-    private class ProffesionalUnit implements Unit {
-
-        private final Unit unit;
-        private boolean busy;
-
-        public ProffesionalUnit(Unit unit) {
-            this.unit = unit;
-            this.busy = false;
-        }
-
-        public void setBusy() {
-            busy = true;
-        }
-
-        public void setFree() {
-            busy = false;
-        }
-
-        public boolean isBusy() {
-            return busy;
-        }
-
-        @Override
-        public int getCoordX() {
-            return unit.getCoordX();
-        }
-
-        @Override
-        public int getCoordY() {
-            return unit.getCoordY();
-        }
-
-        @Override
-        public AID getId() {
-            return unit.getId();
-        }
-
-        @Override
-        public void setPosition(int x, int y) {
-            unit.setPosition(x, y);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o instanceof ProffesionalUnit) {
-                ProffesionalUnit proffesionalUnit = (ProffesionalUnit) o;
-                return unit.equals(proffesionalUnit.unit);
-            } else if (o instanceof Unit) {
-                Unit otherUnit = (Unit) o;
-                return unit.equals(otherUnit);
-            } else {
-                return super.equals(o);
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 3;
-            hash = 97 * hash + Objects.hashCode(this.unit);
-            return hash;
-        }
-
     }
 
 }

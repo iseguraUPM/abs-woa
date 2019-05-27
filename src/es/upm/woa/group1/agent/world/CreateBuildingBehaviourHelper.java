@@ -33,7 +33,6 @@ import jade.lang.acl.ACLMessage;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -53,8 +52,6 @@ public class CreateBuildingBehaviourHelper {
     private final KnownPositionInformer knownPositionInformHandler;
     private final TribeInfomationBroker tribeInfomationHandler;
 
-    private final Map<Unit, Collection<MapCell>> blockedCells;
-
     public CreateBuildingBehaviourHelper(WoaAgent woaAgent,
             CommunicationStandard comStandard, WoaGUI gui, GameMap worldMap,
             int resourceCapUpgrade,
@@ -69,14 +66,13 @@ public class CreateBuildingBehaviourHelper {
         this.transactionRecord = activeTransactions;
         this.knownPositionInformHandler = knownPositionInformHandler;
         this.tribeInfomationHandler = tribeInfomationHandler;
-
-        this.blockedCells = new HashMap<>();
     }
 
     /**
      * Start listening behaviour for CreateBuilding agent requests. Unregistered
      * tribes or units will be refused.
-     * @return 
+     *
+     * @return
      */
     public Behaviour startBuildingCreationBehaviour() {
 
@@ -104,6 +100,11 @@ public class CreateBuildingBehaviourHelper {
                             return;
                         }
 
+                        if (requesterUnit.isBusy()) {
+                            woaAgent.log(Level.FINE, "Unit already busy. Cannot build");
+                            return;
+                        }
+
                         try {
                             ContentElement ce = woaAgent.getContentManager()
                                     .extractContent(message);
@@ -117,9 +118,7 @@ public class CreateBuildingBehaviourHelper {
                                     .getCoordX(), requesterUnit.getCoordY());
 
                             action.setAction(conc);
-                            if (!canCreateBuilding(unitPosition, buildingType,
-                                    ownerTribe, requesterUnit)) {
-
+                            if (!canAffordBuilding(buildingType, ownerTribe)) {
                                 respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                             } else {
                                 initiateBuildingCreation(buildingType,
@@ -147,18 +146,8 @@ public class CreateBuildingBehaviourHelper {
                 dummyAction.setBuildingType("");
                 Action createBuildingAction = new Action(woaAgent.getAID(), dummyAction);
 
-                CellBuildingConstructor buildingConstructor = CellBuildingConstructor.getInstance();
-
-                if (buildingConstructor.isBuilding(requesterUnit)) {
-                    woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
-                            + " is currently building. Current construction"
-                            + " will be cancelled");
-                    respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
-                    return;
-                }
-
+                CellBuildingConstructor buildingConstructor = CellBuildingConstructor.getInstance(worldMap);
                 try {
-                    blockConstructionSite(unitPosition, requesterUnit, buildingType);
 
                     Transaction buildTransaction = buildingConstructor.build(myAgent, ownerTribe, requesterUnit,
                             buildingType, unitPosition, new CellBuildingConstructor.BuildingConstructionHandler() {
@@ -166,7 +155,6 @@ public class CreateBuildingBehaviourHelper {
                         public void onBuilt() {
                             gui.createBuilding(ownerTribe.getAID()
                                     .getLocalName(), buildingType);
-                            unblockConstructionSite(requesterUnit);
                             ownerTribe.getResources().upgradeStorageSpace(resourceCapUpgrade);
                             respondMessage(message, ACLMessage.INFORM, createBuildingAction);
                             knownPositionInformHandler
@@ -176,7 +164,6 @@ public class CreateBuildingBehaviourHelper {
                         @Override
                         public void onCancel() {
                             refundBuilding(ownerTribe, buildingType, requesterUnit);
-                            unblockConstructionSite(requesterUnit);
                             respondMessage(message, ACLMessage.FAILURE, createBuildingAction);
                         }
 
@@ -192,15 +179,12 @@ public class CreateBuildingBehaviourHelper {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot build on cell " + unitPosition.getXCoord()
                             + ", " + unitPosition.getYCoord() + "(" + ex + ")");
-                    unblockConstructionSite(requesterUnit);
 
                     respondMessage(message, ACLMessage.REFUSE, createBuildingAction);
                 } catch (CellBuildingConstructor.UnknownBuildingTypeException ex) {
                     woaAgent.log(Level.FINE, requesterUnit.getId().getLocalName()
                             + " cannot build on cell " + unitPosition.getXCoord()
                             + ", " + unitPosition.getYCoord() + "(" + ex + ")");
-                    unblockConstructionSite(requesterUnit);
-
                     respondMessage(message, ACLMessage.NOT_UNDERSTOOD, createBuildingAction);
                 }
             }
@@ -210,37 +194,6 @@ public class CreateBuildingBehaviourHelper {
         woaAgent.addBehaviour(newBehaviour);
 
         return newBehaviour;
-    }
-
-    private void blockConstructionSite(MapCell unitPosition, Unit requesterUnit, String buildingType) {
-        Collection<MapCell> cells = new HashSet<>();
-        cells.add(unitPosition);
-
-        blockedCells.put(requesterUnit, cells);
-        if (buildingType.equals(WoaDefinitions.TOWN_HALL)) {
-            blockNeighbourCells(requesterUnit);
-        }
-    }
-
-    private void blockNeighbourCells(Unit requesterUnit) {
-        Collection<MapCell> cells = blockedCells.get(requesterUnit);
-
-        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
-            int[] adjacentPosition = GameMapCoordinate
-                    .applyTranslation(worldMap.getWidth(),
-                            worldMap.getHeight(), requesterUnit.getCoordX(),
-                            requesterUnit.getCoordY(), translationVector);
-            try {
-                MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
-                cells.add(adjacentCell);
-            } catch (NoSuchElementException ex) {
-                // That cell does not exist
-            }
-        }
-    }
-
-    private void unblockConstructionSite(Unit requesterUnit) {
-        blockedCells.remove(requesterUnit);
     }
 
     private boolean purchaseBuilding(Tribe ownerTribe, String buildingType, Unit requesterUnit) {
@@ -254,40 +207,6 @@ public class CreateBuildingBehaviourHelper {
             default:
                 woaAgent.log(Level.WARNING, "Unknown building type: " + buildingType);
                 return false;
-        }
-    }
-
-    private boolean canCreateBuilding(MapCell position, String buildingType, Tribe tribe, Unit requester) {
-        if (position instanceof Building) {
-            return false;
-        }
-
-        if (candidateSiteIsBlocked(position)) {
-            return false;
-        }
-
-        if (UnitCellPositioner.getInstance().isMoving(requester)) {
-            woaAgent.log(Level.FINE, requester.getId().getLocalName()
-                    + " cannot build while moving");
-            return false;
-        }
-
-        if (!canAffordBuilding(buildingType, tribe)) {
-            return false;
-        }
-
-        return canPlaceBuildingOnCell(buildingType, requester, tribe);
-    }
-
-    private boolean candidateSiteIsBlocked(MapCell position) {
-        return blockedCells.entrySet().stream().anyMatch(prdct -> prdct.getValue().contains(position));
-    }
-
-    private boolean canPlaceBuildingOnCell(String buildingType, Unit requester, Tribe owner) {
-        if (buildingType.equals(WoaDefinitions.TOWN_HALL)) {
-            return canPlaceNewTownHall(requester);
-        } else {
-            return canPlaceNewBuilding(requester, owner);
         }
     }
 
@@ -357,55 +276,6 @@ public class CreateBuildingBehaviourHelper {
                 WoaGUI.RESOURCE_WOOD, WoaDefinitions.FARM_WOOD_COST);
     }
 
-    // NOTE: not surrounded by any building
-    private boolean canPlaceNewTownHall(Unit requester) {
-        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
-            int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap.getWidth(), worldMap.getHeight(), requester.getCoordX(),
-                    requester.getCoordY(), translationVector);
-            try {
-                MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
-                if (adjacentCell.getContent() instanceof Building) {
-                    return false;
-                } else if (candidateSiteIsBlocked(adjacentCell)) {
-                    return false;
-                }
-            } catch (NoSuchElementException ex) {
-                // That cell does not exist
-            }
-        }
-
-        return true;
-    }
-
-    // NOTE: at least connected to a building from their tribe
-    // which is connected to a Town Hall
-    private boolean canPlaceNewBuilding(Unit requester, Tribe owner) {
-        for (int[] translationVector : GameMapCoordinate.POS_OPERATORS) {
-            int[] adjacentPosition = GameMapCoordinate.applyTranslation(worldMap
-                    .getWidth(), worldMap.getHeight(), requester.getCoordX(),
-                    requester.getCoordY(), translationVector);
-            try {
-                MapCell adjacentCell = worldMap.getCellAt(adjacentPosition[0], adjacentPosition[1]);
-                if (isBuildingFromOwner(adjacentCell, owner)) {
-                    return true;
-                }
-            } catch (NoSuchElementException ex) {
-                // That cell does not exist
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isBuildingFromOwner(MapCell adjacentCell, Tribe owner) {
-        if (adjacentCell.getContent() instanceof Building) {
-            Building existingBuilding = (Building) adjacentCell.getContent();
-            return existingBuilding.getOwner().equals(owner.getAID());
-        }
-
-        return false;
-    }
-
     private boolean purchaseTownHall(Tribe ownerTribe, Unit requesterUnit) {
         boolean success = ownerTribe.getResources().purchaseTownHall();
         if (!success) {
@@ -462,6 +332,5 @@ public class CreateBuildingBehaviourHelper {
 
         return true;
     }
-
 
 }
