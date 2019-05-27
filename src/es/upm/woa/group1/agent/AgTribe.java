@@ -114,12 +114,12 @@ public class AgTribe extends GroupAgent {
                     @Override
                     public void onSent(String conversationID) {
 
-                        log(Level.FINER, "sent RegisterTribe request");
+                        log(Level.FINEST, "sent RegisterTribe request");
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
 
                             @Override
                             public void onAgree(ACLMessage response) {
-                                log(Level.FINE, "receive RegisterTribe agree from "
+                                log(Level.FINEST, "receive RegisterTribe agree from "
                                     + response.getSender().getLocalName());
                             }
 
@@ -187,7 +187,7 @@ public class AgTribe extends GroupAgent {
                         , new Conversation.SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
-                        log(Level.FINE, "Informed unit " + unit.getId()
+                        log(Level.FINEST, "Informed unit " + unit.getId()
                                 .getLocalName() + " of ownership");
                     }
                     
@@ -204,7 +204,7 @@ public class AgTribe extends GroupAgent {
                     @Override
                     public void onRequest(ACLMessage response) {
                         final Action whereAmIAction = new Action(getAID(), null);
-                        log(Level.FINER, "received WhereAmI request from "
+                        log(Level.FINEST, "received WhereAmI request from "
                                         + response.getSender().getLocalName());
                         
                         
@@ -328,7 +328,7 @@ public class AgTribe extends GroupAgent {
                                 Concept conc = agAction.getAction();
 
                                 if (conc instanceof InitalizeTribe) {
-                                    log(Level.FINER, "receive InitializeTribe inform from "
+                                    log(Level.FINEST, "receive InitializeTribe inform from "
                                             + response.getSender().getLocalName());
 
                                     InitalizeTribe initializeTribe = (InitalizeTribe) conc;

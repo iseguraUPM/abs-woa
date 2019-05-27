@@ -40,7 +40,7 @@ class SendFeedbackUnitStatusHelper {
                          new SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
-                        woaAgent.log(Level.FINE, "Feedback unit"
+                        woaAgent.log(Level.FINEST, "Feedback unit"
                                 + " status to "
                                 + tribeAid.getLocalName());
                     }

@@ -90,7 +90,7 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                 sendMessage(worldAID, ACLMessage.REQUEST, moveAction, new SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
-                        woaAgent.log(Level.FINE, "wants to move from "
+                        woaAgent.log(Level.FINER, "wants to move from "
                                 + agentUnit.getCurrentPosition() + " "
                                 + operation);
 
@@ -110,7 +110,7 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                     
                     @Override
                     public void onAgree(ACLMessage response) {
-                        woaAgent.log(Level.FINER, "receive MoveToCell agree from "
+                        woaAgent.log(Level.FINEST, "receive MoveToCell agree from "
                                 + response.getSender().getLocalName());
                         
                         receiveResponse(conversationID, new Conversation.ResponseHandler() {
@@ -125,7 +125,7 @@ abstract class FollowPathBehaviour extends SimpleBehaviour {
                             @Override
                             public void onInform(ACLMessage response) {
                                 try {
-                                    woaAgent.log(Level.FINER, "receive MoveToCell inform from "
+                                    woaAgent.log(Level.FINEST, "receive MoveToCell inform from "
                                             + response.getSender().getLocalName());
                                     
                                     Cell newPosition = extractCellFromMessage(response);

@@ -250,7 +250,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
             Unit movedUnit = unitCollection.stream().filter(unit -> unit.getId()
                     .equals(unitAID)).findAny().get();
             movedUnit.setPosition(xCoord, yCoord);
-            agent.log(Level.FINE, unitAID.getLocalName() + " changed position");
+            agent.log(Level.FINER, unitAID.getLocalName() + " changed position");
         } catch (NoSuchElementException ex) {
             agent.log(Level.WARNING, "Could not change position of unknown unit: "
                     + unitAID.getLocalName());

@@ -141,7 +141,7 @@ public class AgRegistrationDesk extends WoaAgent {
                             RegisterTribe registerTribe = (RegisterTribe) action.getAction();
                             int tribeNumber = registerTribe.getTeamNumber();
                             
-                            log(Level.FINE, "received Tribe request from"
+                            log(Level.FINEST, "received Tribe request from"
                                     + message.getSender().getLocalName());
                             
                             if (!canRegister(message, tribeNumber)) {

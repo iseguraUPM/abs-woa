@@ -175,7 +175,7 @@ class FreeExploreStrategy extends Strategy {
             @Override
             protected void onArrived(CellTranslation direction, MapCell destination) {
                 agentUnit.updateCurrentPosition(direction, destination);
-                woaAgent.log(Level.FINE, "arrived to cell "
+                woaAgent.log(Level.FINER, "arrived to cell "
                         + destination);
                 moveInDirection(lastTranslation, handler);
             }
@@ -183,7 +183,7 @@ class FreeExploreStrategy extends Strategy {
             @Override
             protected void onStep(CellTranslation direction, MapCell currentCell) {
                 agentUnit.updateCurrentPosition(direction, currentCell);
-                woaAgent.log(Level.FINE, "traveling to cell "
+                woaAgent.log(Level.FINER, "traveling to cell "
                         + nextCandidate + " from "
                         + currentCell);
             }
@@ -209,7 +209,7 @@ class FreeExploreStrategy extends Strategy {
                         , new Conversation.SentMessageHandler() {
                     @Override
                     public void onSent(String conversationID) {
-                        woaAgent.log(Level.FINE, "wants to explore from "
+                        woaAgent.log(Level.FINER, "wants to explore from "
                                 + agentUnit.getCurrentPosition() + " "
                                 + direction);
 
