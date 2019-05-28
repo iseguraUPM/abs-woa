@@ -141,7 +141,8 @@ public class StrategyFactory {
                     = (ExploitResourceRequest) envelop.getContent();
             return new ExploitResourceStrategy(envelop.getPriority(), woaAgent
                     , comStandard, graphKnownMap, worldAID, agentUnit
-                    , request.resourceType, exploitResourceRequestHandler
+                    , request.resourceType, request.targetAmount
+                    , exploitResourceRequestHandler
                     , locationFinder);
         }
         else {
@@ -160,6 +161,7 @@ public class StrategyFactory {
             throw new UnexpectedArgument("Could not find map cell argument");  
         }
     }
+    
     
     public static StrategyEnvelop envelopFreeExploreStrategy(int priority) {
         return new Envelop(FREE_EXPLORE, priority);
@@ -205,12 +207,14 @@ public class StrategyFactory {
      * 
      * @param priority
      * @param resourceType can be Farm, Ore or Forest
+     * @param targetAmount to exploit
      * @return the strategy envelop to send
      */
     public static StrategyEnvelop envelopExploitResourceStrategy(int priority
-            , String resourceType) {
+            , String resourceType, int targetAmount) {
         ExploitResourceRequest request = new ExploitResourceRequest();
         request.resourceType = resourceType;
+        request.targetAmount = targetAmount;
         
         return new Envelop(EXPLOIT_RESOURCE, priority, request);
     }
@@ -224,6 +228,7 @@ public class StrategyFactory {
     
     private static class ExploitResourceRequest implements Serializable {
         String resourceType;
+        int targetAmount;
     }
     
     private static class Envelop implements StrategyEnvelop {

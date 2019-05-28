@@ -147,7 +147,7 @@ class CreateBuildingStrategy extends Strategy {
                         + " construction site close to "
                         + agentUnit.getCurrentPosition());
                 finishStrategy();
-                createBuildingRequestHandler.onFinishedBuilding(buildingType);
+                createBuildingRequestHandler.onErrorBuilding(buildingType);
                 return;
             }
         }
