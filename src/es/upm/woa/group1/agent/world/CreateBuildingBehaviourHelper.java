@@ -12,13 +12,11 @@ import es.upm.woa.group1.WoaDefinitions;
 import es.upm.woa.group1.agent.TransactionRecord;
 import es.upm.woa.group1.gui.WoaGUI;
 import es.upm.woa.group1.map.GameMap;
-import es.upm.woa.group1.map.GameMapCoordinate;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.Transaction;
 
-import es.upm.woa.ontology.Building;
 import es.upm.woa.ontology.CreateBuilding;
 import es.upm.woa.ontology.GameOntology;
 
@@ -30,9 +28,6 @@ import jade.content.onto.basic.Action;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
@@ -153,8 +148,7 @@ public class CreateBuildingBehaviourHelper {
                             buildingType, unitPosition, new CellBuildingConstructor.BuildingConstructionHandler() {
                         @Override
                         public void onBuilt() {
-                            gui.createBuilding(ownerTribe.getAID()
-                                    .getLocalName(), buildingType);
+                            gui.createBuilding(requesterUnit.getId().getLocalName(), buildingType);
                             ownerTribe.getResources().upgradeStorageSpace(resourceCapUpgrade);
                             respondMessage(message, ACLMessage.INFORM, createBuildingAction);
                             knownPositionInformHandler
