@@ -384,7 +384,7 @@ public class AgTribe extends GroupAgent {
 
     private void executeStrategy() {
         TribeStrategyBehaviour tribeStrategyBehaviour
-                = new TribeStrategyBehaviour(this, GameClock.getInstance()
+                = new TribeStrategyBehaviour(this, new TribeClock()
                 , assignStrategyHelper, knownMap, resourceCapUpgrade
                 , Collections.unmodifiableCollection(units)
                 , tribeResources, MapCellFinder.getInstance(knownMap));
