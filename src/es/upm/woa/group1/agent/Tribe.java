@@ -21,10 +21,10 @@ public class Tribe {
     private final GameMap knownMap;
     private final TribeResources resources;
 
-    public Tribe(int tribeNumber, AID pId, TribeResources resources) {
+    public Tribe(int tribeNumber, AID pId, GameMap knownMap, TribeResources resources) {
         this.tribeNumber = tribeNumber;
         this.agentID = pId;
-        this.knownMap = GraphGameMap.getInstance();
+        this.knownMap = knownMap;
         this.resources = resources;
     }
     
