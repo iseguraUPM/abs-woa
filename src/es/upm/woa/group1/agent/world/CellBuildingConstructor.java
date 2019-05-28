@@ -70,7 +70,7 @@ public class CellBuildingConstructor {
      * @throws CellBuildingConstructor.UnknownBuildingTypeException when try
      * to build an unknown type of building
      */
-    public synchronized Transaction build(Agent agent, Tribe ownerTribe, Unit unit, String buildingType,
+    public Transaction build(Agent agent, Tribe ownerTribe, Unit unit, String buildingType,
              MapCell cell, BuildingConstructionHandler handler)
             throws CellOccupiedException, UnknownBuildingTypeException {
         

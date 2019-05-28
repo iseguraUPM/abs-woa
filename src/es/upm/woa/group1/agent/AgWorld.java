@@ -57,8 +57,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.ConsoleHandler;
@@ -168,7 +166,7 @@ public class AgWorld extends WoaAgent implements
         woaComStandard.register(getContentManager());
 
         tribeCollection = new HashSet<>();
-        activeTransactions = Collections.synchronizedList(new ArrayList<>());
+        activeTransactions = new ArrayList<>();
         worldBehaviours = new ArrayList<>();
         worldUnits = new ArrayList<>();
 
