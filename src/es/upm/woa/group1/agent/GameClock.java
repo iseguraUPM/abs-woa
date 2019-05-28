@@ -30,7 +30,7 @@ public class GameClock implements Ticker {
         tickMillis = tick;
     }
 
-    public synchronized static GameClock getInstance() {
+    public static GameClock getInstance() {
         if (instance == null) {
             int tickDeltaMillis;
             try {
