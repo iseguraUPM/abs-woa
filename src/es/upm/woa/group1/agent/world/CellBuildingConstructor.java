@@ -31,6 +31,8 @@ import java.util.NoSuchElementException;
 public class CellBuildingConstructor {
 
     private static final int CREATE_TOWN_HALL_TICKS = 240;
+    private static final int CREATE_STORE_TICKS = 120;
+    private static final int CREATE_FARM_TICKS = 120;
 
     private static CellBuildingConstructor instance;
 
@@ -111,8 +113,24 @@ public class CellBuildingConstructor {
 
     private DelayedTransactionalBehaviour createBuildingBehaviour(Agent agent, String buildingType
             , Tribe ownerTribe, Unit unit, MapCell cell, BuildingConstructionHandler handler) {
+        int createBuildingTicks;
+        
+        switch (buildingType) {
+            case WoaDefinitions.TOWN_HALL:
+                createBuildingTicks = CREATE_TOWN_HALL_TICKS;
+                break;
+            case WoaDefinitions.STORE:
+                createBuildingTicks = CREATE_STORE_TICKS;
+                break;
+            case WoaDefinitions.FARM:
+                createBuildingTicks = CREATE_FARM_TICKS;
+                break;
+            default:
+                return null;
+        }
+        
         DelayedTransactionalBehaviour dtb
-                = new DelayedTransactionalBehaviour(agent, CREATE_TOWN_HALL_TICKS) {
+                = new DelayedTransactionalBehaviour(agent, createBuildingTicks) {
 
             boolean finished = false;
 
