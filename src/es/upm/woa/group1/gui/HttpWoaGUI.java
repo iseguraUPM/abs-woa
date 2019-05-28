@@ -243,7 +243,7 @@ class HttpWoaGUI implements WoaGUI {
         JsonNodeFactory factory = JsonNodeFactory.instance;
         
         ObjectNode root = factory.objectNode();
-        root.put("player_id", playerId).put("type", buildingType);        
+        root.put("agent_id", playerId).put("type", buildingType);        
         
         sendJsonObjectTo(URI_CREATE_BUILDING, root);
     }
