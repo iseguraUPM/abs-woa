@@ -107,6 +107,10 @@ class GraphGameMap implements PathfinderGameMap {
             updateDijskstraPath();
         }
         
+        if (!mapGraph.containsVertex(source) || !mapGraph.containsVertex(target)) {
+            return new ArrayList<>();
+        }
+        
         GraphPath<MapCell, CellTranslation> shortestPath
                 = dijkstraShortestPath.getPath(source, target);
         if (shortestPath == null) {
@@ -119,6 +123,11 @@ class GraphGameMap implements PathfinderGameMap {
     @Override
     public List<CellTranslation> findShortestPathTo(MapCell source
             , Predicate<MapCell> filterPredicate) {
+        
+        if (!mapGraph.containsVertex(source)) {
+            return new ArrayList<>();
+        }
+        
         List<MapCell> availableCells = mapGraph.vertexSet().stream()
                 .filter(filterPredicate).collect(Collectors.toList());
         
