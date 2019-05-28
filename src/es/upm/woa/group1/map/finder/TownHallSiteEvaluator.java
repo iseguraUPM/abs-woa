@@ -8,6 +8,7 @@ package es.upm.woa.group1.map.finder;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.ontology.Building;
+import es.upm.woa.ontology.Ground;
 
 import java.util.Set;
 
@@ -25,6 +26,9 @@ public class TownHallSiteEvaluator implements MapCellEvaluator {
     
     @Override
     public boolean match(MapCell candidate) {
+        if (!(candidate.getContent() instanceof Ground)) {
+            return false;
+        }
         
         Set<MapCell> neighbours = graphMap.getNeighbours(candidate);
         
