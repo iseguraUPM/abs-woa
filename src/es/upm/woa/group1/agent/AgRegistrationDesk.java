@@ -7,6 +7,7 @@ package es.upm.woa.group1.agent;
 
 import es.upm.woa.group1.WoaConfigurator;
 import es.upm.woa.group1.WoaLogger;
+import es.upm.woa.group1.agent.world.SimpleGameMap;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 import es.upm.woa.group1.protocol.DelayTickBehaviour;
@@ -150,7 +151,8 @@ public class AgRegistrationDesk extends WoaAgent {
                                 Tribe newTribe;
                                 
                                 try {
-                                    newTribe = new Tribe(tribeNumber, message.getSender()
+                                    newTribe = new Tribe(tribeNumber
+                                            , message.getSender(), new SimpleGameMap()
                                             , (TribeResources) initialTribeResources.clone());
                                     registeredTribes.add(newTribe);
                                     log(Level.INFO, "Registered tribe number "
