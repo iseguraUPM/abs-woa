@@ -32,6 +32,11 @@ public class TownHallSiteEvaluator implements MapCellEvaluator {
         
         Set<MapCell> neighbours = graphMap.getNeighbours(candidate);
         
+        // NOTE: make sure we al least discovered the cell
+        if (neighbours.size() != 6) {
+            return false;
+        }
+        
         return neighbours.stream().allMatch(n -> {
             return !(n.getContent() instanceof Building);
         });
