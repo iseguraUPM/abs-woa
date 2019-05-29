@@ -17,11 +17,12 @@ import jade.core.behaviours.SimpleBehaviour;
 public class DelayTickBehaviour extends SimpleBehaviour {
    private final long timeout;
    private long wakeupTime;
-   private boolean finished = false;
+   private boolean finished;
    
    public DelayTickBehaviour(Agent a, long tickTimeout) {
       super(a);
       this.timeout = tickTimeout;
+      this.finished = false;
    }
    
    @Override

@@ -508,7 +508,6 @@ public class AgWorld extends WoaAgent implements
 
     private void startWorldBehaviours() {
         startGameBehaviours();
-        startTransactionCleanupBehaviour();
         startGameOverBehaviour();
     }
 
@@ -582,20 +581,6 @@ public class AgWorld extends WoaAgent implements
         });
     }
 
-    private void startTransactionCleanupBehaviour() {
-        addBehaviour(new CyclicBehaviour() {
-            @Override
-            public void action() {
-                try {
-                    Thread.sleep(CLEAR_TRANSACTION_TIME_MILLIS);
-                } catch (InterruptedException ex) {
-                    log(Level.WARNING, "Waiting interrupted");
-                }
-                cleanupActiveTransactions();
-            }
-        });
-    }
-
     protected void cleanupActiveTransactions() {
         activeTransactions.removeIf(transaction -> transaction.done());
     }
@@ -617,6 +602,7 @@ public class AgWorld extends WoaAgent implements
     @Override
     public void addTransaction(Transaction newTransaction) {
         if (!finalizing) {
+            cleanupActiveTransactions();
             activeTransactions.add(newTransaction);
         }
     }
