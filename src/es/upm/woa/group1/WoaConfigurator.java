@@ -216,7 +216,7 @@ public class WoaConfigurator {
      *  - The position configured is not occupied by a building or resource
      *  - The position configured is already present in the map
      */
-    public MapCell getNewTribeInitialCell(GameMap gameMap, AID tribeAID) throws ConfigurationException {
+    public MapCell getNewTribeInitialCell(GameMap gameMap) throws ConfigurationException {
         if (initialTribePositions == null) {
             initialTribePositions = loadInitialTribePositions();
         }
@@ -231,14 +231,14 @@ public class WoaConfigurator {
         }
         
         try {
-            return getInitialCell(gameMap, position, tribeAID);
+            return getInitialCell(gameMap, position);
         } catch (NoSuchElementException ex) {
             throw new ConfigurationException("The starting position does not fit"
                     + "in the map");
         }
     }
 
-    private MapCell getInitialCell(GameMap gameMap, Integer[] position, AID tribeAID)
+    private MapCell getInitialCell(GameMap gameMap, Integer[] position)
             throws ConfigurationException, NoSuchElementException {
         MapCell targetCell = gameMap.getCellAt(position[0], position[1]);
         
