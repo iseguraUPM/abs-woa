@@ -170,22 +170,22 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     private void checkResources() {
         if (startStrategyElapsedTicks + EXPLORE_PHASE_TICKS <= ticker.getCurrentTick()) {
-            if (builtTownHalls < needTownHalls) {
+            if (builtTownHalls < needTownHalls && townHallBuilder == null) {
                 needGold = Math.max(0, WoaDefinitions.TOWN_HALL_GOLD_COST - tribeResources.getGold());
                 needStone = Math.max(0, WoaDefinitions.TOWN_HALL_STONE_COST - tribeResources.getStone());
                 needWood = Math.max(0, WoaDefinitions.TOWN_HALL_WOOD_COST - tribeResources.getWood());
                 needFood = 0;
-            } else if (builtFarms < needFarms) {
+            } else if (builtFarms < needFarms && farmBuilder == null) {
                 needGold = Math.max(0, WoaDefinitions.FARM_GOLD_COST - tribeResources.getGold());
                 needStone = Math.max(0, WoaDefinitions.FARM_STONE_COST - tribeResources.getStone());
                 needWood = Math.max(0, WoaDefinitions.FARM_WOOD_COST - tribeResources.getWood());
                 needFood = 0;
-            } else if (builtUnits < needUnits) {
+            } else if (builtUnits < needUnits && unitBuilder == null) {
                 needWood = 0;
                 needStone = 0;
                 needGold = Math.max(0, WoaDefinitions.UNIT_GOLD_COST - tribeResources.getGold());
                 needFood = Math.max(0, WoaDefinitions.UNIT_FOOD_COST - tribeResources.getFood());
-            } else if (builtStores < needStores) {
+            } else if (builtStores < needStores && storeBuilder == null) {
                 needGold = Math.max(0, WoaDefinitions.STORE_GOLD_COST - tribeResources.getGold());
                 needStone = Math.max(0, WoaDefinitions.STORE_STONE_COST - tribeResources.getStone());
                 needWood = Math.max(0, WoaDefinitions.STORE_WOOD_COST - tribeResources.getWood());
