@@ -149,16 +149,23 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
             startingUnitNumber = unitCollection.size();
             needTownHalls = 1;
         }
-
+        
         if (unitCollection.size() > workerUnits.size()) {
-            unitCollection.stream()
-                    .filter(unit -> !workerUnits.contains(unit))
-                    .forEach(unit -> {
-                        strategyHelper.unicastStrategy(unit.getId(),
-                                StrategyFactory.envelopFreeExploreStrategy(Strategy.MID_PRIORITY));
-                        workerUnits.add(unit);
-                    });
+            assignExplorerStrategy();
         }
+    }
+
+    private void assignExplorerStrategy() {
+        unitCollection.stream()
+                .filter(unit -> !workerUnits.contains(unit))
+                .forEach(unit -> {
+                    workerUnits.add(unit);
+                    // NOTE: one in three units will be a backtracker
+                    boolean backTracker = workerUnits.size() % 3 == 0;
+                    
+                    strategyHelper.unicastStrategy(unit.getId(),
+                            StrategyFactory.envelopFreeExploreStrategy(Strategy.MID_PRIORITY, backTracker));
+                });
     }
 
     private void checkFinishedJobs() {
@@ -605,6 +612,10 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
             MapCell siteCandidate = mapCellFinder
                     .findMatchingSiteCloseTo(unitPosition, evaluator);
+            
+            if (siteCandidate == null) {
+                return Integer.MAX_VALUE;
+            }
 
             if (unitPosition.equals(siteCandidate)) {
                 return 0;

@@ -97,10 +97,19 @@ public class StrategyFactory {
         }
     }
     
-    private Strategy getFreeExploreStrategy(StrategyEnvelop envelope) {
-        return new FreeExploreStrategy(envelope.getPriority()
+    private Strategy getFreeExploreStrategy(StrategyEnvelop envelope)
+            throws UnexpectedArgument {
+        if (envelope.getContent() instanceof ExploreRequest) {
+            ExploreRequest exploreRequest = (ExploreRequest) envelope.getContent();
+            
+            return new FreeExploreStrategy(envelope.getPriority()
                 , woaAgent, comStandard, graphKnownMap
-                , worldAID, agentUnit, explorationRequestHandler);
+                , worldAID, exploreRequest.backtrackingEnabled
+                    , agentUnit, explorationRequestHandler);
+        }
+        else {
+            throw new UnexpectedArgument("Could not find explore backtracking argument");
+        }
     }
 
     private Strategy getCreateUnitStrategy(StrategyEnvelop envelope) {
@@ -162,9 +171,18 @@ public class StrategyFactory {
         }
     }
     
-    
-    public static StrategyEnvelop envelopFreeExploreStrategy(int priority) {
-        return new Envelop(FREE_EXPLORE, priority);
+    /**
+     * 
+     * @param priority
+     * @param backTrackingEnabled unit explores closer cells first
+     * @return the strategy envelop to send
+     */
+    public static StrategyEnvelop envelopFreeExploreStrategy(int priority
+            , boolean backTrackingEnabled) {
+        ExploreRequest exploreRequest = new ExploreRequest();
+        exploreRequest.backtrackingEnabled = backTrackingEnabled;
+        
+        return new Envelop(FREE_EXPLORE, priority, exploreRequest);
     }
     
     public static StrategyEnvelop envelopCreateUnitStrategy(int priority) {
@@ -229,6 +247,10 @@ public class StrategyFactory {
     private static class ExploitResourceRequest implements Serializable {
         String resourceType;
         int targetAmount;
+    }
+    
+    private static class ExploreRequest implements Serializable {
+        boolean backtrackingEnabled;
     }
     
     private static class Envelop implements StrategyEnvelop {

@@ -44,6 +44,7 @@ class FreeExploreStrategy extends Strategy {
     private final PathfinderGameMap graphKnownMap;
     private final AID worldAID;
     private final int priority;
+    private final boolean backTrackingEnabled;
     
     private final PositionedAgentUnit agentUnit;
     private final ExplorationRequestHandler explorationRequestHandler;
@@ -51,16 +52,18 @@ class FreeExploreStrategy extends Strategy {
     private boolean finishedRound;
     private boolean finishExploration;
     private final Set<MapCell> visitedCandidates;
+    private CellTranslation lastMovement;
     private MapCell nextCandidate;
 
     public FreeExploreStrategy(int priority, WoaAgent agent, CommunicationStandard comStandard
-            , PathfinderGameMap graphGameMap, AID worldAID, PositionedAgentUnit agentUnit
+            , PathfinderGameMap graphGameMap, AID worldAID, boolean backTrackingEnabled, PositionedAgentUnit agentUnit
     , ExplorationRequestHandler explorationRequestHandler) {
         super(agent);
         this.woaAgent = agent;
         this.comStandard = comStandard;
         this.graphKnownMap = graphGameMap;
         this.worldAID = worldAID;
+        this.backTrackingEnabled = backTrackingEnabled;
         this.agentUnit = agentUnit;
         this.explorationRequestHandler = explorationRequestHandler;
         
@@ -68,6 +71,8 @@ class FreeExploreStrategy extends Strategy {
         this.finishedRound = false;
         this.finishExploration = false;
         this.visitedCandidates = new HashSet<>();
+        this.lastMovement = null;
+        this.nextCandidate = null;
     }
 
     @Override
@@ -109,6 +114,12 @@ class FreeExploreStrategy extends Strategy {
 
     private CellTranslation findDirectionToExplore(MapCell currentPosition) {
         nextCandidate = null;
+        if (backTrackingEnabled && lastMovement != null) {
+            CellTranslation inverse = lastMovement.generateInverse();
+            lastMovement = null;
+            return inverse;
+        }
+        
         for (CellTranslation.TranslateDirection direction
                 : computeShuffledTranslationVectors()) {
             CellTranslation translationDirection = new CellTranslation(direction);
@@ -123,6 +134,7 @@ class FreeExploreStrategy extends Strategy {
             }
             else {
                 nextCandidate = currentPosition;
+                lastMovement = translationDirection;
                 return translationDirection;
             }
         }
