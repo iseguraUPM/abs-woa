@@ -77,7 +77,6 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private int needUnits;
 
     private long startStrategyElapsedTicks;
-    private int startingUnitNumber;
 
     public TribeStrategyBehaviour(WoaAgent agent, Ticker ticker,
             SendAssignStrategyHelper strategyHelper,
@@ -146,7 +145,6 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private void checkNewUnits() {
         if (workerUnits.isEmpty()) {
             startStrategyElapsedTicks = ticker.getCurrentTick();
-            startingUnitNumber = unitCollection.size();
             needTownHalls = 1;
         }
         
@@ -211,31 +209,13 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         if (mapExplored) {
             requiredFreeUnits = 0;
         }
-
+        
         Collection<Unit> freeUnits = findFreeUnits(workerUnits);
+        assignBuilders(freeUnits, requiredFreeUnits);
+        assignRemainingJobs(freeUnits, requiredFreeUnits);
+    }
 
-        if (builtTownHalls < needTownHalls && tribeResources.canAffordTownHall()
-                && townHallBuilder == null
-                && freeUnits.size() > requiredFreeUnits) {
-            assignTownHallBuilder(freeUnits);
-        } else if (builtTownHalls > 0 && builtFarms < needFarms
-                && tribeResources.canAffordFarm()
-                && farmBuilder == null
-                && freeUnits.size() > requiredFreeUnits) {
-            assignFarmBuilder(freeUnits);
-        } else if (builtTownHalls > 0 && builtUnits < needUnits
-                && tribeResources.canAffordUnit()
-                && unitBuilder == null
-                && freeUnits.size() > requiredFreeUnits) {
-            assignUnitBuilder(freeUnits);
-        } else if (builtTownHalls > 0 && builtStores < needStores
-                && tribeResources.canAffordUnit()
-                && unitBuilder == null
-                && freeUnits.size() > requiredFreeUnits) {
-            assignStoreBuilder(freeUnits);
-        }
-
-
+    private void assignRemainingJobs(Collection<Unit> freeUnits, int requiredFreeUnits) {
         List<Pair<Integer, Collection<Unit>>> requiredJobs = new ArrayList<>();
         if (builtFarms > 0) {
             requiredJobs.add(new Pair(needFood, farmers));
@@ -263,6 +243,30 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
             if (currentFree == freeUnits.size()) {
                 break;
             }
+        }
+    }
+
+    private void assignBuilders(Collection<Unit> freeUnits, int requiredFreeUnits) {
+        
+        if (builtTownHalls < needTownHalls && tribeResources.canAffordTownHall()
+                && townHallBuilder == null
+                && freeUnits.size() > requiredFreeUnits) {
+            assignTownHallBuilder(freeUnits);
+        } else if (builtTownHalls > 0 && builtFarms < needFarms
+                && tribeResources.canAffordFarm()
+                && farmBuilder == null
+                && freeUnits.size() > requiredFreeUnits) {
+            assignFarmBuilder(freeUnits);
+        } else if (builtTownHalls > 0 && builtUnits < needUnits
+                && tribeResources.canAffordUnit()
+                && unitBuilder == null
+                && freeUnits.size() > requiredFreeUnits) {
+            assignUnitBuilder(freeUnits);
+        } else if (builtTownHalls > 0 && builtStores < needStores
+                && tribeResources.canAffordUnit()
+                && storeBuilder == null
+                && freeUnits.size() > requiredFreeUnits) {
+            assignStoreBuilder(freeUnits);
         }
     }
 
@@ -321,7 +325,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                     StrategyFactory
                             .envelopCreateUnitStrategy(Strategy.HIGH_PRIORITY));
         } catch (NoSuchElementException ex) {
-            agent.log(Level.WARNING, "Could not find a town hall builder");
+            agent.log(Level.WARNING, "Could not find a unit builder");
         }
     }
 
@@ -338,7 +342,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                             .envelopCreateBuildingStrategy(Strategy.HIGH_PRIORITY
                                     , WoaDefinitions.FARM));
         } catch (NoSuchElementException ex) {
-            agent.log(Level.WARNING, "Could not find a town hall builder");
+            agent.log(Level.WARNING, "Could not find a farm builder");
         }
     }
     
@@ -355,7 +359,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                             .envelopCreateBuildingStrategy(Strategy.HIGH_PRIORITY
                                     , WoaDefinitions.STORE));
         } catch (NoSuchElementException ex) {
-            agent.log(Level.WARNING, "Could not find a town hall builder");
+            agent.log(Level.WARNING, "Could not find a store builder");
         }
     }
 
@@ -433,26 +437,17 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     public void onFinishedBuilding(AID unitAID, String buildingType) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
-                if (townHallBuilder != null) {
-                    townHallBuilder.setFree();
-                    townHallBuilder = null;
-                }
+                unassignTownHallBuilder();
                 builtTownHalls++;
                 needFarms++;
                 break;
             case WoaDefinitions.FARM:
-                if (farmBuilder != null) {
-                    farmBuilder.setFree();
-                    farmBuilder = null;
-                }
+                unassignFarmBuilder();
                 builtFarms++;
                 needUnits++;
                 break;
             case WoaDefinitions.STORE:
-                if (storeBuilder != null) {
-                    storeBuilder.setFree();
-                    storeBuilder = null;
-                }
+                unassignStoreBuilder();
                 tribeResources.upgradeStorageSpace(resourceCapUpgrade);
                 needFarms++;
                 builtStores++;
@@ -469,24 +464,15 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     public void onErrorBuilding(AID unitAID, String buildingType) {
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
-                if (townHallBuilder != null) {
-                    townHallBuilder.setFree();
-                    townHallBuilder = null;
-                }
+                unassignTownHallBuilder();
                 tribeResources.refundTownHall();
                 break;
             case WoaDefinitions.STORE:
-                if (storeBuilder != null) {
-                    storeBuilder.setFree();
-                    storeBuilder = null;
-                }
+                unassignStoreBuilder();
                 tribeResources.refundStore();
                 break;
             case WoaDefinitions.FARM:
-                if (farmBuilder != null) {
-                    farmBuilder.setFree();
-                    farmBuilder = null;
-                }
+                unassignFarmBuilder();
                 tribeResources.refundFarm();
                 break;
             default:
@@ -497,15 +483,45 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         agent.log(Level.FINE, unitAID.getLocalName() + " could not build " + buildingType + ". Resources refunded");
     }
 
+    private void unassignTownHallBuilder() {
+        if (townHallBuilder != null) {
+            townHallBuilder.setFree();
+            townHallBuilder = null;
+        }
+    }
+    
+    private void unassignStoreBuilder() {
+        if (storeBuilder != null) {
+            storeBuilder.setFree();
+            storeBuilder = null;
+        }
+    }
+
+    private void unassignFarmBuilder() {
+        if (farmBuilder != null) {
+            farmBuilder.setFree();
+            farmBuilder = null;
+        }
+    }
+
     @Override
     public void onFinishedUnitCreation(AID unitAID) {
+        unassignUnitBuilder();
         builtUnits++;
         needStores++;
         agent.log(Level.FINE, unitAID.getLocalName() + " finished creation of new unit");
     }
 
+    private void unassignUnitBuilder() {
+        if (unitBuilder != null) {
+            unitBuilder.setFree();
+            unitBuilder = null;
+        }
+    }
+
     @Override
     public void onErrorUnitCreation(AID unitAID) {
+        unassignUnitBuilder();
         tribeResources.refundUnit();
         agent.log(Level.FINE, unitAID.getLocalName() + " could not create unit. Resources refunded");
     }
@@ -522,6 +538,9 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
             case WoaDefinitions.FARM:
                 setUnitFinishedJob(farmers, unitAID);
                 break;
+            default:
+                agent.log(Level.WARNING, "Unknown resource type: " + resourceType);
+                break;
         }
 
         agent.log(Level.FINE, unitAID.getLocalName()
@@ -534,7 +553,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         agent.log(Level.FINE, unitAID.getLocalName() + " finished exploring");
     }
 
-    protected void setUnitFinishedJob(Collection<Unit> workers,
+    private void setUnitFinishedJob(Collection<Unit> workers,
             AID unitAID) {
         if (workers.isEmpty()) {
             return;
@@ -572,7 +591,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         return (int) Math.floor(num / divisor);
     }
 
-    protected void assignStrategies(Collection<Unit> units, StrategyEnvelop strategyEnvelop) {
+    private void assignStrategies(Collection<Unit> units, StrategyEnvelop strategyEnvelop) {
         Collection<Unit> freeUnits = findFreeUnits(units);
         if (!freeUnits.isEmpty()) {
             freeUnits.stream().forEach(unit -> unit.setBusy());
@@ -581,7 +600,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         }
     }
 
-    protected Collection<Unit> findFreeUnits(Collection<Unit> units) {
+    private Collection<Unit> findFreeUnits(Collection<Unit> units) {
         Collection<Unit> freeUnits = units.stream()
                 .filter(unit -> !unit.isBusy())
                 .collect(Collectors.toSet());
