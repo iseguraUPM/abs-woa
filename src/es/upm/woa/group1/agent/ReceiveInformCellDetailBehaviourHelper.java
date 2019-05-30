@@ -20,7 +20,6 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.lang.acl.ACLMessage;
 
-import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
 /**

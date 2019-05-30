@@ -11,6 +11,7 @@ import es.upm.woa.group1.agent.strategy.WaitStrategy;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.SerialBehaviour;
 import jade.util.leap.Collection;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

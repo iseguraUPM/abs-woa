@@ -5,8 +5,6 @@
  */
 package es.upm.woa.group1.agent;
 
-import java.util.Collection;
-
 /**
  *
  * @author Martin

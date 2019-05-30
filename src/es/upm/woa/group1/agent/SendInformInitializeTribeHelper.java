@@ -5,7 +5,6 @@
  */
 package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.WoaConfigurator;
 import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.protocol.CommunicationStandard;
@@ -26,7 +25,7 @@ import java.util.Collection;
  *
  * @author juanpamz
  */
-public class SendInformInitializeTribeHelper {
+class SendInformInitializeTribeHelper {
     private final AgWorld groupAgent;
     private final CommunicationStandard comStandard;
     private final AID tribeAID;

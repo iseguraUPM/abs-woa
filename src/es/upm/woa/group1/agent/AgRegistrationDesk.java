@@ -151,7 +151,7 @@ public class AgRegistrationDesk extends WoaAgent {
                                 Tribe newTribe;
                                 
                                 try {
-                                    newTribe = new Tribe(tribeNumber
+                                    newTribe = new WorldTribe(tribeNumber
                                             , message.getSender(), new SimpleGameMap()
                                             , (TribeResources) initialTribeResources.clone());
                                     registeredTribes.add(newTribe);

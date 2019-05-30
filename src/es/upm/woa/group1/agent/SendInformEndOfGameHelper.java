@@ -19,7 +19,7 @@ import java.util.Collection;
  *
  * @author Martin
  */
-public class SendInformEndOfGameHelper {
+class SendInformEndOfGameHelper {
     private final AgWorld groupAgent;
     private final CommunicationStandard comStandard;
     private final Collection<AID> agentsAIDCollection;    

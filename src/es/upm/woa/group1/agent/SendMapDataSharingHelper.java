@@ -5,14 +5,10 @@
  */
 package es.upm.woa.group1.agent;
 
-import es.upm.woa.group1.map.CellTranslation;
-import es.upm.woa.group1.map.GameMap;
-import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.ontology.Group1Ontology;
 import es.upm.woa.group1.protocol.CommunicationStandard;
 import es.upm.woa.group1.protocol.Conversation;
 
-import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
 import java.io.Serializable;

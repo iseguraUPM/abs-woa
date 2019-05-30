@@ -18,7 +18,7 @@ import java.util.logging.Level;
  *
  * @author Martin
  */
-public class ReceiveInformEndOfGameBehaviourHelper {
+class ReceiveInformEndOfGameBehaviourHelper {
     
     private final GroupAgent groupAgent;
     private final CommunicationStandard comStandard;
