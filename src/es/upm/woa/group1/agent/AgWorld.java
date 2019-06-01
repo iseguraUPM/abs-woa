@@ -39,7 +39,6 @@ import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -463,24 +462,13 @@ public class AgWorld extends WoaAgent implements
             Collection<String> startingTribeNames = computeTribeNamesForGUI();
             guiEndpoint.startGame(startingTribeNames.toArray(new String[startingTribeNames.size()]),
                     woaConfigurator.getMapConfigurationContents());
-            for (int i = 1; i <= 6; i++) {
-                final int tribeNumber = i;
-                Tribe registeredTribe = tribeCollection.stream()
-                        .filter(tribe -> tribe.getTribeNumber() == tribeNumber).findAny()
-                        .orElse(null);
-                if (registeredTribe == null) {
-                    guiEndpoint.createAgent("Tribe" + tribeNumber,
-                                        "Tribe" + tribeNumber + "unit", 1,
-                                        1);
-                }
-                else {
-                    registeredTribe.getUnits().forEach((unit) -> {
-                        guiEndpoint.createAgent(registeredTribe.getAID().getLocalName(),
+            tribeCollection.forEach(tribe -> {
+                tribe.getUnits().forEach(unit -> {
+                    guiEndpoint.createAgent(tribe.getAID().getLocalName(),
                                 unit.getId().getLocalName(), unit.getCoordX(),
                                 unit.getCoordY());
-                    });
-                }
-            }
+                });
+            });
         } catch (IOException ex) {
             log(Level.WARNING, "Could not load configuration to the GUI"
                     + " endpoint");
