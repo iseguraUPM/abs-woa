@@ -5,6 +5,7 @@
  */
 package es.upm.woa.group1.agent;
 
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import es.upm.woa.group1.map.finder.TownHallSiteEvaluator;
 import es.upm.woa.group1.agent.strategy.StrategyFactory;
 import es.upm.woa.group1.WoaDefinitions;
@@ -14,6 +15,7 @@ import es.upm.woa.group1.agent.strategy.UnitStatusHanlder;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.PathfinderGameMap;
 import es.upm.woa.group1.map.finder.ForestResourceEvaluator;
+import es.upm.woa.group1.map.finder.LocationFinder;
 import es.upm.woa.group1.map.finder.MapCellEvaluator;
 import es.upm.woa.group1.map.finder.OreResourceEvaluator;
 import es.upm.woa.group1.map.finder.OtherBuildingSiteEvaluator;
@@ -48,7 +50,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private final int resourceCapUpgrade;
     private final Collection<Unit> unitCollection;
     private final TribeResources tribeResources;
-    private final MapCellFinder mapCellFinder;
+    private final LocationFinder mapCellFinder;
 
     private long elapsedTicks;
 
@@ -64,7 +66,9 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     private int builtFarms;
     private int builtStores;
     private int builtUnits;
+    
     private boolean mapExplored;
+    private Collection<MapCell> blockedConstructionSites;
     
     private int needGold;
     private int needWood;
@@ -84,7 +88,7 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
             int resourceCapUpgrade,
             Collection<Unit> unitCollection,
             TribeResources resourceAccount,
-            MapCellFinder mapCellFinder) {
+            LocationFinder mapCellFinder) {
         super(agent);
         this.agent = agent;
         this.ticker = ticker;
@@ -108,7 +112,9 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
         this.builtFarms = 0;
         this.builtStores = 0;
         this.builtUnits = 0;
+        
         this.mapExplored = false;
+        this.blockedConstructionSites = new HashSet<>();
 
         this.needGold = 0;
         this.needFood = 0;
@@ -298,15 +304,25 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     private void assignTownHallBuilder(Collection<Unit> freeWorkers) {
         try {
-            Unit builder = findClosestUnit(freeWorkers, new TownHallSiteEvaluator(graphMap));
+            MapCellEvaluator evaluator = new TownHallSiteEvaluator(graphMap);
+            
+            Unit builder = findClosestBuilder(freeWorkers, evaluator);
 
             townHallBuilder = builder;
             builder.setBusy();
+            
+            MapCell builderPosition = graphMap
+                    .getCellAt(townHallBuilder.getCoordX()
+                            , townHallBuilder.getCoordY());
+            
+            MapCell siteCandidate = mapCellFinder
+                    .findMatchingSiteCloseTo(builderPosition, evaluator
+                            , blockedConstructionSites);
 
             strategyHelper.unicastStrategy(builder.getId(),
                     StrategyFactory
                             .envelopCreateBuildingStrategy(Strategy.HIGH_PRIORITY,
-                                    WoaDefinitions.TOWN_HALL));
+                                    WoaDefinitions.TOWN_HALL, siteCandidate));
         } catch (NoSuchElementException ex) {
             agent.log(Level.WARNING, "Could not find a town hall builder");
         }
@@ -331,16 +347,26 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     private void assignFarmBuilder(Collection<Unit> freeWorkers) {
         try {
-            Unit builder = findClosestUnit(freeWorkers
-                    , new OtherBuildingSiteEvaluator(graphMap, agent.getAID()));
+            MapCellEvaluator evaluator = new OtherBuildingSiteEvaluator(graphMap, agent.getAID());
+            
+            Unit builder = findClosestBuilder(freeWorkers
+                    , evaluator);
 
             farmBuilder = builder;
             builder.setBusy();
 
+            MapCell builderPosition = graphMap
+                    .getCellAt(farmBuilder.getCoordX()
+                            , farmBuilder.getCoordY());
+            
+            MapCell siteCandidate = mapCellFinder
+                    .findMatchingSiteCloseTo(builderPosition, evaluator
+                            , blockedConstructionSites);
+            
             strategyHelper.unicastStrategy(builder.getId(),
                     StrategyFactory
                             .envelopCreateBuildingStrategy(Strategy.HIGH_PRIORITY
-                                    , WoaDefinitions.FARM));
+                                    , WoaDefinitions.FARM, siteCandidate));
         } catch (NoSuchElementException ex) {
             agent.log(Level.WARNING, "Could not find a farm builder");
         }
@@ -348,16 +374,27 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
     
     private void assignStoreBuilder(Collection<Unit> freeWorkers) {
         try {
-            Unit builder = findClosestUnit(freeWorkers
-                    , new OtherBuildingSiteEvaluator(graphMap, agent.getAID()));
+            MapCellEvaluator evaluator = new OtherBuildingSiteEvaluator(graphMap
+                    , agent.getAID());
+            
+            Unit builder = findClosestBuilder(freeWorkers
+                    , evaluator);
 
             storeBuilder = builder;
             builder.setBusy();
+            
+            MapCell builderPosition = graphMap
+                    .getCellAt(storeBuilder.getCoordX()
+                            , storeBuilder.getCoordY());
+            
+            MapCell siteCandidate = mapCellFinder
+                    .findMatchingSiteCloseTo(builderPosition, evaluator
+                            , blockedConstructionSites);
 
             strategyHelper.unicastStrategy(builder.getId(),
                     StrategyFactory
                             .envelopCreateBuildingStrategy(Strategy.HIGH_PRIORITY
-                                    , WoaDefinitions.STORE));
+                                    , WoaDefinitions.STORE, siteCandidate));
         } catch (NoSuchElementException ex) {
             agent.log(Level.WARNING, "Could not find a store builder");
         }
@@ -462,8 +499,10 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
 
     @Override
     public void onErrorBuilding(AID unitAID, String buildingType) {
+        blockedConstructionSites.clear();
         switch (buildingType) {
             case WoaDefinitions.TOWN_HALL:
+                blockConstructionSite(townHallBuilder);
                 unassignTownHallBuilder();
                 tribeResources.refundTownHall();
                 break;
@@ -612,17 +651,42 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
                 .collect(Collectors.toList())
                 .toArray(new AID[units.size()]);
     }
+    
+    private void blockConstructionSite(Unit builder) {
+        try {
+            MapCell blockedSite = graphMap.getCellAt(builder.getCoordX()
+                , builder.getCoordY());
+            blockedConstructionSites.add(blockedSite);
+        } catch (NoSuchElementException ex) {
+            agent.log(Level.WARNING, "Unit " + builder.getId().getLocalName()
+                    + " at unknown position");
+        }
+    }
 
     private Unit findClosestUnit(Collection<Unit> from, MapCellEvaluator evaluator) throws NoSuchElementException {
         return from.stream().min(new CellDistanceComparator(evaluator)).get();
+    }
+
+
+    private Unit findClosestBuilder(Collection<Unit> from
+            , MapCellEvaluator evaluator) throws NoSuchElementException {
+        return from.stream().min(new CellDistanceComparator(evaluator
+                , blockedConstructionSites)).get();
     }
     
     private class CellDistanceComparator implements Comparator<Unit> {
 
         private final MapCellEvaluator evaluator;
+        private final Collection<MapCell> blockedCells;
 
+        public CellDistanceComparator(MapCellEvaluator evaluator, Collection<MapCell> blockedCells) {
+            this.evaluator = evaluator;
+            this.blockedCells = blockedCells;
+        }
+        
         public CellDistanceComparator(MapCellEvaluator evaluator) {
             this.evaluator = evaluator;
+            this.blockedCells = new HashSet<>();
         }
 
         @Override
@@ -630,7 +694,8 @@ final class TribeStrategyBehaviour extends SimpleBehaviour implements UnitStatus
             MapCell unitPosition = graphMap.getCellAt(unit1.getCoordX(), unit1.getCoordY());
 
             MapCell siteCandidate = mapCellFinder
-                    .findMatchingSiteCloseTo(unitPosition, evaluator);
+                    .findMatchingSiteCloseTo(unitPosition, evaluator
+                            , blockedCells);
             
             if (siteCandidate == null) {
                 return Integer.MAX_VALUE;

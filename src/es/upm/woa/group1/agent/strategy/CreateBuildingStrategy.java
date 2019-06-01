@@ -25,6 +25,7 @@ import jade.lang.acl.ACLMessage;
 import java.util.List;
 import java.util.logging.Level;
 import es.upm.woa.group1.agent.CreateBuildingRequestHandler;
+import java.util.HashSet;
 
 /**
  *
@@ -301,13 +302,13 @@ class CreateBuildingStrategy extends Strategy {
             case WoaDefinitions.TOWN_HALL:
                 return constructionSiteFinder.findMatchingSiteCloseTo(agentUnit
                     .getCurrentPosition()
-                    , new TownHallSiteEvaluator(graphKnownMap));
+                    , new TownHallSiteEvaluator(graphKnownMap), new HashSet<>());
             case WoaDefinitions.FARM:
             case WoaDefinitions.STORE:
                 return constructionSiteFinder.findMatchingSiteCloseTo(agentUnit
                     .getCurrentPosition()
                     , new OtherBuildingSiteEvaluator(graphKnownMap
-                            , agentUnit.getTribeAID()));
+                            , agentUnit.getTribeAID()), new HashSet<>());
             default:
                 return null;
         }

@@ -9,6 +9,7 @@ import es.upm.woa.group1.map.finder.LocationFinder;
 import es.upm.woa.group1.map.finder.MapCellEvaluator;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.PathfinderGameMap;
+import java.util.Collection;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -39,18 +40,18 @@ class MapCellFinder implements LocationFinder {
     }
     
     @Override
-    public MapCell findMatchingSite(MapCellEvaluator evaluator) {
-        return findMatch(evaluator);
+    public MapCell findMatchingSite(MapCellEvaluator evaluator, Collection<MapCell> blacklist) {
+        return findMatch(evaluator, blacklist);
     }
     
     @Override
-    public MapCell findMatchingSiteCloseTo(MapCell zero, MapCellEvaluator evaluator) {
-        return findMatchCloseTo(zero, evaluator);
+    public MapCell findMatchingSiteCloseTo(MapCell zero, MapCellEvaluator evaluator, Collection<MapCell> blacklist) {
+        return findMatchCloseTo(zero, evaluator, blacklist);
     }
 
-    private MapCell findMatch(MapCellEvaluator siteEvaluator) {
+    private MapCell findMatch(MapCellEvaluator siteEvaluator, Collection<MapCell> blacklist) {
         for (MapCell candidate : graphMap.getKnownCellsIterable()) {
-            if(siteEvaluator.match(candidate)) {
+            if(!blacklist.contains(candidate) && siteEvaluator.match(candidate)) {
                 return candidate;
             }
         }
@@ -58,14 +59,16 @@ class MapCellFinder implements LocationFinder {
         return null;
     }
     
-    private MapCell findMatchCloseTo(MapCell zero, MapCellEvaluator evaluator) {
-        if (evaluator.match(zero)) {
+    private MapCell findMatchCloseTo(MapCell zero, MapCellEvaluator evaluator
+            , Collection<MapCell> blacklist) {
+        if (!blacklist.contains(zero) && evaluator.match(zero)) {
             return zero;
         }
         
         Queue<MapCell> candidates = new LinkedList<>();
         candidates.addAll(graphMap.getNeighbours(zero));
         Set<MapCell> discarded = new HashSet<>();
+        discarded.addAll(blacklist);
         
         return findMatchFromNeighbours(candidates, evaluator, discarded);
     }
