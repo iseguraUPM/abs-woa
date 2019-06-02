@@ -10,8 +10,6 @@ import es.upm.woa.group1.map.GameMap;
 import es.upm.woa.group1.map.MapCell;
 import es.upm.woa.group1.map.MapCellFactory;
 
-import jade.core.AID;
-
 import org.apache.commons.configuration2.JSONConfiguration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -38,6 +36,8 @@ import java.util.logging.Logger;
 public class WoaConfigurator {
     
     private final static String CONFIG_FILENAME = "woa.properties";
+    
+    private final static int DEFAULT_MAX_TRIBES = 5;
     
     private static WoaConfigurator instance;
     
@@ -78,9 +78,11 @@ public class WoaConfigurator {
             instance.storeUpgradeAmount = properties.getInt("store_upgrade_amount");
             
             if (!properties.containsKey("max_tribes")) {
-                throw new ConfigurationException("Group 1 configuration file not found");
+                instance.maxTribes = properties.getInt("max_tribes");
             }
-            instance.maxTribes = properties.getInt("max_tribes");
+            else {
+                instance.maxTribes = DEFAULT_MAX_TRIBES;
+            }
         }
 
         return instance;
