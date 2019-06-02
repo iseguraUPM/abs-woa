@@ -410,7 +410,7 @@ public class AgWorld extends WoaAgent implements
     }
 
     private void broadcastNotifyUnitPosition(AID[] receipts, Tribe ownerTribe, Cell position) {
-        NotifyUnitPosition notifyUnitPosition = new NotifyUnitPosition();
+        /*NotifyUnitPosition notifyUnitPosition = new NotifyUnitPosition();
 
         notifyUnitPosition.setTribeId(ownerTribe.getAID().getLocalName());
         notifyUnitPosition.setCell(position);
@@ -423,7 +423,7 @@ public class AgWorld extends WoaAgent implements
                 sendMessage(receipts, ACLMessage.INFORM, action, new Conversation.SentMessageHandler() {
                 });
             }
-        });
+        });*/
     }
 
     @Override
