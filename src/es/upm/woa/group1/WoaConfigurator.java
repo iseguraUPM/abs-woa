@@ -77,7 +77,7 @@ public class WoaConfigurator {
             instance.resourceCap = properties.getInt("resource_cap");
             instance.storeUpgradeAmount = properties.getInt("store_upgrade_amount");
             
-            if (!properties.containsKey("max_tribes")) {
+            if (properties.containsKey("max_tribes")) {
                 instance.maxTribes = properties.getInt("max_tribes");
             }
             else {
